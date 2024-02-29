@@ -15,9 +15,6 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "experiments": {
-      "baseUrl": "/sar-ops-risk"
-    },
     "ios": {
       "supportsTablet": true
     },
@@ -31,7 +28,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "output": "static",
+      "output": "single",
       "bundler": "metro"
     },
     "plugins": [
