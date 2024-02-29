@@ -4,12 +4,13 @@
     "slug": "OpsRisk",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "opsrisk",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#faf8ff"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -25,7 +26,11 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
