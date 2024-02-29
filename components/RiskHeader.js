@@ -3,7 +3,7 @@ import Header from './Header';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-export default function RiskHeader({ title, subtitle, score, minimumScore, complete = false, riskText = "", riskColor = "" }) {
+export default function RiskHeader({ title, subtitle, score, minimumScore, complete = false, menu, riskText = "", riskColor = "" }) {
     const onBackPress = () => {
         router.back()
     };
@@ -20,6 +20,9 @@ export default function RiskHeader({ title, subtitle, score, minimumScore, compl
                         </Pressable>
                     </View>
                     <Text style={[styles.title, { color: getTextColor(score, minimumScore, complete) }]}>{title}</Text>
+                    <View style={[styles.menuContainer, {alignSelf: 'stretch'}]}>
+                        {menu}
+                    </View>
                 </View>
                 {complete && <Text style={[styles.score, { color: getTextColor(score, minimumScore, complete) }]}>{riskText === "" ? (score + " - " + getScoreCategory(score, minimumScore)) : riskText}</Text>}
                 <Text style={[styles.action, { color: getTextColor(score, minimumScore, complete) }]}>{subtitle}</Text>
@@ -76,10 +79,11 @@ const styles = StyleSheet.create({
     },
     titleRow: {
         paddingLeft: 6,
-        paddingRight: 20,
+        paddingRight: 12,
         flexDirection: 'row',
         gap: 6,
-        alignItems: 'center'
+        alignItems: 'center',
+        justifyContent: 'space-between'
     },
     action: {
         marginLeft: 20,
@@ -99,6 +103,12 @@ const styles = StyleSheet.create({
         width: 40,
         height: "100%",
         minHeight: 40,
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+    menuContainer: {
+        width: 40,
+        height: 40,
         borderRadius: 20,
         overflow: 'hidden',
     },

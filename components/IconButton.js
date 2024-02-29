@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet, Pressable } from 'react-native';
 
-const IconButton = ({ ionicons_name, onPress, disabled = false, primary = false, tonal = false }) => {
+const IconButton = ({ ionicons_name, onPress, disabled = false, primary = false, tonal = false, color, size}) => {
     const disabledFun = () => { };
     return (
         <View style={[styles.baseContainer, disabled && (primary || tonal) && buttonColors.disabled, primary && buttonColors.primary, tonal && buttonColors.tonal]}>
@@ -9,7 +9,7 @@ const IconButton = ({ ionicons_name, onPress, disabled = false, primary = false,
                 onPress={disabled ? disabledFun : onPress}
                 android_ripple={disabled || { color: '#ffffff' }}
                 style={styles.pressable}>
-                <Ionicons name={ionicons_name} size={24} color={(disabled && textColors.disabled) ||  (primary && textColors.primary) || tonal && textColors.tonal || textColors.basic} />
+                <Ionicons name={ionicons_name} size={size || 24} color={color || (disabled && textColors.disabled) ||  (primary && textColors.primary) || tonal && textColors.tonal || textColors.basic} />
             </Pressable >
         </View >
     );
@@ -37,7 +37,6 @@ const textColors = {
 
 const styles = StyleSheet.create({
     baseContainer: {
-        marginTop: 15,
         alignSelf: 'flex-end',
         height: 40,
         width: 40,

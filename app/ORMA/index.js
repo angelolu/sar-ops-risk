@@ -7,6 +7,7 @@ import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
 import RiskModal from '../../components/RiskModal';
 import FilledButton from '../../components/FilledButton';
+import ShareButton from '../../components/ShareButton';
 
 export default function orma() {
     const minimumScore = 8;
@@ -23,6 +24,10 @@ export default function orma() {
         { title: "Environment", subtitle: "Extreme temperatures, elevations, difficulty of terrain, long approaches and remoteness, not excluding the office environment", score: 0 },
         { title: "Task Complexity", subtitle: "Severity, probability, and exposure of mishap. The potential for incident that would tax the current staffing levels.", score: 0 },
     ]);
+
+    const getResultString = () => {
+        return entries.map(item => `${item.title}\nDescription: ${item.subtitle}\nScore: ${item.score}\n`).join('\n');
+    }
 
     const onItemSelect = (index) => {
         setSelectedEntry(index);
@@ -50,16 +55,18 @@ export default function orma() {
     let isDone = !entries.some(entry => entry.score === 0);
 
     let title = "Score \"" + entries[selectedEntry].title + "\"";
+    let score = entries.reduce((acc, entry) => acc + entry.score, 0);
     setStatusBarStyle(isDone ? "light" : "dark", true);
     return (
         <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
             <RiskHeader
                 sharedTransitionTag="sectionTitle"
                 title="Operational Risk Management Analysis"
-                score={entries.reduce((acc, entry) => acc + entry.score, 0)}
+                score={score}
                 subtitle={isDone ? "Review this score with your team before proceeding" : "Assign a risk score of 1 (for no risk) through 10 (for maximum risk) to each of the elements below"}
                 minimumScore={minimumScore}
                 complete={isDone}
+                menu={isDone && <ShareButton title="ORMA Results" content={"ORMA results\nOverall score: " + score + "\n\n" + getResultString()} color="#ffffff" />}
             />
             {hasAmberScore && isDone &&
                 <View style={styles.warningBar}>

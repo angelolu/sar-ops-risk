@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
+import { setStatusBarStyle } from 'expo-status-bar';
 import { StyleSheet, Text, View, Platform, ScrollView, useWindowDimensions, Image, TouchableWithoutFeedback } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
-import { useSafeAreaFrame } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
 import MaterialCard from '../components/MaterialCard';
@@ -41,10 +41,12 @@ export default function App() {
         setIsModalVisible(false);
     };
 
+    setStatusBarStyle("dark");
+
     return (
         <View style={styles.background}>
             <Header style={Platform.OS === 'web' ? styles.headerWeb : styles.header}>
-                <BrandingBar headerStyle={Platform.OS === 'web' ? styles.headerWeb : styles.header} />
+                <BrandingBar headerStyle={Platform.OS === 'web' ? styles.headerWeb : styles.header} center={Platform.OS === 'web' ? true : true} />
             </Header>
             <ScrollView
                 style={[
@@ -100,7 +102,6 @@ export default function App() {
                     onClose={onModalClose}>
                     {selectedEntry.content}
                 </RiskModal>
-                <StatusBar style="dark" />
             </ScrollView>
         </View>
     );

@@ -7,6 +7,7 @@ import RiskModal from '../../components/RiskModal';
 import FilledButton from '../../components/FilledButton';
 import Banner from '../../components/Banner';
 import { setStatusBarStyle } from 'expo-status-bar';
+import ShareButton from '../../components/ShareButton';
 
 export default function SPE() {
     const minimumScore = 1;
@@ -18,6 +19,10 @@ export default function SPE() {
         { title: "Probability", subtitle: "What is the likelihood of loss or consequence due to this risk?", score: 0, containerColor: '#faf8ff', color: '#1a1b20', description: "" },
         { title: "Exposure", subtitle: "What is the amount of time, cycles, people or equipment involved?", score: 0, containerColor: '#faf8ff', color: '#1a1b20', description: "" },
     ]);
+
+    const getResultString = () => {
+        return entries.map(item => `${item.title}\nDescription: ${item.subtitle}\nScore: ${item.score}\n`).join('\n');
+    }
 
     const onItemSelect = (index) => {
         setSelectedEntry(index);
@@ -114,6 +119,7 @@ export default function SPE() {
                 riskColor={getRiskColor(score, isDone)}
                 minimumScore={minimumScore}
                 complete={isDone}
+                menu={isDone && <ShareButton title="SPE Results" content={"SPE results\nOverall score: " + getRiskText(score, isDone) + "\n" + getRiskAction(score, isDone) + "\n\n" + getResultString()} color="#ffffff" />}
             />
             <ItemList
                 items={entries}

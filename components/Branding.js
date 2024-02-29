@@ -8,13 +8,14 @@ import Animated, {
     Easing,
 } from 'react-native-reanimated';
 
-export default function BrandingBar({ headerStyle }) {
+export default function BrandingBar({ headerStyle, center = false }) {
     const textOpacity = useSharedValue(1); // Shared value for opacity
     const subtitleTranslateX = useSharedValue(0);
     const subtitleDisplay = useSharedValue('flex');
     const subtitleW = useSharedValue(0);
 
     const titleAnimatedStyle = useAnimatedStyle(() => {
+        if (!center) return {};
         return {
             transform: [
                 {
@@ -40,7 +41,7 @@ export default function BrandingBar({ headerStyle }) {
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             textOpacity.value = withTiming(0, { duration: 750, easing: Easing.linear });
-            subtitleTranslateX.value = withTiming(-(subtitleW.value / 2), { duration: 750, easing: Easing.ease });
+            subtitleTranslateX.value = withTiming(-(subtitleW.value / 2), { duration: 750, easing: Easing.back(2) });
         }, 2500);
     });
 
