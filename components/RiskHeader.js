@@ -1,17 +1,15 @@
 import { View, StyleSheet, Text, Platform, Pressable } from 'react-native';
 import Header from './Header';
-import { setStatusBarStyle } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-export default function RiskHeader({ title, subtitle, score, minimumScore, complete = false }) {
+export default function RiskHeader({ title, subtitle, score, minimumScore, complete = false, riskText = "", riskColor = "" }) {
     const onBackPress = () => {
         router.back()
     };
-    setStatusBarStyle((score >= minimumScore && score <= 80) ? "light" : "dark", true);
     return (
-        <Header style={{ backgroundColor: getBackgroundColor(score, minimumScore, complete), borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
-            <View style={[styles.mainContainer, { backgroundColor: getBackgroundColor(score, minimumScore, complete), padding: 0 }]}>
+        <Header style={{ backgroundColor: riskColor === "" ? getBackgroundColor(score, minimumScore, complete) : riskColor, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
+            <View style={[styles.mainContainer, { backgroundColor: riskColor === "" ? getBackgroundColor(score, minimumScore, complete) : riskColor, padding: 0 }]}>
                 <View style={styles.titleRow}>
                     <View style={styles.backButtonContainer}>
                         <Pressable
@@ -23,8 +21,8 @@ export default function RiskHeader({ title, subtitle, score, minimumScore, compl
                     </View>
                     <Text style={[styles.title, { color: getTextColor(score, minimumScore, complete) }]}>{title}</Text>
                 </View>
-                {complete && <Text style={[styles.score, { color: getTextColor(score, minimumScore, complete) }]}>{score + " - " + getScoreCategory(score, minimumScore)}</Text>}
-                <Text style={[styles.action, score < 8 ? { color: "#1a1b20" } : { color: getTextColor(score, minimumScore, complete) }]}>{subtitle}</Text>
+                {complete && <Text style={[styles.score, { color: getTextColor(score, minimumScore, complete) }]}>{riskText === "" ? (score + " - " + getScoreCategory(score, minimumScore)) : riskText}</Text>}
+                <Text style={[styles.action, { color: getTextColor(score, minimumScore, complete) }]}>{subtitle}</Text>
             </View>
         </Header>
     );
@@ -49,7 +47,7 @@ const getTextColor = (value, minimumScore, complete) => {
             return '#ffffff';
         } else if (value >= 36 && value <= 60) {
             return '#ffffff';
-        } else if (value >= 61 && value <= 80) {
+        } else if (value >= 61) {
             return '#ffffff';
         }
     }

@@ -17,6 +17,9 @@ export default function ItemList({ items, onSelect }) {
                     title={item.title}
                     subtitle={item.subtitle}
                     score={item.score}
+                    backgroundColor={item.hasOwnProperty("containerColor") ? item.containerColor : undefined}
+                    color={item.hasOwnProperty("color") ? item.color : undefined}
+                    description={item.hasOwnProperty("description") ? item.description : undefined}
                 />
             )}
         />

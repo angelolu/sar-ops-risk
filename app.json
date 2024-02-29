@@ -15,6 +15,9 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "experiments": {
+      "baseUrl": "/sar-ops-risk"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -23,14 +26,24 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "monochromeImage": "./assets/adaptive-icon-mono.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.angelo.lu.OpsRisk"
     },
     "web": {
       "favicon": "./assets/favicon.png",
+      "output": "static",
       "bundler": "metro"
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "fa9a7646-28ad-47c1-a926-8ed2f29706cd"
+      }
+    }
   }
 }

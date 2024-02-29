@@ -3,7 +3,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import Modal from "react-native-modal";
 
-export default function RiskModal({ isVisible, children, onClose, height, item }) {
+export default function RiskModal({ isVisible, children, onClose, height = 0, title }) {
     return (
         <Modal
             isVisible={isVisible}
@@ -13,21 +13,21 @@ export default function RiskModal({ isVisible, children, onClose, height, item }
             onRequestClose={onClose}
             style={{ margin: 0, alignItems: 'center' }}
             propagateSwipe>
-            <View style={[styles.modalContent]}>
-                <View style={styles.titleContainer}>
-                    <Text style={styles.title}>Score "{item.title}"</Text>
-                    <View style={styles.backButtonContainer}>
-                        <Pressable
-                            style={styles.circleButton}
-                            android_ripple={{ color: '#e2e2e9' }}
-                            onPress={onClose}>
-                            <MaterialIcons name="close" color="#1a1b20" size={22} />
-                        </Pressable>
-                    </View>
+            <View style={[styles.modalContent, height > 0 && { height: height } ]}>
+            <View style={styles.titleContainer}>
+                <Text style={styles.title}>{title}</Text>
+                <View style={styles.backButtonContainer}>
+                    <Pressable
+                        style={styles.circleButton}
+                        android_ripple={{ color: '#e2e2e9' }}
+                        onPress={onClose}>
+                        <MaterialIcons name="close" color="#1a1b20" size={22} />
+                    </Pressable>
                 </View>
-                {children}
             </View>
-        </Modal>
+            {children}
+        </View>
+        </Modal >
     );
 }
 
@@ -42,17 +42,20 @@ const styles = StyleSheet.create({
         maxWidth: 600,
     },
     titleContainer: {
-        height: 56,
+        marginTop: 16,
+        marginBottom: 8,
         backgroundColor: '#faf8ff',
         borderTopRightRadius: 16,
         borderTopLeftRadius: 16,
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 12,
         justifyContent: 'space-between',
     },
     title: {
         fontSize: 20,
+        flex: -1,
         color: '#1a1b20', // Primary text color
     },
     pickerContainer: {

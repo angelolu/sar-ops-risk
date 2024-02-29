@@ -1,18 +1,19 @@
 import { View, Pressable, StyleSheet, Text } from 'react-native';
 
-export default function ListItem({ onPress, title, subtitle, score }) {
+export default function ListItem({ onPress, title, subtitle, score, backgroundColor, color, description }) {
     return (
         <View style={styles.listItemContainer}>
             <Pressable
                 android_ripple={{ color: '#e2e2e9' }}
                 onPress={onPress}>
-                <View style={[styles.row, { backgroundColor: getBackgroundColor(score) }]}>
+                <View style={[styles.row, { backgroundColor: backgroundColor ? backgroundColor : getBackgroundColor(score) }]}>
                     <View style={styles.textColumn}>
-                        <Text style={[styles.Title, { color: getTextColor(score) }]} sharedTransitionTag="sectionTitle">{title}</Text>
+                        <Text style={[styles.Title, { color: color ? color : getTextColor(score) }]}>{title}</Text>
                         <Text>{subtitle}</Text>
+                        {description && <Text style={{marginTop: 4, marginLeft: 6}}>- {description}</Text>}
                     </View>
                     <View>
-                        <Text style={[styles.Score, { color: getTextColor(score) }]}>{(score === 0 || score === '') ? "-" : score}</Text>
+                        <Text style={[styles.Score, { color: color ? color : getTextColor(score) }]}>{(score === 0 || score === '') ? "-" : score}</Text>
                     </View>
                 </View>
             </Pressable>
@@ -49,7 +50,8 @@ const styles = StyleSheet.create({
     },
     row: {
         flexDirection: 'row',
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
         justifyContent: 'space-between',
         alignItems: 'center',
         gap: 25

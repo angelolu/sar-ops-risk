@@ -1,19 +1,18 @@
 import { useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import { setStatusBarStyle } from 'expo-status-bar';
 import { StyleSheet, View, Platform, Text } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
 import RiskModal from '../../components/RiskModal';
-import Button from '../../components/Button';
+import FilledButton from '../../components/FilledButton';
 
 export default function orma() {
     const minimumScore = 8;
 
-    const [headerHeight, setHeaderHeight] = useState(400);
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [selectedEntry, setSelectedEntry] = useState(1);
+    const [isModalVisible, setIsModalVisible] = useState(true);
+    const [selectedEntry, setSelectedEntry] = useState(0);
     const [entries, setEntries] = useState([
         { title: "Supervision", subtitle: "Leadership and supervision are actively engaged, involved, and accessible for all teams and personnel. There is a clear chain of command.", score: 0 },
         { title: "Planning", subtitle: "There is adequate information and proper planning time. JHA’s are current and have been reviewed and signed by all levels. All required equipment, training, and PPE has been provided.", score: 0 },
@@ -50,20 +49,22 @@ export default function orma() {
     let hasAmberScore = entries.some(entry => entry.score >= 5);
     let isDone = !entries.some(entry => entry.score === 0);
 
+    let title = "Score \"" + entries[selectedEntry].title + "\"";
+    setStatusBarStyle(isDone ? "light" : "dark", true);
     return (
         <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
             <RiskHeader
                 sharedTransitionTag="sectionTitle"
                 title="Operational Risk Management Analysis"
                 score={entries.reduce((acc, entry) => acc + entry.score, 0)}
-                subtitle={isDone ? "Review the score with your team before proceeding" : "Assign a risk code of 1 (for no risk) through 10 (for maximum risk) to each of the elements below"}
+                subtitle={isDone ? "Review this score with your team before proceeding" : "Assign a risk score of 1 (for no risk) through 10 (for maximum risk) to each of the elements below"}
                 minimumScore={minimumScore}
                 complete={isDone}
             />
             {hasAmberScore && isDone &&
                 <View style={styles.warningBar}>
                     <Ionicons name="warning" size={24} color="black" />
-                    <Text style={styles.warningText}>Discuss items with a score &gt;= 5 with your team</Text>
+                    <Text style={styles.warningText}>Discuss elements with a score &gt;= 5 with your team</Text>
                 </View>}
             <ItemList
                 items={entries}
@@ -71,13 +72,11 @@ export default function orma() {
             />
             <RiskModal
                 isVisible={isModalVisible}
-                item={entries[selectedEntry]}
-                height={headerHeight}
+                title={title}
                 onClose={onModalClose}
             >
                 <RiskInput selected={selectedEntry} entries={entries} onChangeValue={onChangeValue} onNext={onNext} />
             </RiskModal>
-            <StatusBar style="dark" />
         </View>
     );
 }
@@ -108,6 +107,7 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
             return 'Use the slider below to select a score';
         }
     }
+    const androidSliderPadding = Platform.OS === 'android' ? 12 : Platform.OS === 'web' ? 12 : 0;
     return (
         <View style={riskStyles.container}>
             <Text style={riskStyles.subtitle}>{item.subtitle}</Text>
@@ -115,18 +115,28 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
                 <Text style={[riskStyles.score, { color: getTextColor(item.score) }]}>{item.score}</Text>
                 <Text style={riskStyles.description}>{getDescriptionFromScore(item.score)}</Text>
             </View>
-            <Slider
-                style={{ width: "100%", height: 40 }}
-                minimumValue={1}
-                maximumValue={10}
-                value={item.score}
-                thumbTintColor='#475d92'
-                minimumTrackTintColor={getTextColor(item.score)}
-                maximumTrackTintColor="#d9e2ff"
-                onValueChange={onChangeValue}
-                step={1}
-            />
-            <Button disabled={item.score === 0} text={selected === entries.length - 1 ? "Finish" : "Next element"} onPress={onNext} style={{ alignSelf: "flex-end" }} />
+            <View>
+                <Slider
+                    style={{ width: "100%", height: 40 }}
+                    minimumValue={0}
+                    maximumValue={10}
+                    value={item.score}
+                    thumbTintColor='#475d92'
+                    minimumTrackTintColor="#ffffff00"
+                    maximumTrackTintColor="#ffffff00"
+                    onValueChange={onChangeValue}
+                    step={1}
+                />
+                <View style={{ flexDirection: 'row', gap: 2, top: - 24, zIndex: -1, flex: -1, marginHorizontal: androidSliderPadding, borderRadius: 99, overflow: 'hidden' }}>
+                    {Array.from(Array(10).keys()).map((index) => {
+                        const dotColor = index < item.score ? getTextColor(index + 1) : "#d9e2ff";
+                        return (
+                            <View key={index} style={{ backgroundColor: dotColor, height: 8, flexGrow: 1 }} />
+                        )
+                    })}
+                </View>
+            </View>
+            <FilledButton primary disabled={item.score === 0} text={selected === entries.length - 1 ? "Finish" : "Next element"} onPress={onNext} style={{ alignSelf: "flex-end" }} />
         </View>
     );
 }
@@ -147,10 +157,14 @@ const riskStyles = StyleSheet.create({
     },
     score: {
         fontSize: 40,
+        width: 50,
+        textAlign: "center",
         fontWeight: 'bold',
+        flexShrink: 0
     },
     description: {
-        flex: -1
+        flex: -1,
+        flexShrink: 1
     }
 });
 
