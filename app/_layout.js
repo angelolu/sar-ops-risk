@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import 'expo-dev-client';
 
 export {
     // Catch any errors thrown by the Layout component.
