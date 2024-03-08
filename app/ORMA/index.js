@@ -63,7 +63,7 @@ export default function orma() {
                 sharedTransitionTag="sectionTitle"
                 title="Operational Risk Management Analysis"
                 score={score}
-                subtitle={isDone ? "Review this score with your team before proceeding" : "Assign a risk score of 1 (for no risk) through 10 (for maximum risk) to each of the elements below"}
+                subtitle={isDone ? "Review this score with your team before proceeding" : "Tap each element below to assign a risk score of 1 (for no risk) through 10 (for maximum risk)"}
                 minimumScore={minimumScore}
                 complete={isDone}
                 menu={isDone && <ShareButton title="ORMA Results" content={"ORMA results\nOverall score: " + score + "\n\n" + getResultString()} color="#ffffff" />}

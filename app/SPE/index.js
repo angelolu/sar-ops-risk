@@ -99,7 +99,7 @@ export default function SPE() {
                 return <>Discontinue, <Text style={styles.boldText}>stop immediately</Text></>;
             }
         }
-        return "Assign a risk score to each of the elements below";
+        return "Tap each element below to assign a risk score";
     };
 
     let isDone = !entries.some(entry => entry.score === 0);
