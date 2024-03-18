@@ -24,7 +24,7 @@
         "monochromeImage": "./assets/adaptive-icon-mono.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.angelo.lu.OpsRisk"
+      "package": "org.ca_sar.risk"
     },
     "web": {
       "favicon": "./assets/favicon.png",
