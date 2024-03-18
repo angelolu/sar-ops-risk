@@ -114,50 +114,50 @@ const appStyles = () => {
     const { colorTheme } = useContext(ThemeContext);
 
     return StyleSheet.create({
-    background: {
+        background: {
             backgroundColor: colorTheme.background,
-        height: '100%'
-    },
-    header: {
-        padding: 16,
-        gap: 20,
+            height: '100%'
+        },
+        header: {
+            padding: 16,
+            gap: 20,
             backgroundColor: colorTheme.primaryContainer,
             color: colorTheme.onPrimaryContainer,
-        alignItems: 'center',
-    },
-    headerWeb: {
-        padding: 20,
-        gap: 20,
+            alignItems: 'center',
+        },
+        headerWeb: {
+            padding: 20,
+            gap: 20,
             backgroundColor: colorTheme.background,
             color: colorTheme.primary,
-        alignItems: 'center'
-    },
-    container: {
+            alignItems: 'center'
+        },
+        container: {
             backgroundColor: colorTheme.background,
-        height: '100%'
-    },
-    containerWeb: {
+            height: '100%'
+        },
+        containerWeb: {
             backgroundColor: colorTheme.background,
-        height: '100%',
-        alignSelf: 'center'
-    },
-    mainScroll: {
-        paddingTop: 20,
-        paddingBottom: 20,
-        gap: 20,
-    },
-    horizontalSection: {
-        height: 160,
-        gap: 20,
-        paddingHorizontal: 20,
-    },
-    headings: {
-        fontSize: 22,
+            height: '100%',
+            alignSelf: 'center'
+        },
+        mainScroll: {
+            paddingTop: 20,
+            paddingBottom: 20,
+            gap: 20,
+        },
+        horizontalSection: {
+            height: 160,
+            gap: 20,
+            paddingHorizontal: 20,
+        },
+        headings: {
+            fontSize: 22,
             color: colorTheme.onBackground,
-        marginLeft: 20,
-        marginRight: 20
-    }
-});
+            marginLeft: 20,
+            marginRight: 20
+        }
+    });
 }
 
 function HelpInfo({ subject }) {
@@ -347,32 +347,32 @@ const riskStyles = () => {
     const { colorTheme } = useContext(ThemeContext);
 
     return StyleSheet.create({
-    container: {
+        container: {
 
-    },
-    content: {
-        padding: 20,
-        paddingTop: 0,
-        gap: 12
-    },
-    heading: {
-        fontSize: 22,
-        lineHeight: 28,
+        },
+        content: {
+            padding: 20,
+            paddingTop: 0,
+            gap: 12
+        },
+        heading: {
+            fontSize: 22,
+            lineHeight: 28,
             color: colorTheme.onBackground
         },
         bodyText: {
             color: colorTheme.onBackground
-    },
-    section: {
-        gap: 6
-    },
-    image: {
-        height: undefined,
-        width: "100%",
-        resizeMode: 'contain',
-    },
-    boldText: {
-        fontWeight: 'bold',
-    },
-});
+        },
+        section: {
+            gap: 6
+        },
+        image: {
+            height: undefined,
+            width: "100%",
+            resizeMode: 'contain',
+        },
+        boldText: {
+            fontWeight: 'bold',
+        },
+    });
 }
