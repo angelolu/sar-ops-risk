@@ -1,15 +1,19 @@
-import { useState } from 'react';
-import { setStatusBarStyle } from 'expo-status-bar';
-import { StyleSheet, View, Platform, Text } from 'react-native';
-import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
+import Slider from '@react-native-community/slider';
+import { setStatusBarStyle } from 'expo-status-bar';
+import { useContext, useState } from 'react';
+import { Platform, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import FilledButton from '../../components/FilledButton';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
 import RiskModal from '../../components/RiskModal';
-import FilledButton from '../../components/FilledButton';
 import ShareButton from '../../components/ShareButton';
+import { ThemeContext } from '../../components/ThemeContext';
 
 export default function orma() {
+    const { colorTheme } = useContext(ThemeContext);
+    const styles = pageStyles();
+
     const minimumScore = 8;
 
     const [isModalVisible, setIsModalVisible] = useState(true);
@@ -56,7 +60,7 @@ export default function orma() {
 
     let title = "Score \"" + entries[selectedEntry].title + "\"";
     let score = entries.reduce((acc, entry) => acc + entry.score, 0);
-    setStatusBarStyle(isDone ? "light" : "dark", true);
+    setStatusBarStyle(useColorScheme() === 'light' ? (isDone ? "light" : "dark") : "light", true);
     return (
         <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
             <RiskHeader
@@ -70,7 +74,7 @@ export default function orma() {
             />
             {hasAmberScore && isDone &&
                 <View style={styles.warningBar}>
-                    <Ionicons name="warning" size={24} color="black" />
+                    <Ionicons name="warning" size={24} color={colorTheme.onTertiaryContainer} />
                     <Text style={styles.warningText}>Discuss elements with a score &gt;= 5 with your team</Text>
                 </View>}
             <ItemList
@@ -88,8 +92,44 @@ export default function orma() {
     );
 }
 
+const pageStyles = () => {
+    const { colorTheme } = useContext(ThemeContext);
+
+    return StyleSheet.create({
+        warningBar: {
+            flexDirection: 'row',
+            gap: 10,
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            backgroundColor: colorTheme.tertiaryContainer,
+            alignItems: 'center'
+        },
+        warningText: {
+            flex: -1,
+            color: colorTheme.onTertiaryContainer
+        },
+        container: {
+            flex: 1,
+            backgroundColor: colorTheme.background,
+            height: '100%'
+        },
+        containerWeb: {
+            flex: 1,
+            backgroundColor: colorTheme.background,
+            height: '100%'
+        },
+        listContainer: {
+        }
+    });
+}
+
+
 function RiskInput({ selected, entries, onChangeValue, onNext }) {
+    const { colorTheme } = useContext(ThemeContext);
+    const riskStyles = riskInputStyles();
+
     let item = entries[selected];
+
     const getTextColor = (value) => {
         if (value >= 1 && value <= 4) {
             return '#37693d';
@@ -98,9 +138,10 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
         } else if (value >= 8 && value <= 10) {
             return '#ba1a1a';
         } else {
-            return '#1a1b20';
+            return colorTheme.onBackground;
         }
     };
+
     const getDescriptionFromScore = (value) => {
         if (value >= 1 && value <= 2) {
             return 'No to little concern.';
@@ -114,7 +155,9 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
             return 'Use the slider below to select a score';
         }
     }
+
     const androidSliderPadding = Platform.OS === 'android' ? 12 : Platform.OS === 'web' ? 12 : 0;
+
     return (
         <View style={riskStyles.container}>
             <Text style={riskStyles.subtitle}>{item.subtitle}</Text>
@@ -128,7 +171,7 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
                     minimumValue={0}
                     maximumValue={10}
                     value={item.score}
-                    thumbTintColor='#475d92'
+                    thumbTintColor={colorTheme.primary}
                     minimumTrackTintColor="#ffffff00"
                     maximumTrackTintColor="#ffffff00"
                     onValueChange={onChangeValue}
@@ -136,7 +179,7 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
                 />
                 <View style={{ flexDirection: 'row', gap: 2, top: - 24, zIndex: -1, flex: -1, marginHorizontal: androidSliderPadding, borderRadius: 99, overflow: 'hidden' }}>
                     {Array.from(Array(10).keys()).map((index) => {
-                        const dotColor = index < item.score ? getTextColor(index + 1) : "#d9e2ff";
+                        const dotColor = index < item.score ? getTextColor(index + 1) : colorTheme.primaryContainer;
                         return (
                             <View key={index} style={{ backgroundColor: dotColor, height: 8, flexGrow: 1 }} />
                         )
@@ -148,55 +191,35 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
     );
 }
 
-const riskStyles = StyleSheet.create({
-    container: {
-        padding: 20,
-        paddingTop: 0
-    },
-    subtitle: {
-        fontSize: 16
-    },
-    scorebox: {
-        flexDirection: "row",
-        gap: 20,
-        height: 85,
-        alignItems: 'center'
-    },
-    score: {
-        fontSize: 40,
-        width: 50,
-        textAlign: "center",
-        fontWeight: 'bold',
-        flexShrink: 0
-    },
-    description: {
-        flex: -1,
-        flexShrink: 1
-    }
-});
+const riskInputStyles = () => {
+    const { colorTheme } = useContext(ThemeContext);
 
-const styles = StyleSheet.create({
-    warningBar: {
-        flexDirection: 'row',
-        gap: 10,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        backgroundColor: '#ffdfa0',
-        alignItems: 'center'
-    },
-    warningText: {
-        flex: -1
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#faf8ff',
-        height: '100%'
-    },
-    containerWeb: {
-        flex: 1,
-        backgroundColor: '#faf8ff',
-        height: '100%'
-    },
-    listContainer: {
-    }
-});
+    return StyleSheet.create({
+        container: {
+            padding: 20,
+            paddingTop: 0
+        },
+        subtitle: {
+            color: colorTheme.onSurface,
+            fontSize: 16
+        },
+        scorebox: {
+            flexDirection: "row",
+            gap: 20,
+            height: 85,
+            alignItems: 'center'
+        },
+        score: {
+            fontSize: 40,
+            width: 50,
+            textAlign: "center",
+            fontWeight: 'bold',
+            flexShrink: 0
+        },
+        description: {
+            color: colorTheme.onSurface,
+            flex: -1,
+            flexShrink: 1
+        }
+    });
+}

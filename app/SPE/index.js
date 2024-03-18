@@ -1,23 +1,27 @@
-import { useState } from 'react';
-import { StyleSheet, View, Platform, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { setStatusBarStyle } from 'expo-status-bar';
+import { useContext, useState } from 'react';
+import { Platform, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import Banner from '../../components/Banner';
+import FilledButton from '../../components/FilledButton';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
 import RiskModal from '../../components/RiskModal';
-import FilledButton from '../../components/FilledButton';
-import Banner from '../../components/Banner';
-import { setStatusBarStyle } from 'expo-status-bar';
 import ShareButton from '../../components/ShareButton';
+import { ThemeContext } from '../../components/ThemeContext';
 
 export default function SPE() {
+    const { colorTheme } = useContext(ThemeContext);
+    const styles = pageStyles();
+
     const minimumScore = 1;
 
     const [isModalVisible, setIsModalVisible] = useState(true);
     const [selectedEntry, setSelectedEntry] = useState(0);
     const [entries, setEntries] = useState([
-        { title: "Severity", subtitle: "What is the potential loss or consequence due to this risk?", score: 0, containerColor: '#faf8ff', color: '#1a1b20', description: "" },
-        { title: "Probability", subtitle: "What is the likelihood of loss or consequence due to this risk?", score: 0, containerColor: '#faf8ff', color: '#1a1b20', description: "" },
-        { title: "Exposure", subtitle: "What is the amount of time, cycles, people or equipment involved?", score: 0, containerColor: '#faf8ff', color: '#1a1b20', description: "" },
+        { title: "Severity", subtitle: "What is the potential loss or consequence due to this risk?", score: 0, containerColor: colorTheme.background, color: colorTheme.onBackground, description: "" },
+        { title: "Probability", subtitle: "What is the likelihood of loss or consequence due to this risk?", score: 0, containerColor: colorTheme.background, color: colorTheme.onBackground, description: "" },
+        { title: "Exposure", subtitle: "What is the amount of time, cycles, people or equipment involved?", score: 0, containerColor: colorTheme.background, color: colorTheme.onBackground, description: "" },
     ]);
 
     const getResultString = () => {
@@ -65,7 +69,7 @@ export default function SPE() {
                 return '#ba1a1a';
             }
         }
-        return '#eeedf4';
+        return colorTheme.surfaceContainer;
     };
 
     const getRiskText = (value, complete) => {
@@ -107,7 +111,7 @@ export default function SPE() {
     let title = "Score \"" + entries[selectedEntry].title + "\"";
     let score = entries.reduce((acc, entry) => acc * entry.score, 1);
 
-    setStatusBarStyle(isDone ? "light" : "dark", true);
+    setStatusBarStyle(useColorScheme() === 'light' ? (isDone ? "light" : "dark") : "light", true);
     return (
         <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
             <RiskHeader
@@ -136,10 +140,34 @@ export default function SPE() {
     );
 }
 
-function RiskInput({ selected, entries, onChangeValue, onNext }) {
+const pageStyles = () => {
+    const { colorTheme } = useContext(ThemeContext);
 
-    const disabledColor = "#1a1b20";
-    const disabledBackgroundColor = "#eeedf4";
+    return StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colorTheme.background,
+            height: '100%'
+        },
+        containerWeb: {
+            flex: 1,
+            backgroundColor: colorTheme.background,
+            height: '100%',
+        },
+        listContainer: {
+        },
+        boldText: {
+            fontWeight: 'bold',
+        },
+    });
+}
+
+function RiskInput({ selected, entries, onChangeValue, onNext }) {
+    const { colorTheme } = useContext(ThemeContext);
+    const riskStyles = riskInputStyles();
+
+    const disabledColor = colorTheme.onSurfaceVariant;
+    const disabledBackgroundColor = colorTheme.surfaceVariant;
 
     let item = entries[selected];
 
@@ -220,7 +248,7 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
                     onPress={() => { onChangeValue(5, '#ffb4ab', '#690005', <><Text style={item.score === 5 && riskStyles.boldText}>Likely to happen</Text></>) }}
                     noRadius />
             </View>}
-            {item.title === "Exposure" && <><Text style={{ paddingTop: 8 }}>These definitions are used by CALSAR. Your agency may have different definitions based on risk tolerance and activity type. </Text><View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
+            {item.title === "Exposure" && <><Text style={{ paddingTop: 8, color: colorTheme.onSurface }}>These definitions are used by CALSAR. Your agency may have different definitions based on risk tolerance and activity type. </Text><View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
                 <Banner
                     backgroundColor={item.score === 1 ? '#b9f0b8' : disabledBackgroundColor}
                     color={item.score === 1 ? '#002107' : disabledColor}
@@ -255,48 +283,24 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
     );
 }
 
-const riskStyles = StyleSheet.create({
-    container: {
-        padding: 20,
-        paddingTop: 0
-    },
-    subtitle: {
-        fontSize: 16
-    },
-    description: {
-        flex: -1,
-        flexShrink: 1
-    },
-    boldText: {
-        fontWeight: 'bold',
-    },
-});
+const riskInputStyles = () => {
+    const { colorTheme } = useContext(ThemeContext);
 
-const styles = StyleSheet.create({
-    warningBar: {
-        flexDirection: 'row',
-        gap: 10,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        backgroundColor: '#ffdfa0',
-        alignItems: 'center'
-    },
-    warningText: {
-        flex: -1
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#faf8ff',
-        height: '100%'
-    },
-    containerWeb: {
-        flex: 1,
-        backgroundColor: '#faf8ff',
-        height: '100%',
-    },
-    listContainer: {
-    },
-    boldText: {
-        fontWeight: 'bold',
-    },
-});
+    return StyleSheet.create({
+        container: {
+            padding: 20,
+            paddingTop: 0
+        },
+        subtitle: {
+            color: colorTheme.onSurface,
+            fontSize: 16
+        },
+        description: {
+            flex: -1,
+            flexShrink: 1
+        },
+        boldText: {
+            fontWeight: 'bold',
+        },
+    });
+}

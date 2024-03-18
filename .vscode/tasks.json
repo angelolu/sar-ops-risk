@@ -6,7 +6,7 @@
 			"script": "start",
 			"problemMatcher": [],
 			"label": "npm: start",
-			"detail": "expo start -- --tunnel",
+			"detail": "expo start",
 			"group": {
 				"kind": "build",
 				"isDefault": true

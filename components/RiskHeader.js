@@ -1,12 +1,55 @@
-import { View, StyleSheet, Text, Platform, Pressable } from 'react-native';
-import Header from './Header';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useContext } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Header from './Header';
+
+import { ThemeContext } from '../components/ThemeContext';
 
 export default function RiskHeader({ title, subtitle, score, minimumScore, complete = false, menu, riskText = "", riskColor = "" }) {
+    const { colorTheme } = useContext(ThemeContext);
+
+    const getBackgroundColor = (value, minimumScore, complete) => {    
+        if (complete) {
+            if (value >= minimumScore && value <= 35) {
+                return '#37693d';
+            } else if (value >= 36 && value <= 60) {
+                return '#865219';
+            } else if (value >= 61 && value <= 80) {
+                return '#ba1a1a';
+            }
+        }
+        return colorTheme.surfaceContainer;
+    };
+    
+    const getTextColor = (value, minimumScore, complete) => {
+        if (complete) {
+            if (value >= minimumScore && value <= 35) {
+                return '#ffffff';
+            } else if (value >= 36 && value <= 60) {
+                return '#ffffff';
+            } else if (value >= 61) {
+                return '#ffffff';
+            }
+        }
+        return colorTheme.onSurface;
+    };
+    
+    const getScoreCategory = (value, minimumScore) => {
+        if (value >= minimumScore && value <= 35) {
+            return 'Low Risk';
+        } else if (value >= 36 && value <= 60) {
+            return 'Caution';
+        } else if (value >= 31 && value <= 80) {
+            return 'High Risk';
+        } else {
+            return '-';
+        }
+    };
+
     const onBackPress = () => {
         router.back()
-    };
+    }
     return (
         <Header style={{ backgroundColor: riskColor === "" ? getBackgroundColor(score, minimumScore, complete) : riskColor, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
             <View style={[styles.mainContainer, { backgroundColor: riskColor === "" ? getBackgroundColor(score, minimumScore, complete) : riskColor, padding: 0 }]}>
@@ -14,13 +57,13 @@ export default function RiskHeader({ title, subtitle, score, minimumScore, compl
                     <View style={styles.backButtonContainer}>
                         <Pressable
                             style={styles.circleButton}
-                            android_ripple={{ color: '#e2e2e9' }}
+                            android_ripple={{ color: colorTheme.surfaceContainerHighest }}
                             onPress={onBackPress}>
                             <Ionicons name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} size={24} color={getTextColor(score, minimumScore, complete)} />
                         </Pressable>
                     </View>
                     <Text style={[styles.title, { color: getTextColor(score, minimumScore, complete) }]}>{title}</Text>
-                    <View style={[styles.menuContainer, {alignSelf: 'stretch'}]}>
+                    <View style={[styles.menuContainer, { alignSelf: 'stretch' }]}>
                         {menu}
                     </View>
                 </View>
@@ -29,44 +72,6 @@ export default function RiskHeader({ title, subtitle, score, minimumScore, compl
             </View>
         </Header>
     );
-};
-
-const getBackgroundColor = (value, minimumScore, complete) => {
-    if (complete) {
-        if (value >= minimumScore && value <= 35) {
-            return '#37693d';
-        } else if (value >= 36 && value <= 60) {
-            return '#865219';
-        } else if (value >= 61 && value <= 80) {
-            return '#ba1a1a';
-        }
-    }
-    return '#eeedf4';
-};
-
-const getTextColor = (value, minimumScore, complete) => {
-    if (complete) {
-        if (value >= minimumScore && value <= 35) {
-            return '#ffffff';
-        } else if (value >= 36 && value <= 60) {
-            return '#ffffff';
-        } else if (value >= 61) {
-            return '#ffffff';
-        }
-    }
-    return '#1a1b20';
-};
-
-const getScoreCategory = (value, minimumScore) => {
-    if (value >= minimumScore && value <= 35) {
-        return 'Low Risk';
-    } else if (value >= 36 && value <= 60) {
-        return 'Caution';
-    } else if (value >= 31 && value <= 80) {
-        return 'High Risk';
-    } else {
-        return '-';
-    }
 };
 
 const styles = StyleSheet.create({

@@ -1,13 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet, Pressable } from 'react-native';
+import { useContext } from 'react';
+
+import { ThemeContext } from '../components/ThemeContext';
 
 const IconButton = ({ ionicons_name, onPress, disabled = false, primary = false, tonal = false, color, size}) => {
+    const { colorTheme } = useContext(ThemeContext);
+    const styles = buttonStyles();
+    const textColors = textStyles();
+
     const disabledFun = () => { };
+
     return (
-        <View style={[styles.baseContainer, disabled && (primary || tonal) && buttonColors.disabled, primary && buttonColors.primary, tonal && buttonColors.tonal]}>
+        <View style={[styles.baseContainer, disabled && (primary || tonal) && styles.disabled, primary && styles.primary, tonal && styles.tonal]}>
             <Pressable
                 onPress={disabled ? disabledFun : onPress}
-                android_ripple={disabled || { color: '#ffffff' }}
+                android_ripple={disabled || { color: colorTheme.surfaceContainerHighest }}
                 style={styles.pressable}>
                 <Ionicons name={ionicons_name} size={size || 24} color={color || (disabled && textColors.disabled) ||  (primary && textColors.primary) || tonal && textColors.tonal || textColors.basic} />
             </Pressable >
@@ -15,27 +23,19 @@ const IconButton = ({ ionicons_name, onPress, disabled = false, primary = false,
     );
 };
 
-const buttonColors = StyleSheet.create({
+const buttonStyles = () => {
+    const { colorTheme } = useContext(ThemeContext);
+    return StyleSheet.create({
     primary: {
-        backgroundColor: "#475d92" // md.sys.color.primary
+        backgroundColor: colorTheme.primary
     },
     disabled: {
-        backgroundColor: "#1a1b20", // md.sys.color.on-surface
+        backgroundColor: colorTheme.onSurface,
         opacity: 0.12
     },
     tonal:{
-        backgroundColor: "#dce2f9", // md.sys.color.secondary-container
-    }
-});
-
-const textColors = {
-    basic: "#44464f",
-    primary: "#ffffff",// md.sys.color.on-primary
-    disabled: "#1a1b20", // md.sys.color.on-surface
-    tonal: "#141b2c", // md.sys.color.on-secondary-container
-};
-
-const styles = StyleSheet.create({
+        backgroundColor: colorTheme.secondaryContainer,
+    },
     baseContainer: {
         alignSelf: 'flex-end',
         height: 40,
@@ -49,5 +49,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     }
 });
+}
+
+const textStyles = () => {
+    const { colorTheme } = useContext(ThemeContext);
+    return StyleSheet.create({
+    basic: colorTheme.onSurfaceVariant,
+    primary: colorTheme.onPrimary,
+    disabled: colorTheme.onSurface,
+    tonal: colorTheme.onSecondaryContainer,
+});
+}
 
 export default IconButton;

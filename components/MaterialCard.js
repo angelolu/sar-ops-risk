@@ -1,37 +1,47 @@
 import { router } from 'expo-router';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useContext } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-const MaterialCard = ({ title, subtitle, children, href = "" }) => {
+import { ThemeContext } from '../components/ThemeContext';
+
+const MaterialCard = ({ title, subtitle, children, href = "", color }) => {
+  const { colorTheme } = useContext(ThemeContext);
+  if (typeof color === 'undefined') color = colorTheme.surfaceContainer;
+  const styles = cardStyles();
+
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: color }]}>
       <Pressable
         onPress={() => { router.navigate(href) }}
-        android_ripple={href === "" ? {} : { color: '#e2e2e9' }}
+        android_ripple={href === "" ? {} : { color: colorTheme.surfaceContainerHighest }}
         style={{ flexGrow: 1, padding: 24 }}>
         {title && <Text style={styles.title}>{title}</Text>}
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        {subtitle && <Text style={[styles.subtitle, title ? {} : { marginTop: 0 }]}>{subtitle}</Text>}
         {children}
       </Pressable>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    marginLeft: 20,
-    marginRight: 20,
-    borderRadius: 26, // Rounded corners
-    overflow: 'hidden',
-    backgroundColor: '#eeedf4',
-  },
-  title: {
-    fontSize: 20,
-    color: '#475d92', // Primary text color
-  },
-  subtitle: {
-    color: '#1a1b20', // On surface var
-    marginTop: 8,
-  },
-});
+const cardStyles = () => {
+  const { colorTheme } = useContext(ThemeContext);
+
+  return StyleSheet.create({
+    card: {
+      marginLeft: 20,
+      marginRight: 20,
+      borderRadius: 26, // Rounded corners
+      overflow: 'hidden',
+    },
+    title: {
+      fontSize: 20,
+      color: colorTheme.primary,
+    },
+    subtitle: {
+      color: colorTheme.onSurface,
+      marginTop: 8,
+    },
+  });
+}
 
 export default MaterialCard;

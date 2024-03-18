@@ -1,6 +1,12 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { ThemeContext } from '../components/ThemeContext';
+import { useContext } from 'react';
 
-const Banner = ({ title, icon, backgroundColor = '#eeedf4', color = '#eeedf4', pad = false, noRadius = false, onPress }) => {
+const Banner = ({ title, icon, backgroundColor, color, pad = false, noRadius = false, onPress }) => {
+    const { colorTheme } = useContext(ThemeContext);
+    if (typeof backgroundColor === 'undefined') backgroundColor = colorTheme.surfaceVariant;
+    if (typeof color === 'undefined') color = colorTheme.onSurfaceVariant;
+
     if (onPress === undefined) return (
         <View style={[styles.card, { backgroundColor: backgroundColor }, pad && { marginLeft: 20, marginRight: 20 }, noRadius && { borderRadius: 0 }]}>
             <View style={[styles.cardContainer]}>

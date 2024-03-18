@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'expo-dev-client';
+import { ThemeProvider } from '../components/ThemeContext';
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -14,21 +15,23 @@ export const unstable_settings = {
 
 export default function RootLayout() {
     return (
-        <SafeAreaProvider>
-            <Stack
-                screenOptions={{
-                    // Hide the header for all other routes.
-                    headerShown: false,
-                }}
-            >
-                <Stack.Screen
-                    name="index"
-                    options={{
-                        // Hide the header for this route
+        <ThemeProvider>
+            <SafeAreaProvider>
+                <Stack
+                    screenOptions={{
+                        // Hide the header for all other routes.
                         headerShown: false,
                     }}
-                />
-            </Stack>
-        </SafeAreaProvider>
+                >
+                    <Stack.Screen
+                        name="index"
+                        options={{
+                            // Hide the header for this route
+                            headerShown: false,
+                        }}
+                    />
+                </Stack>
+            </SafeAreaProvider>
+        </ThemeProvider>
     );
 }

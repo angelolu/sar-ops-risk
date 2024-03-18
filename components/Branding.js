@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
     useAnimatedStyle,
@@ -8,11 +8,15 @@ import Animated, {
     Easing,
 } from 'react-native-reanimated';
 
+import { ThemeContext } from '../components/ThemeContext';
+
 export default function BrandingBar({ headerStyle, center = false }) {
     const textOpacity = useSharedValue(1); // Shared value for opacity
     const subtitleTranslateX = useSharedValue(0);
     const subtitleDisplay = useSharedValue('flex');
     const subtitleW = useSharedValue(0);
+
+    const styles = brandingStyles();
 
     const titleAnimatedStyle = useAnimatedStyle(() => {
         if (!center) return {};
@@ -48,7 +52,7 @@ export default function BrandingBar({ headerStyle, center = false }) {
     return (
         <View
             style={styles.brandingBanner}>
-            <Animated.Text style={[styles.Title, { backgroundColor: headerStyle.backgroundColor, color: headerStyle.color }, titleAnimatedStyle]}>OpsRisk</Animated.Text>
+            <Animated.Text style={[styles.title, { backgroundColor: headerStyle.backgroundColor, color: headerStyle.color }, titleAnimatedStyle]}>OpsRisk</Animated.Text>
             <Animated.Text
                 style={[styles.Subtitle, subtitleAnimatedStyle]}
                 onLayout={(event) => {
@@ -59,21 +63,25 @@ export default function BrandingBar({ headerStyle, center = false }) {
     );
 }
 
-const styles = StyleSheet.create({
-    brandingBanner: {
-        marginTop: 10,
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        columnGap: 0,
-    },
-    Title: {
-        fontSize: 26,
-        fontWeight: "bold",
-        zIndex: 5
-    },
-    Subtitle: {
-        fontSize: 22,
-        color: "#44464f",
-        marginBottom: 2
-    },
-});
+const brandingStyles = () => {
+    const { colorTheme } = useContext(ThemeContext);
+
+    return StyleSheet.create({
+        brandingBanner: {
+            marginTop: 10,
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            columnGap: 0,
+        },
+        title: {
+            fontSize: 26,
+            fontWeight: "bold",
+            zIndex: 5
+        },
+        Subtitle: {
+            fontSize: 22,
+            color: colorTheme.onSurfaceVariant,
+            marginBottom: 2
+        },
+    });
+}
