@@ -9,7 +9,7 @@ import { ThemeContext } from '../components/ThemeContext';
 export default function RiskHeader({ title, subtitle, score, minimumScore, complete = false, menu, riskText = "", riskColor = "" }) {
     const { colorTheme } = useContext(ThemeContext);
 
-    const getBackgroundColor = (value, minimumScore, complete) => {    
+    const getBackgroundColor = (value, minimumScore, complete) => {
         if (complete) {
             if (value >= minimumScore && value <= 35) {
                 return '#37693d';
@@ -21,7 +21,7 @@ export default function RiskHeader({ title, subtitle, score, minimumScore, compl
         }
         return colorTheme.surfaceContainer;
     };
-    
+
     const getTextColor = (value, minimumScore, complete) => {
         if (complete) {
             if (value >= minimumScore && value <= 35) {
@@ -34,7 +34,7 @@ export default function RiskHeader({ title, subtitle, score, minimumScore, compl
         }
         return colorTheme.onSurface;
     };
-    
+
     const getScoreCategory = (value, minimumScore) => {
         if (value >= minimumScore && value <= 35) {
             return 'Low Risk';

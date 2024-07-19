@@ -1,0 +1,46 @@
+Effective Date: 07/18/2024
+
+Introduction
+
+This Privacy Policy describes the data collection and usage practices of the OpsRisk mobile and web application (the "App") developed by California Search and Rescue, "CALSAR" ("we," "us," or "our").
+
+We are committed to protecting the privacy of our users. This Privacy Policy explains what information the App may collect, how we use it, and under what circumstances we may disclose it.
+
+Information Collected by the App
+
+The App does not collect any personal information from users. It functions entirely on the device and does not transmit any data about your search and rescue operations or user activity.
+
+Information Collected by Expo App Services
+
+The App utilizes Expo, a mobile app development platform. Expo may collect limited information to ensure proper functionality of the App. This information may include:
+
+- Device identifier (such as a unique device ID)
+- Operating system version
+- App version
+This information is used solely by Expo for internal purposes related to app development and analytics and is not used by us to identify individual users. You can find more about Expo's privacy practices at https://expo.dev/privacy.
+
+Use of Information
+
+We do not use any information collected by the App or through Expo for any purpose other than ensuring the proper functioning of the App.
+
+Sharing of Information
+
+We do not share any information collected by the App or through Expo with any third parties.
+
+Security
+
+We take reasonable measures to protect the security of any information collected through Expo app services. However, no internet-based system is completely secure, and we cannot guarantee the security of your information.
+
+Changes to this Privacy Policy
+
+We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on the App. You are advised to review this Privacy Policy periodically for any changes.
+
+Contact Us
+
+If you have any questions about this Privacy Policy, please contact us at:
+
+developer@ca-sar.org
+
+Disclaimer
+
+This Privacy Policy applies only to the App. This App may contain links to other applications or websites that are not operated by us. We are not responsible for the privacy practices of any other applications or websites. We encourage you to read the privacy policies of any other applications or websites you visit.

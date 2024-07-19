@@ -18,7 +18,7 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
             return colorTheme.surface;
         }
     };
-    
+
     const getSubtitleColor = (value) => {
         if (value >= 1) {
             return getTextColor(value);
@@ -26,7 +26,7 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
             return colorTheme.onSurfaceVariant;
         }
     }
-    
+
     const getTextColor = (value) => {
         if (value >= 1 && value <= 4) {
             return '#002107';

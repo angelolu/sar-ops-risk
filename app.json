@@ -7,16 +7,21 @@
     "scheme": "opsrisk",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#faf8ff"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "splash": {
+        "image": "./assets/splash_light.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F7F9FF",
+        "dark": {
+          "image": "./assets/splash_dark.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#101418"
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +29,17 @@
         "monochromeImage": "./assets/adaptive-icon-mono.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "org.ca_sar.risk"
+      "package": "org.ca_sar.risk",
+      "splash": {
+        "image": "./assets/splash_light.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F7F9FF",
+        "dark": {
+          "image": "./assets/splash_dark.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#101418"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png",
