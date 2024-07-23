@@ -2,7 +2,7 @@
   "expo": {
     "name": "OpsRisk",
     "slug": "OpsRisk",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "scheme": "opsrisk",
     "icon": "./assets/icon.png",
@@ -62,6 +62,7 @@
     },
     "updates": {
       "url": "https://u.expo.dev/fa9a7646-28ad-47c1-a926-8ed2f29706cd"
-    }
+    },
+    "owner": "angelo.lu"
   }
 }

@@ -11,7 +11,7 @@ import ShareButton from '../../components/ShareButton';
 import { ThemeContext } from '../../components/ThemeContext';
 
 export default function SPE() {
-    const { colorTheme } = useContext(ThemeContext);
+    const { colorTheme, colorScheme } = useContext(ThemeContext);
     const styles = pageStyles();
 
     const minimumScore = 1;
@@ -107,11 +107,11 @@ export default function SPE() {
     };
 
     let isDone = !entries.some(entry => entry.score === 0);
+    setStatusBarStyle(colorScheme === 'light' ? (isDone ? "light" : "dark") : "light", true);
 
     let title = "Score \"" + entries[selectedEntry].title + "\"";
     let score = entries.reduce((acc, entry) => acc * entry.score, 1);
 
-    setStatusBarStyle(useColorScheme() === 'light' ? (isDone ? "light" : "dark") : "light", true);
     return (
         <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
             <RiskHeader

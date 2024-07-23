@@ -7,7 +7,7 @@ import { Image, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback
 import Banner from '../components/Banner';
 import BrandingBar from '../components/Branding';
 import FilledButton from '../components/FilledButton';
-import Header from '../components/Header';
+import Header from '../components/Headers';
 import IconButton from '../components/IconButton';
 import MaterialCard from '../components/MaterialCard';
 import RiskModal from '../components/RiskModal';
@@ -17,8 +17,8 @@ import Tile from '../components/Tile';
 const ORMAOptions = require('../assets/images/orma-options.jpg');
 
 export default function App() {
-    const { colorTheme } = useContext(ThemeContext);
-    useColorScheme() === 'light' ? setStatusBarStyle("dark") : setStatusBarStyle("light");
+    const { colorTheme, colorScheme } = useContext(ThemeContext);
+    setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
 
     const styles = appStyles();
     const [modalHeight, setmodalHeight] = useState(1000);
@@ -45,8 +45,6 @@ export default function App() {
         setIsModalVisible(false);
     };
 
-    setStatusBarStyle("dark");
-
     return (
         <View style={styles.background}>
             <Header style={Platform.OS === 'web' ? styles.headerWeb : styles.header}>
@@ -58,7 +56,6 @@ export default function App() {
                     { maxWidth: (width > 850 ? 850 : width) }
                 ]}
                 contentContainerStyle={styles.mainScroll}>
-                <Text style={styles.headings}>Risk Assessment/GAR</Text>
                 <Banner
                     backgroundColor={colorTheme.tertiaryContainer}
                     color={colorTheme.onTertiaryContainer}
@@ -85,16 +82,21 @@ export default function App() {
                         <FilledButton primary text="Complete a SPE" onPress={() => { router.navigate("/SPE") }} />
                     </View>
                 </MaterialCard>
-                <Text style={styles.headings}>Reference</Text>
+                <Text style={styles.headings}>Miscellaneous</Text>
                 <ScrollView
                     contentContainerStyle={styles.horizontalSection}
                     showsHorizontalScrollIndicator={Platform.OS === 'web'}
                     horizontal>
                     <Tile
+                        href="settings"
+                        icon={<Ionicons name="settings" size={24} color={colorTheme.primary} style={{ marginBottom: 8 }} />}
+                        title="Settings"
+                        width={150}
+                    />
+                    <Tile
                         href="https://sites.google.com/cal-esar.org/members-only"
-                        icon={<Ionicons name="bookmarks" size={24} color={colorTheme.secondary} style={{ marginBottom: 8 }} />}
-                        title="Members"
-                        subtitle="CALSAR Member Site"
+                        icon={<Ionicons name="bookmarks" size={24} color={colorTheme.primary} style={{ marginBottom: 8 }} />}
+                        title="CALSAR Members"
                         width={150}
                     />
                 </ScrollView>
@@ -147,8 +149,8 @@ const appStyles = () => {
             gap: 20,
         },
         horizontalSection: {
-            height: 160,
-            gap: 20,
+            gap: 15,
+            width: '100%',
             paddingHorizontal: 20,
         },
         headings: {
@@ -237,9 +239,9 @@ function HelpInfo({ subject }) {
             <TouchableWithoutFeedback>
                 <View style={styles.content}>
                     <Banner
-                        backgroundColor='#ffdfa0'
-                        color='#261a00'
-                        icon={<Ionicons name="warning" size={24} color="#141b2c" />}
+                        backgroundColor={colorTheme.tertiaryContainer}
+                        color={colorTheme.onTertiaryContainer}
+                        icon={<Ionicons name="warning" size={24} color={colorTheme.onTertiaryContainer} />}
                         title="SPE is not appropriate for assessing a whole operation and is not a tool for risk mitigation." />
                     <View style={styles.section}>
                         <Text style={styles.heading}>What is SPE?</Text>
