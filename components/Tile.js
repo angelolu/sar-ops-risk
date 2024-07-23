@@ -28,7 +28,7 @@ const tileStyles = () => {
 
     return StyleSheet.create({
         card: {
-            backgroundColor: colorTheme.secondaryContainer,
+            backgroundColor: colorTheme.surfaceContainer,
             borderRadius: 26, // Rounded corners
             overflow: 'hidden',
         },
@@ -37,7 +37,7 @@ const tileStyles = () => {
             color: colorTheme.primary,
         },
         subtitle: {
-            color: colorTheme.onSurfaceVariant,
+            color: colorTheme.onSurface,
         },
     });
 }

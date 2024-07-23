@@ -47,7 +47,7 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
                 <View style={[styles.row, { backgroundColor: backgroundColor ? backgroundColor : getBackgroundColor(score) }]}>
                     <View style={styles.textColumn}>
                         <Text style={[styles.Title, { color: color ? color : getTextColor(score) }]}>{title}</Text>
-                        <Text style={{ color: getSubtitleColor(score) }}>{subtitle}</Text>
+                        {subtitle && <Text style={{ color: getSubtitleColor(score) }}>{subtitle}</Text>}
                         {description && <Text style={{ marginTop: 4, marginLeft: 6 }}>- {description}</Text>}
                     </View>
                     <View>
@@ -68,7 +68,7 @@ const itemStyles = () => {
         row: {
             flexDirection: 'row',
             paddingHorizontal: 20,
-            paddingVertical: 16,
+            paddingVertical: 10,
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: 25

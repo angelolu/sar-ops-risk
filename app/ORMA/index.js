@@ -11,7 +11,7 @@ import ShareButton from '../../components/ShareButton';
 import { ThemeContext } from '../../components/ThemeContext';
 
 export default function orma() {
-    const { colorTheme } = useContext(ThemeContext);
+    const { colorTheme, colorScheme } = useContext(ThemeContext);
     const styles = pageStyles();
 
     const minimumScore = 8;
@@ -57,10 +57,10 @@ export default function orma() {
 
     let hasAmberScore = entries.some(entry => entry.score >= 5);
     let isDone = !entries.some(entry => entry.score === 0);
+    setStatusBarStyle(colorScheme === 'light' ? (isDone ? "light" : "dark") : "light", true);
 
     let title = "Score \"" + entries[selectedEntry].title + "\"";
     let score = entries.reduce((acc, entry) => acc + entry.score, 0);
-    setStatusBarStyle(useColorScheme() === 'light' ? (isDone ? "light" : "dark") : "light", true);
     return (
         <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
             <RiskHeader
