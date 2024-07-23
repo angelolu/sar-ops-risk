@@ -17,7 +17,10 @@
     },
     "production": {
       "channel": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "image": "latest"
+      }
     }
   },
   "submit": {
