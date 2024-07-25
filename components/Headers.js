@@ -1,8 +1,8 @@
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useContext } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useContext } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemeContext } from './ThemeContext';
 
 export default function Header({ children, style }) {
@@ -18,7 +18,7 @@ export default function Header({ children, style }) {
 export function BackHeader({ children, title, subtitle, backgroundColor, color, menuButton }) {
     const { colorTheme } = useContext(ThemeContext);
     return (
-        <Header style={{ backgroundColor: backgroundColor, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
+        <Header style={{ backgroundColor: backgroundColor ? backgroundColor : colorTheme.primaryContainer, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
             <View style={styles.mainContainer}>
                 <View style={styles.titleRow}>
                     <View style={styles.backButtonContainer}>
@@ -29,13 +29,13 @@ export function BackHeader({ children, title, subtitle, backgroundColor, color, 
                             <Ionicons name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} size={24} color={color} />
                         </Pressable>
                     </View>
-                    <Text style={[styles.title, { color: color }]}>{title}</Text>
+                    <Text style={[styles.title, { color: color ? color : colorTheme.onPrimaryContainer }]}>{title}</Text>
                     {menuButton ? <View style={[styles.menuContainer, { alignSelf: 'stretch' }]}>
                         {menuButton}
                     </View> : <View></View>}
                 </View>
                 {children}
-                {subtitle && <Text style={[styles.action, { color: color }]}>{subtitle}</Text>}
+                {subtitle && <Text style={[styles.action, { color: color ? color : colorTheme.onPrimaryContainer }]}>{subtitle}</Text>}
             </View>
         </Header>
     );

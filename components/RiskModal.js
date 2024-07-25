@@ -42,7 +42,7 @@ const modalStyles = () => {
     return StyleSheet.create({
         modalContent: {
             width: '100%',
-            backgroundColor: colorTheme.surfaceContainer,
+            backgroundColor: colorTheme.surfaceContainerHigh,
             borderTopRightRadius: 16,
             borderTopLeftRadius: 16,
             position: 'absolute',
@@ -52,7 +52,7 @@ const modalStyles = () => {
         titleContainer: {
             marginTop: 16,
             marginBottom: 8,
-            backgroundColor: colorTheme.surfaceContainer,
+            backgroundColor: colorTheme.surfaceContainerHigh,
             borderTopRightRadius: 16,
             borderTopLeftRadius: 16,
             paddingHorizontal: 20,

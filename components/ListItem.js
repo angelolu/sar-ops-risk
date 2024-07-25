@@ -1,65 +1,109 @@
-import { useContext } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useContext, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ThemeContext } from '../components/ThemeContext';
 
-export default function ListItem({ onPress, title, subtitle, score, backgroundColor, color, description }) {
+export default function ListItem({ onPress, title, subtitle, score, backgroundColor, color, description = "" }) {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = itemStyles();
 
-    const getBackgroundColor = (value) => {
-        if (value >= 1 && value <= 4) {
-            return '#b9f0b8';
-        } else if (value >= 5 && value <= 7) {
-            return '#ffdeae';
-        } else if (value >= 8 && value <= 10) {
-            return '#ffdad6';
-        } else {
-            return colorTheme.surface;
-        }
-    };
+    const [listStyle, setListStyle] = useState(null);
+    useEffect(() => {
+        // Get language setting used for ORMA
+        AsyncStorage.getItem("list-style").then((jsonValue) => {
+            jsonValue != null ? setListStyle(JSON.parse(jsonValue)) : setListStyle(null);
+        }).catch((e) => {
+            // error reading value
+        });
+    }, []);
 
-    const getSubtitleColor = (value) => {
-        if (value >= 1) {
-            return getTextColor(value);
-        } else {
-            return colorTheme.onSurfaceVariant;
-        }
+    let styles;
+
+    if (listStyle === "legacy") {
+        styles = itemStylesClassic();
+        return (
+            <View style={styles.listItemContainer}>
+                <Pressable
+                    android_ripple={{ color: colorTheme.surfaceContainerHighest }}
+                    onPress={onPress}>
+                    <View style={[styles.row, { backgroundColor: backgroundColor ? backgroundColor : colorTheme.surface }]}>
+                        <View style={styles.textColumn}>
+                            <Text style={[styles.Title, { color: color ? color : colorTheme.onSurface }]}>{title}</Text>
+                            {subtitle && <Text style={{ color: color ? color : colorTheme.onSurfaceVariant }}>{subtitle}</Text>}
+                            {description !== "" && <Text style={{ marginTop: 4, marginLeft: 6, color: color ? color : colorTheme.onSurfaceVariant }}>- {description}</Text>}
+                        </View>
+                        <View>
+                            <Text style={[styles.score, { color: color ? color : colorTheme.onSurface }]}>{(score === 0 || score === '') ? "-" : score}</Text>
+                        </View>
+                    </View>
+                </Pressable>
+            </View>
+        );
+    } else {
+        styles = itemStyles();
+        return (
+            <View>
+                <Pressable
+                    android_ripple={{ color: colorTheme.surfaceContainerHighest }}
+                    onPress={onPress}>
+                    <View style={styles.row}>
+                        <View style={[styles.littleBox, { backgroundColor: backgroundColor ? backgroundColor : colorTheme.surfaceVariant }]}>
+                            <Text style={[styles.score, { color: color ? color : colorTheme.white }]}>{(score && score !== 0) ? score : "-"}</Text>
+                        </View>
+                        <View style={styles.textColumn}>
+                            <Text style={styles.headline}>{title}</Text>
+                            {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                            {description !== "" && <Text style={{ marginTop: 4, marginLeft: 6, color: colorTheme.onSurfaceVariant }}>- {description}</Text>}
+                        </View>
+                    </View>
+                </Pressable>
+            </View>
+        );
     }
-
-    const getTextColor = (value) => {
-        if (value >= 1 && value <= 4) {
-            return '#002107';
-        } else if (value >= 5 && value <= 7) {
-            return '#281900';
-        } else if (value >= 8 && value <= 10) {
-            return '#410002';
-        } else {
-            return colorTheme.onSurface;
-        }
-    };
-
-    return (
-        <View style={styles.listItemContainer}>
-            <Pressable
-                android_ripple={{ color: colorTheme.surfaceContainerHighest }}
-                onPress={onPress}>
-                <View style={[styles.row, { backgroundColor: backgroundColor ? backgroundColor : getBackgroundColor(score) }]}>
-                    <View style={styles.textColumn}>
-                        <Text style={[styles.Title, { color: color ? color : getTextColor(score) }]}>{title}</Text>
-                        {subtitle && <Text style={{ color: getSubtitleColor(score) }}>{subtitle}</Text>}
-                        {description && <Text style={{ marginTop: 4, marginLeft: 6 }}>- {description}</Text>}
-                    </View>
-                    <View>
-                        <Text style={[styles.score, { color: color ? color : getTextColor(score) }]}>{(score === 0 || score === '') ? "-" : score}</Text>
-                    </View>
-                </View>
-            </Pressable>
-        </View>
-    );
 }
 
 const itemStyles = () => {
+    const { colorTheme } = useContext(ThemeContext);
+
+    return StyleSheet.create({
+        row: {
+            flexDirection: 'row',
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 16,
+            backgroundColor: colorTheme.surface,
+            alignItems: 'flex-start'
+        },
+        textColumn: {
+            flex: 1,
+        },
+        score: {
+            fontSize: 26,
+            fontWeight: 'bold',
+        },
+        headline: {
+            fontSize: 20,
+            color: colorTheme.onSurface
+        },
+        subtitle: {
+            fontSize: 14,
+            lineHeight: 20,
+            color: colorTheme.onSurfaceVariant
+        },
+        littleBox: {
+            width: 56,
+            height: 56,
+            marginTop: 6,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 12,
+        }
+    });
+}
+
+const itemStylesClassic = () => {
     const { colorTheme } = useContext(ThemeContext);
 
     return StyleSheet.create({
@@ -68,7 +112,7 @@ const itemStyles = () => {
         row: {
             flexDirection: 'row',
             paddingHorizontal: 20,
-            paddingVertical: 10,
+            paddingVertical: 12,
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: 25
