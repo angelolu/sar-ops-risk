@@ -1,10 +1,10 @@
+import { useContext } from 'react';
 import { FlatList, Platform, View } from 'react-native';
 import ListItem from './ListItem';
-import { useContext } from 'react';
 
 import { ThemeContext } from '../components/ThemeContext';
 
-export default function ItemList({ items, onSelect }) {
+export default function ItemList({ items, onSelect = () => { } }) {
     return (
         <FlatList
             vertical
@@ -32,6 +32,6 @@ export default function ItemList({ items, onSelect }) {
 const ItemSeparatorComponent = () => {
     const { colorTheme } = useContext(ThemeContext);
     return (
-        <View style={{ height: 1, backgroundColor: colorTheme.outlineVariant }} />
+        <View style={{ height: 1, backgroundColor: colorTheme.surfaceVariant }} />
     );
 };

@@ -1,6 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useEffect, useState } from 'react';
 import { Appearance, useColorScheme } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import themeColors from '../assets/theme.json';
 
@@ -15,15 +15,21 @@ const getData = async (key) => {
   }
 };
 
+const extractThemeFromScheme = (scheme) => {
+  let theme = scheme === 'light' ? themeColors.schemes.light : themeColors.schemes.dark;
+  theme = { ...theme, ...themeColors.customColors };
+  return theme;
+}
+
 export const ThemeProvider = ({ children }) => {
   const [colorScheme, setColorScheme] = useState(useColorScheme());
-  const [colorTheme, setColorTheme] = useState(colorScheme === 'light' ? themeColors.schemes.light : themeColors.schemes.dark);
+  const [colorTheme, setColorTheme] = useState(extractThemeFromScheme(colorScheme));
 
   const [savedScheme, setSavedScheme] = useState(null);
 
   const changeColorScheme = (scheme) => {
     if (scheme === 'dark' || scheme === 'light') setColorScheme(scheme);
-    setColorTheme(scheme === 'light' ? themeColors.schemes.light : themeColors.schemes.dark);
+    setColorTheme(extractThemeFromScheme(scheme));
   }
 
   useEffect(() => {
@@ -46,16 +52,13 @@ export const ThemeProvider = ({ children }) => {
         // skip updating the scheme if the scheme is overridden by the user
         if (savedScheme === null) {
           const scheme = preferences?.colorScheme;
-          setColorScheme(scheme);
-
-          const theme = scheme === 'light' ? themeColors.schemes.light : themeColors.schemes.dark;
-          setColorTheme(theme);
+          changeColorScheme(scheme);
         }
       },
     );
 
     return () => subscription?.remove();
-  }, [setColorScheme, setColorTheme, savedScheme]);
+  }, [setColorTheme, savedScheme]);
 
   return (
     <ThemeContext.Provider value={{ colorTheme, setColorScheme, colorScheme, changeColorScheme }}>

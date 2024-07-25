@@ -1,11 +1,11 @@
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { setStatusBarStyle } from 'expo-status-bar';
-import { useContext, useState, useEffect } from 'react';
-import { Platform, StyleSheet, Text, View, useColorScheme, ScrollView, useWindowDimensions } from 'react-native';
-import Banner from '../../components/Banner';
-import { ThemeContext } from '../../components/ThemeContext';
-import { BackHeader } from '../../components/Headers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setStatusBarStyle } from 'expo-status-bar';
+import { useContext, useEffect, useState } from 'react';
+import { Platform, ScrollView, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
+import Banner from '../../components/Banner';
+import { BackHeader } from '../../components/Headers';
+import { ThemeContext } from '../../components/ThemeContext';
 
 const saveData = async (key, value) => {
     try {
@@ -38,16 +38,22 @@ export default function Settings() {
         setAppearanceState(value);
         saveData("appearance", value);
     };
-    const [languageState, setLanguageState] = useState(1);
+    const [languageState, setLanguageState] = useState("nps");
     const saveLanguage = (value) => {
         setLanguageState(value);
-        saveData("language", value);
+        saveData("language-orma", value);
+    };
+    const [listStyleState, setListStyleState] = useState("new");
+    const saveListStyle = (value) => {
+        setListStyleState(value);
+        saveData("list-style", value);
     };
 
     useEffect(() => {
         // Load saved settings
         getData("appearance").then((value) => { value && setAppearanceState(value) });
-        getData("language").then((value) => { value && setLanguageState(value) });
+        getData("language-orma").then((value) => { value && setLanguageState(value) });
+        getData("list-style").then((value) => { value && setListStyleState(value) });
     }, []);
 
     const { height, width } = useWindowDimensions();
@@ -100,6 +106,52 @@ export default function Settings() {
                             }}
                             noRadius />
 
+                    </View>
+                </View>
+                <View>
+                    <Text style={styles.headings}>Language</Text>
+                    <Text style={styles.text}>Set the element descriptions used in the ORMA</Text>
+                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
+                        {false && <Banner
+                            backgroundColor={languageState === "calsar" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={languageState === "calsar" ? colorTheme.tertiary : disabledColor}
+                            icon={<Ionicons name="heart-circle" size={24} color={languageState === "calsar" ? colorTheme.tertiary : disabledColor} />}
+                            title={<><Text style={languageState === "calsar" && riskStyles.boldText}>California Search and Rescue</Text> (CALSAR)</>}
+                            onPress={() => { saveLanguage("calsar") }}
+                            noRadius />}
+                        <Banner
+                            backgroundColor={languageState === "nps" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={languageState === "nps" ? colorTheme.tertiary : disabledColor}
+                            icon={<MaterialIcons name="account-balance" size={24} color={languageState === "nps" ? colorTheme.tertiary : disabledColor} />}
+                            title={<><Text style={languageState === "nps" && riskStyles.boldText}>National Parks Service</Text> (NPS)</>}
+                            onPress={() => { saveLanguage("nps") }}
+                            noRadius />
+                        <Banner
+                            backgroundColor={languageState === "fws" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={languageState === "fws" ? colorTheme.tertiary : disabledColor}
+                            icon={<Ionicons name="fish" size={24} color={languageState === "fws" ? colorTheme.tertiary : disabledColor} />}
+                            title={<><Text style={languageState === "fws" && riskStyles.boldText}>U.S. Fish & Wildlife Service</Text></>}
+                            onPress={() => { saveLanguage("fws") }}
+                            noRadius />
+                    </View>
+                </View>
+                <View>
+                    <Text style={styles.headings}>List Style</Text>
+                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
+                        <Banner
+                            backgroundColor={listStyleState === "new" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={listStyleState === "new" ? colorTheme.tertiary : disabledColor}
+                            icon={<Ionicons name="heart-circle" size={24} color={listStyleState === "new" ? colorTheme.tertiary : disabledColor} />}
+                            title={<><Text style={listStyleState === "new" && riskStyles.boldText}>New</Text></>}
+                            onPress={() => { saveListStyle("new") }}
+                            noRadius />
+                        <Banner
+                            backgroundColor={listStyleState === "legacy" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={listStyleState === "legacy" ? colorTheme.tertiary : disabledColor}
+                            icon={<MaterialIcons name="account-balance" size={24} color={listStyleState === "legacy" ? colorTheme.tertiary : disabledColor} />}
+                            title={<><Text style={listStyleState === "legacy" && riskStyles.boldText}>Legacy</Text> (NPS Risk)</>}
+                            onPress={() => { saveListStyle("legacy") }}
+                            noRadius />
                     </View>
                 </View>
             </ScrollView>

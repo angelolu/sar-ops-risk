@@ -6,6 +6,16 @@
         "secondary": "#33B0E5",
         "tertiary": "#E1C796"
     },
+    "customColors": {
+        "garRedDark": "#ba1a1a",
+        "garRedLight": "#D2222D",
+        "garAmberDark": "#CC9900",
+        "garAmberLight": "#FFBF00",
+        "garGreenDark": "#238823",
+        "garGreenLight": "#238823",
+        "white": "#ffffff",
+        "black": "#000000"
+    },
     "extendedColors": [],
     "schemes": {
         "light": {

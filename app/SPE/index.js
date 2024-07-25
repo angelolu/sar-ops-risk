@@ -19,9 +19,9 @@ export default function SPE() {
     const [isModalVisible, setIsModalVisible] = useState(true);
     const [selectedEntry, setSelectedEntry] = useState(0);
     const [entries, setEntries] = useState([
-        { title: "Severity", subtitle: "What is the potential loss or consequence due to this risk?", score: 0, containerColor: colorTheme.background, color: colorTheme.onBackground, description: "" },
-        { title: "Probability", subtitle: "What is the likelihood of loss or consequence due to this risk?", score: 0, containerColor: colorTheme.background, color: colorTheme.onBackground, description: "" },
-        { title: "Exposure", subtitle: "What is the amount of time, cycles, people or equipment involved?", score: 0, containerColor: colorTheme.background, color: colorTheme.onBackground, description: "" },
+        { title: "Severity", subtitle: "What is the potential loss or consequence due to this risk?", score: 0, description: "" },
+        { title: "Probability", subtitle: "What is the likelihood of loss or consequence due to this risk?", score: 0, description: "" },
+        { title: "Exposure", subtitle: "What is the amount of time, cycles, people or equipment involved?", score: 0, description: "" },
     ]);
 
     const getResultString = () => {
@@ -58,15 +58,15 @@ export default function SPE() {
     const getRiskColor = (value, complete) => {
         if (complete) {
             if (value >= 0 && value <= 19) {
-                return '#37693d';
+                return colorTheme.garGreenDark;
             } else if (value <= 39) {
-                return '#865219';
+                return colorTheme.garAmberDark;
             } else if (value <= 59) {
-                return '#865219';
+                return colorTheme.garAmberDark;
             } else if (value <= 79) {
-                return '#ba1a1a';
+                return colorTheme.garRedDark;
             } else {
-                return '#ba1a1a';
+                return colorTheme.garRedDark;
             }
         }
         return colorTheme.surfaceContainer;
@@ -117,11 +117,9 @@ export default function SPE() {
             <RiskHeader
                 sharedTransitionTag="sectionTitle"
                 title="Severity, Probability, Exposure (SPE)"
-                score={score}
                 subtitle={getRiskAction(score, isDone)}
                 riskText={getRiskText(score, isDone)}
                 riskColor={getRiskColor(score, isDone)}
-                minimumScore={minimumScore}
                 complete={isDone}
                 menu={isDone && <ShareButton title="SPE Results" content={"SPE results\nOverall score: " + getRiskText(score, isDone) + "\n" + getRiskAction(score, isDone) + "\n\n" + getResultString()} color="#ffffff" />}
             />
