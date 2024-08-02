@@ -26,7 +26,7 @@ export function BackHeader({ children, title, subtitle, backgroundColor, color, 
                             style={styles.circleButton}
                             android_ripple={{ color: colorTheme.surfaceContainerHighest }}
                             onPress={() => { router.back() }}>
-                            <Ionicons name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} size={24} color={color} />
+                            <Ionicons name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} size={24} color={color ? color : colorTheme.onPrimaryContainer} />
                         </Pressable>
                     </View>
                     <Text style={[styles.title, { color: color ? color : colorTheme.onPrimaryContainer }]}>{title}</Text>
