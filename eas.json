@@ -28,6 +28,10 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "companyName": "California Search and Rescue"
+      }
+    }
   }
 }
