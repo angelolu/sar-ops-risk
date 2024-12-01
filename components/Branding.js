@@ -79,7 +79,7 @@ export default function BrandingBar({ textColor }) {
                     </View>
                 </View>
                 <Text style={[styles.title, { color: textColor, flex: 1, textAlign: (windowWidth > 750 ? "center" : "right") }]}>Risk Assessment Tools</Text>
-                {windowWidth > 750 && <div style={{ flex: 1 }} />}
+                {windowWidth > 750 && <View style={{ flex: 1 }} />}
             </View >
         );
     } else {
