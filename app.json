@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "OpsRisk",
+    "name": "Risk",
     "slug": "OpsRisk",
-    "version": "1.2.1",
+    "version": "1.3.0",
     "orientation": "portrait",
     "scheme": "opsrisk",
     "icon": "./assets/icon.png",

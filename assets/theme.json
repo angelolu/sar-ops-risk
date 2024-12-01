@@ -14,7 +14,8 @@
         "garGreenDark": "#238823",
         "garGreenLight": "#238823",
         "white": "#ffffff",
-        "black": "#000000"
+        "black": "#000000",
+        "brand": "#061B44"
     },
     "extendedColors": [],
     "schemes": {

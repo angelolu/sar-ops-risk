@@ -1,66 +1,113 @@
 
-import React, { useEffect, useContext } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useContext, useEffect } from 'react';
+import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import Animated, {
+    Easing,
     useAnimatedStyle,
     useSharedValue,
     withTiming,
-    Easing,
 } from 'react-native-reanimated';
-
 import { ThemeContext } from '../components/ThemeContext';
 
-export default function BrandingBar({ headerStyle, center = false }) {
-    const textOpacity = useSharedValue(1); // Shared value for opacity
-    const subtitleTranslateX = useSharedValue(0);
-    const subtitleDisplay = useSharedValue('flex');
-    const subtitleW = useSharedValue(0);
+const calsar = require('../assets/calsar_150.png');
+
+var bannerAnimationTimeout;
+var bannerHoverTimeout;
+
+export default function BrandingBar({ textColor }) {
+    const wordmarkOpacity = useSharedValue(1); // Shared value for opacity
+    const titleOpacity = useSharedValue(0);
+    const workmarkDisplay = useSharedValue('flex');
+    const titleDisplay = useSharedValue('none');
 
     const styles = brandingStyles();
 
     const titleAnimatedStyle = useAnimatedStyle(() => {
-        if (!center) return {};
         return {
-            transform: [
-                {
-                    translateX: -subtitleTranslateX.value,
-                },
-            ]
+            opacity: titleOpacity.value,
+            display: titleDisplay.value
         };
     });
 
-    const subtitleAnimatedStyle = useAnimatedStyle(() => {
+    const wordmarkAnimatedStyle = useAnimatedStyle(() => {
         return {
-            opacity: textOpacity.value,
-            transform: [
-                {
-                    translateX: subtitleTranslateX.value,
-                },
-            ],
-            display: subtitleDisplay.value
+            opacity: wordmarkOpacity.value,
+            display: workmarkDisplay.value
         };
     });
+
+    const animateBanner = () => {
+        clearTimeout(bannerAnimationTimeout);
+        wordmarkOpacity.value = 1;
+        titleDisplay.value = "none";
+        workmarkDisplay.value = "flex";
+        titleOpacity.value = 0;
+
+        bannerAnimationTimeout = setTimeout(() => {
+            wordmarkOpacity.value = withTiming(0, { duration: 500, easing: Easing.linear });
+            setTimeout(() => {
+                titleDisplay.value = "flex";
+                workmarkDisplay.value = "none";
+                titleOpacity.value = withTiming(1, { duration: 500, easing: Easing.linear });
+            }, 500);
+        }, 2500);
+    }
 
     // Animation on load
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            textOpacity.value = withTiming(0, { duration: 750, easing: Easing.linear });
-            subtitleTranslateX.value = withTiming(-(subtitleW.value / 2), { duration: 750, easing: Easing.back(2) });
-        }, 2500);
-    });
+        animateBanner();
+        return () => {
+            wordmarkOpacity.value = 0;
+            titleDisplay.value = "flex";
+            workmarkDisplay.value = "none";
+            titleOpacity.value = 1;
+        };
+    }, []);
 
-    return (
-        <View
-            style={styles.brandingBanner}>
-            <Animated.Text style={[styles.title, { backgroundColor: headerStyle.backgroundColor, color: headerStyle.color }, titleAnimatedStyle]}>OpsRisk</Animated.Text>
-            <Animated.Text
-                style={[styles.Subtitle, subtitleAnimatedStyle]}
-                onLayout={(event) => {
-                    const { x, y, width, height } = event.nativeEvent.layout;
-                    subtitleW.value = width;
-                }}> by CALSAR</Animated.Text>
-        </View>
-    );
+    const windowWidth = Dimensions.get('window').width;
+    if (windowWidth > 600) {
+        return (
+            <View style={styles.brandingBanner}>
+                <View style={styles.webWorkmarkContainer}>
+                    <Image
+                        source={calsar}
+                        style={{ width: 35, height: 35, zIndex: 999 }}
+                    />
+                    <View style={styles.wordmarkStack}>
+                        <Text style={styles.wordmarkLine1}>CALIFORNIA</Text>
+                        <Text style={styles.wordmarkLine2}>SEARCH & RESCUE</Text>
+                    </View>
+                </View>
+                <Text style={[styles.title, { color: textColor, flex: 1, textAlign: (windowWidth > 750 ? "center" : "right") }]}>Risk Assessment Tools</Text>
+                {windowWidth > 750 && <div style={{ flex: 1 }} />}
+            </View >
+        );
+    } else {
+        // Reanimate the banner if the mouse is hovering for over 500 ms
+        // This way it's not too distracting but still a fun easter egg
+        const onBannerEnter = () => {
+            bannerHoverTimeout = setTimeout(() => {
+                animateBanner();
+            }, 500);
+        }
+
+        const onBannerExit = () => {
+            clearInterval(bannerHoverTimeout);
+        }
+        return (
+            <View style={styles.brandingBanner} onTouchEnd={animateBanner} onPointerEnter={onBannerEnter} onPointerLeave={onBannerExit} onPointerUp={animateBanner}>
+                <Animated.Image
+                    source={calsar}
+                    style={{ width: 35, height: 35, zIndex: 999 }}
+                />
+                <Animated.View style={[wordmarkAnimatedStyle, styles.wordmarkStack]}>
+                    <Text style={styles.wordmarkLine1}>CALIFORNIA</Text>
+                    <Text style={styles.wordmarkLine2}>SEARCH & RESCUE</Text>
+                </Animated.View>
+                <Animated.Text style={[styles.title, titleAnimatedStyle, { color: textColor }]}>Risk Assessment Tools</Animated.Text>
+            </View>
+        );
+    }
 }
 
 const brandingStyles = () => {
@@ -68,20 +115,38 @@ const brandingStyles = () => {
 
     return StyleSheet.create({
         brandingBanner: {
-            marginTop: 10,
+            marginTop: 14,
+            marginLeft: 20,
+            marginRight: 20,
             flexDirection: 'row',
-            alignItems: 'flex-end',
-            columnGap: 0,
+            alignItems: 'center',
+            gap: 12,
+            height: 32,
+        },
+        webWorkmarkContainer: {
+            flex: 1,
+            gap: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
         },
         title: {
-            fontSize: 26,
-            fontWeight: "bold",
-            zIndex: 5
+            fontSize: 20,
+            zIndex: 5,
+            color: colorTheme.white,
+            fontWeight: '600'
         },
-        Subtitle: {
-            fontSize: 22,
-            color: colorTheme.onSurfaceVariant,
-            marginBottom: 2
+        wordmarkStack: {
+            flex: 1,
+            flexDirection: 'column',
+        },
+        wordmarkLine1: {
+            fontSize: 13,
+            color: colorTheme.white,
+        },
+        wordmarkLine2: {
+            fontSize: 16,
+            color: colorTheme.white,
+            fontWeight: 'bold'
         },
     });
 }
