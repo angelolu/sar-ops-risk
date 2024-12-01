@@ -35,6 +35,7 @@ const cardStyles = () => {
     },
     title: {
       fontSize: 20,
+      fontWeight: '500',
       color: colorTheme.primary,
     },
     subtitle: {

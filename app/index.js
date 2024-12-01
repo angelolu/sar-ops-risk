@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useState } from 'react';
-import { Image, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View, useColorScheme, useWindowDimensions } from 'react-native';
+import { Image, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View, useWindowDimensions } from 'react-native';
 
 import Banner from '../components/Banner';
 import BrandingBar from '../components/Branding';
@@ -18,8 +18,6 @@ const ORMAOptions = require('../assets/images/orma-options.jpg');
 
 export default function App() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
-
     const styles = appStyles();
     const [modalHeight, setmodalHeight] = useState(1000);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -45,10 +43,11 @@ export default function App() {
         setIsModalVisible(false);
     };
 
+    setStatusBarStyle("light", true); // The header is a persistent color on the main page
     return (
         <View style={styles.background}>
-            <Header style={Platform.OS === 'web' ? styles.headerWeb : styles.header}>
-                <BrandingBar headerStyle={Platform.OS === 'web' ? styles.headerWeb : styles.header} center={Platform.OS === 'web' ? true : true} />
+            <Header style={styles.header}>
+                <BrandingBar textColor={styles.header.color} />
             </Header>
             <ScrollView
                 style={[
@@ -56,17 +55,17 @@ export default function App() {
                     { maxWidth: (width > 850 ? 850 : width) }
                 ]}
                 contentContainerStyle={styles.mainScroll}>
-                <Banner
+                {false && <Banner
                     backgroundColor={colorTheme.tertiaryContainer}
                     color={colorTheme.onTertiaryContainer}
                     icon={<Ionicons name="warning" size={24} color={colorTheme.onTertiaryContainer} />}
                     title="This isn’t a replacement for good leadership, supervision, and training, or a structure for managing risk"
-                    pad />
+                    pad />}
                 <MaterialCard
                     marginLeft={20}
                     marginRight={20}
                     title="Operational Risk Management Analysis (ORMA)"
-                    subtitle="Used before the team enters the field. Considers all factors of a team’s participation in an event.">
+                    subtitle="Use before the team enters the field. Considers all factors of a team’s participation in an event.">
                     <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(0) }} />
                         <FilledButton primary text="Complete an ORMA" onPress={() => { router.navigate("/ORMA") }} />
@@ -76,30 +75,34 @@ export default function App() {
                     marginLeft={20}
                     marginRight={20}
                     title="Severity, Probability, Exposure (SPE)"
-                    subtitle="A risk assessment model used to categorize a risk. Used when the situation in the field changes. Targeted at a specific risk." >
+                    subtitle="Use to categorize a specific risk when the situation in the field changes." >
                     <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6 }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(1) }} />
                         <FilledButton primary text="Complete a SPE" onPress={() => { router.navigate("/SPE") }} />
                     </View>
                 </MaterialCard>
                 <Text style={styles.headings}>Miscellaneous</Text>
-                <ScrollView
-                    contentContainerStyle={styles.horizontalSection}
-                    showsHorizontalScrollIndicator={Platform.OS === 'web'}
-                    horizontal>
+                <View style={styles.miscSection}>
                     <Tile
                         href="settings"
-                        icon={<Ionicons name="settings" size={24} color={colorTheme.primary} style={{ marginBottom: 8 }} />}
-                        title="Settings"
-                        width={150}
+                        icon={<Ionicons name="settings" size={20} color={colorTheme.primary} />}
+                        title="App settings"
+                        subtitle="Appearance, language, list style"
+                    />
+                </View>
+                <View style={styles.miscSection}>
+                    <Tile
+                        href="https://www.cal-esar.org/"
+                        icon={<Ionicons name="open-outline" size={20} color={colorTheme.primary} />}
+                        title="About CALSAR"
                     />
                     <Tile
                         href="https://sites.google.com/cal-esar.org/members-only"
-                        icon={<Ionicons name="bookmarks" size={24} color={colorTheme.primary} style={{ marginBottom: 8 }} />}
-                        title="CALSAR Members"
-                        width={150}
+                        icon={<Ionicons name="open-outline" size={20} color={colorTheme.primary} />}
+                        title="Member portal"
+                        subtitle="Requires ca-sar.org login"
                     />
-                </ScrollView>
+                </View>
                 <RiskModal
                     isVisible={isModalVisible}
                     title={selectedEntry.title}
@@ -107,6 +110,7 @@ export default function App() {
                     onClose={onModalClose}>
                     {selectedEntry.content}
                 </RiskModal>
+                <Text style={styles.footerText}>This isn't a substitute for proper leadership, supervision, or comprehensive search and rescue training. In an emergency, call 911 or your local public safety authority.</Text>
             </ScrollView>
         </View>
     );
@@ -121,18 +125,9 @@ const appStyles = () => {
             height: '100%'
         },
         header: {
-            padding: 16,
-            gap: 20,
-            backgroundColor: colorTheme.primaryContainer,
-            color: colorTheme.onPrimaryContainer,
-            alignItems: 'center',
-        },
-        headerWeb: {
-            padding: 20,
-            gap: 20,
-            backgroundColor: colorTheme.background,
-            color: colorTheme.primary,
-            alignItems: 'center'
+            padding: 14,
+            backgroundColor: colorTheme.brand,
+            color: colorTheme.white,
         },
         container: {
             backgroundColor: colorTheme.background,
@@ -145,17 +140,23 @@ const appStyles = () => {
         },
         mainScroll: {
             paddingTop: 20,
-            paddingBottom: 20,
+            paddingBottom: Platform.OS === "ios" ? 40 : 20,
             gap: 20,
         },
-        horizontalSection: {
-            gap: 15,
-            width: '100%',
-            paddingHorizontal: 20,
+        miscSection: {
+            gap: 4,
+            borderRadius: 26,
+            overflow: 'hidden',
+            marginHorizontal: 20,
         },
         headings: {
-            fontSize: 22,
+            fontSize: 20,
             color: colorTheme.onBackground,
+            marginLeft: 20,
+            marginRight: 20
+        },
+        footerText: {
+            color: colorTheme.onSurfaceVariant,
             marginLeft: 20,
             marginRight: 20
         }

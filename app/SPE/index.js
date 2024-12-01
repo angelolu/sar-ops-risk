@@ -92,9 +92,9 @@ export default function SPE() {
     const getRiskAction = (value, complete) => {
         if (complete) {
             if (value >= 0 && value <= 19) {
-                return 'Risk possibly acceptable. Review risk with your team before proceeding';
+                return 'Risk possibly acceptable. Review risk with your team.';
             } else if (value <= 39) {
-                return 'Attention needed. Review risk with your team before proceeding';
+                return 'Attention needed. Review risk with your team.';
             } else if (value <= 59) {
                 return 'Correction required. Review this with your team.';
             } else if (value <= 79) {
@@ -116,7 +116,7 @@ export default function SPE() {
         <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
             <RiskHeader
                 sharedTransitionTag="sectionTitle"
-                title="Severity, Probability, Exposure (SPE)"
+                title="Severity, Probability, Exposure"
                 subtitle={getRiskAction(score, isDone)}
                 riskText={getRiskText(score, isDone)}
                 riskColor={getRiskColor(score, isDone)}

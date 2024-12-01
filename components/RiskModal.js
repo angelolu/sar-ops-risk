@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useContext } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
 import Modal from "react-native-modal";
 
 import { ThemeContext } from '../components/ThemeContext';
@@ -48,6 +48,7 @@ const modalStyles = () => {
             position: 'absolute',
             bottom: 0,
             maxWidth: 600,
+            paddingBottom: Platform.OS === "ios" ? 20 : 0
         },
         titleContainer: {
             marginTop: 16,

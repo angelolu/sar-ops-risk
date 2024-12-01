@@ -47,7 +47,8 @@ const buttonStyles = () => {
             paddingHorizontal: 24
         },
         text: {
-            color: colorTheme.onSecondaryContainer
+            color: colorTheme.onSecondaryContainer,
+            fontWeight: '500',
         }
     });
 }

@@ -77,8 +77,8 @@ export default function Settings() {
                     <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
                         <Banner
                             backgroundColor={appearanceState === 1 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={appearanceState === 1 ? colorTheme.tertiary : disabledColor}
-                            icon={<MaterialCommunityIcons name="theme-light-dark" size={24} color={appearanceState === 1 ? colorTheme.tertiary : disabledColor} />}
+                            color={appearanceState === 1 ? colorTheme.secondary : disabledColor}
+                            icon={<MaterialCommunityIcons name="theme-light-dark" size={24} color={appearanceState === 1 ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={appearanceState === 1 && riskStyles.boldText}>Device Default</Text> ({baseColorScheme})</>}
                             onPress={() => {
                                 saveAppearance(1);
@@ -87,8 +87,8 @@ export default function Settings() {
                             noRadius />
                         <Banner
                             backgroundColor={appearanceState === 2 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={appearanceState === 2 ? colorTheme.tertiary : disabledColor}
-                            icon={<MaterialCommunityIcons name="weather-sunny" size={24} color={appearanceState === 2 ? colorTheme.tertiary : disabledColor} />}
+                            color={appearanceState === 2 ? colorTheme.secondary : disabledColor}
+                            icon={<MaterialCommunityIcons name="weather-sunny" size={24} color={appearanceState === 2 ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={appearanceState === 2 && riskStyles.boldText}>Light</Text></>}
                             onPress={() => {
                                 saveAppearance(2);
@@ -97,8 +97,8 @@ export default function Settings() {
                             noRadius />
                         <Banner
                             backgroundColor={appearanceState === 3 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={appearanceState === 3 ? colorTheme.tertiary : disabledColor}
-                            icon={<MaterialCommunityIcons name="weather-night" size={24} color={appearanceState === 3 ? colorTheme.tertiary : disabledColor} />}
+                            color={appearanceState === 3 ? colorTheme.secondary : disabledColor}
+                            icon={<MaterialCommunityIcons name="weather-night" size={24} color={appearanceState === 3 ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={appearanceState === 3 && riskStyles.boldText}>Dark</Text></>}
                             onPress={() => {
                                 saveAppearance(3);
@@ -114,22 +114,22 @@ export default function Settings() {
                     <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
                         {false && <Banner
                             backgroundColor={languageState === "calsar" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={languageState === "calsar" ? colorTheme.tertiary : disabledColor}
-                            icon={<Ionicons name="heart-circle" size={24} color={languageState === "calsar" ? colorTheme.tertiary : disabledColor} />}
+                            color={languageState === "calsar" ? colorTheme.secondary : disabledColor}
+                            icon={<Ionicons name="heart-circle" size={24} color={languageState === "calsar" ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={languageState === "calsar" && riskStyles.boldText}>California Search and Rescue</Text> (CALSAR)</>}
                             onPress={() => { saveLanguage("calsar") }}
                             noRadius />}
                         <Banner
                             backgroundColor={languageState === "nps" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={languageState === "nps" ? colorTheme.tertiary : disabledColor}
-                            icon={<MaterialIcons name="account-balance" size={24} color={languageState === "nps" ? colorTheme.tertiary : disabledColor} />}
+                            color={languageState === "nps" ? colorTheme.secondary : disabledColor}
+                            icon={<MaterialIcons name="account-balance" size={24} color={languageState === "nps" ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={languageState === "nps" && riskStyles.boldText}>National Parks Service</Text> (NPS)</>}
                             onPress={() => { saveLanguage("nps") }}
                             noRadius />
                         <Banner
                             backgroundColor={languageState === "fws" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={languageState === "fws" ? colorTheme.tertiary : disabledColor}
-                            icon={<Ionicons name="fish" size={24} color={languageState === "fws" ? colorTheme.tertiary : disabledColor} />}
+                            color={languageState === "fws" ? colorTheme.secondary : disabledColor}
+                            icon={<Ionicons name="fish" size={24} color={languageState === "fws" ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={languageState === "fws" && riskStyles.boldText}>U.S. Fish & Wildlife Service</Text></>}
                             onPress={() => { saveLanguage("fws") }}
                             noRadius />
@@ -140,15 +140,15 @@ export default function Settings() {
                     <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
                         <Banner
                             backgroundColor={listStyleState === "new" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={listStyleState === "new" ? colorTheme.tertiary : disabledColor}
-                            icon={<Ionicons name="heart-circle" size={24} color={listStyleState === "new" ? colorTheme.tertiary : disabledColor} />}
+                            color={listStyleState === "new" ? colorTheme.secondary : disabledColor}
+                            icon={<Ionicons name="heart-circle" size={24} color={listStyleState === "new" ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={listStyleState === "new" && riskStyles.boldText}>New</Text></>}
                             onPress={() => { saveListStyle("new") }}
                             noRadius />
                         <Banner
                             backgroundColor={listStyleState === "legacy" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={listStyleState === "legacy" ? colorTheme.tertiary : disabledColor}
-                            icon={<MaterialIcons name="account-balance" size={24} color={listStyleState === "legacy" ? colorTheme.tertiary : disabledColor} />}
+                            color={listStyleState === "legacy" ? colorTheme.secondary : disabledColor}
+                            icon={<MaterialIcons name="account-balance" size={24} color={listStyleState === "legacy" ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={listStyleState === "legacy" && riskStyles.boldText}>Legacy</Text> (NPS Risk)</>}
                             onPress={() => { saveListStyle("legacy") }}
                             noRadius />

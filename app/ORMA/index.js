@@ -13,27 +13,46 @@ import RiskModal from '../../components/RiskModal';
 import ShareButton from '../../components/ShareButton';
 import { ThemeContext } from '../../components/ThemeContext';
 
+var modalDelayTimeout;
+
 export default function orma() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
     const styles = pageStyles();
 
     const minimumScore = 8;
 
-    const [isModalVisible, setIsModalVisible] = useState(true);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedEntry, setSelectedEntry] = useState(0);
     const [entries, setEntries] = useState([]);
 
     const [listStyle, setListStyle] = useState(null);
+    const [explicitLanguageSet, setExplicitLanguageSet] = useState(false);
     useEffect(() => {
-        // Get language setting used for ORMA
+        // Get list display setting
         AsyncStorage.getItem("list-style").then((jsonValue) => {
             jsonValue != null ? setListStyle(JSON.parse(jsonValue)) : setListStyle(null);
         }).catch((e) => {
             // error reading value
         });
-    }, []);
 
-    const [explicitLanguageSet, setExplicitLanguageSet] = useState(false);
+        // Get language setting used for ORMA
+        AsyncStorage.getItem("language-orma").then((jsonValue) => {
+            jsonValue != null ? updateLanguage(JSON.parse(jsonValue)) : updateLanguage(null);
+        }).catch((e) => {
+            // error reading value
+        });
+
+        // I'm not sure why, but if there the modal is immediately by useState(true), on iOS
+        // there is an issue where the modal will only partially load, causing the UI to get stuck.
+        // As a workaround, wait 150ms before launching the modal when the UI is shown
+        modalDelayTimeout = setTimeout(() => {
+            setIsModalVisible(true);
+        }, 150);
+
+        return () => {
+            clearTimeout(modalDelayTimeout);
+        };
+    }, []);
 
     const updateLanguage = (value) => {
         switch (value) {
@@ -89,15 +108,6 @@ export default function orma() {
             // error saving value
         }
     };
-
-    useEffect(() => {
-        // Get language setting used for ORMA
-        AsyncStorage.getItem("language-orma").then((jsonValue) => {
-            jsonValue != null ? updateLanguage(JSON.parse(jsonValue)) : updateLanguage(null);
-        }).catch((e) => {
-            // error reading value
-        });
-    }, []);
 
     const getResultString = () => {
         // Used for sharing/exporting results
@@ -178,18 +188,17 @@ export default function orma() {
         }
     };
 
-    let isDone = !entries.some(entry => entry.score === 0);
-    setStatusBarStyle(colorScheme === 'light' ? (isDone ? "light" : "dark") : "light", true);
-
     if (explicitLanguageSet) {
+        let isDone = !entries.some(entry => entry.score === 0);
         let hasAmberScore = entries.some(entry => entry.score >= 5);
         let score = entries.reduce((acc, entry) => acc + entry.score, 0);
+        setStatusBarStyle(colorScheme === 'light' ? (isDone ? "light" : "dark") : "light", true);
         return (
             <View style={styles.container}>
                 <RiskHeader
                     sharedTransitionTag="sectionTitle"
                     title="Operational Risk Management Analysis"
-                    subtitle={isDone ? "Review this score with your team before proceeding" : "Tap each element below to assign a score of 1 (for no risk) through 10 (for maximum risk)"}
+                    subtitle={isDone ? "Review this score with your team" : "Tap each element below to assign a score of 1 (for no risk) through 10 (for maximum risk)"}
                     complete={isDone}
                     riskColor={getHeaderBackgroundColorFromScore(score)}
                     riskText={score + " - " + getHeaderTextFromScore(score)}
@@ -341,7 +350,20 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
         }
     }
 
-    const androidSliderPadding = Platform.OS === 'android' ? 12 : Platform.OS === 'web' ? 12 : 0;
+    let overridePadding;
+    switch (Platform.OS) {
+        case 'android':
+            overridePadding = 12;
+            break;
+        case 'web':
+            overridePadding = 12;
+            break;
+        case 'ios':
+            overridePadding = 16;
+            break;
+        default:
+            overridePadding = 0;
+    }
 
     return (
         <View style={riskStyles.container}>
@@ -362,7 +384,7 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
                     onValueChange={onChangeValue}
                     step={1}
                 />
-                <View style={{ flexDirection: 'row', gap: 2, top: - 24, zIndex: -1, flex: -1, marginHorizontal: androidSliderPadding, borderRadius: 99, overflow: 'hidden' }}>
+                <View style={{ flexDirection: 'row', gap: 2, top: - 24, zIndex: -1, flex: -1, marginHorizontal: overridePadding, borderRadius: 99, overflow: 'hidden' }}>
                     {Array.from(Array(10).keys()).map((index) => {
                         const dotColor = index < item.score ? getBarColor(index + 1) : colorTheme.primaryContainer;
                         return (
