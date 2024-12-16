@@ -51,7 +51,7 @@ export default function App() {
             </Header>
             <ScrollView
                 style={[
-                    Platform.OS === 'web' ? styles.containerWeb : styles.container,
+                    styles.container,
                     { maxWidth: (width > 850 ? 850 : width) }
                 ]}
                 contentContainerStyle={styles.mainScroll}>
@@ -130,10 +130,6 @@ const appStyles = () => {
             color: colorTheme.white,
         },
         container: {
-            backgroundColor: colorTheme.background,
-            height: '100%'
-        },
-        containerWeb: {
             backgroundColor: colorTheme.background,
             height: '100%',
             alignSelf: 'center'

@@ -170,7 +170,8 @@ const pageStyles = () => {
         container: {
             flex: 1,
             backgroundColor: colorTheme.background,
-            height: '100%'
+            height: '100%',
+            alignSelf: 'center'
         },
         containerWeb: {
             backgroundColor: colorTheme.background,
