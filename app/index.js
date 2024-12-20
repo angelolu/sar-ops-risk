@@ -16,6 +16,36 @@ import Tile from '../components/Tile';
 
 const ORMAOptions = require('../assets/images/orma-options.jpg');
 
+const WebDownloadBanner = () => {
+    const { colorTheme, colorScheme } = useContext(ThemeContext);
+    const userAgent = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream; // More robust iOS check
+    const isAndroid = /android/i.test(userAgent);
+
+    if (isIOS) {
+        // Rely on Apple Smart Banner
+        return <></>;
+    } else if (isAndroid) {
+        return <Banner
+            onPress={() => { router.navigate("https://play.google.com/store/apps/details?id=org.ca_sar.risk") }}
+            backgroundColor={colorTheme.secondaryContainer}
+            color={colorTheme.onSecondaryContainer}
+            icon={<Ionicons name="cloud-offline-outline" size={24} color={colorTheme.onSecondaryContainer} />}
+            title="To install this app for offline use, tap here, or search your app store for &quot;SAR Risk Assessment&quot;"
+            pad />;
+    } else {
+        return (
+            <Banner
+                backgroundColor={colorTheme.secondaryContainer}
+                color={colorTheme.onSecondaryContainer}
+                icon={<Ionicons name="megaphone-outline" size={24} color={colorTheme.onSecondaryContainer} />}
+                title="This app is available for offline use on iPhone and Android devices. Search your app store for &quot;SAR Risk Assessment&quot;"
+                pad />
+        );
+    }
+};
+
+
 export default function App() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
     const styles = appStyles();
@@ -55,6 +85,7 @@ export default function App() {
                     { maxWidth: (width > 850 ? 850 : width) }
                 ]}
                 contentContainerStyle={styles.mainScroll}>
+                {Platform.OS === 'web' && <WebDownloadBanner />}
                 {false && <Banner
                     backgroundColor={colorTheme.tertiaryContainer}
                     color={colorTheme.onTertiaryContainer}
@@ -110,7 +141,7 @@ export default function App() {
                     onClose={onModalClose}>
                     {selectedEntry.content}
                 </RiskModal>
-                <Text style={styles.footerText}>This isn't a substitute for proper leadership, supervision, or comprehensive search and rescue training. In an emergency, call 911 or your local public safety authority.</Text>
+                <Text style={styles.footerText}>This isn't a substitute for proper leadership, supervision, or comprehensive search and rescue training.</Text>
             </ScrollView>
         </View>
     );
