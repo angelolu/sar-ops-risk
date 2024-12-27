@@ -1,0 +1,69 @@
+{
+  "expo": {
+    "name": "Ops",
+    "slug": "ops",
+    "version": "1.5.0",
+    "orientation": "default",
+    "scheme": "calsar-ops",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "splash": {
+        "image": "./assets/splash_light.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F7F9FF",
+        "dark": {
+          "image": "./assets/splash_dark.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#101418"
+        }
+      },
+      "bundleIdentifier": "org.ca-sar.ops"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/adaptive-icon-mono.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "org.ca_sar.ops",
+      "splash": {
+        "image": "./assets/splash_light.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F7F9FF",
+        "dark": {
+          "image": "./assets/splash_dark.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#101418"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "3a1a2f7d-0554-4083-a980-125114ee772d"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3a1a2f7d-0554-4083-a980-125114ee772d"
+    },
+    "owner": "calsar"
+  }
+}
