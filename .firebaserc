@@ -1,5 +1,17 @@
 {
-  "projects": {
-    "default": "opsrisk-1b86f"
-  }
+  "projects": {},
+  "targets": {
+    "opsrisk-1b86f": {
+      "hosting": {
+        "risk": [
+          "opsrisk-1b86f"
+        ],
+        "ops": [
+          "calsar-ops"
+        ]
+      }
+    }
+  },
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
 }
