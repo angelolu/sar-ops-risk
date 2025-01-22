@@ -1,12 +1,19 @@
 
 # Background
+This repo contains the Risk and Ops apps, developed by California Search and Rescue.
+
 The Risk app helps teams proactively identify and mitigate operational risk. It guides the user through two tools:
 - Operational Risk Management Analysis (ORMA): A structured framework to assess potential threats and guide informed decision-making.
 - Severity, Probability, Exposure (SPE) Analysis: Evaluate the potential impact and likelihood of risks, allowing you to prioritize mitigation strategies.
 
-It was developed by California Search and Rescue with search and rescue in mind as a replacement for the now-defunct NPS Risk app.
+It's made with search and rescue in mind as a replacement for the now-defunct NPS Risk app.
 
-It uses Expo and Expo App Services to support Android, iOS and web.
+The Ops app is used for overhead management during a search operation. Features currently include:
+- Radio logging with presets and the ability to export ICS 309, SAR 133 PDFs and CSVs.
+- Dashboard showing the assignment and status of teams, and the time since last contact.
+- Support for receipt printers as a persistent offline log in case of power/software failure.
+
+They both use Expo and Expo App Services to support Android, iOS and web.
 
 # Update architecture
 This app uses two different types of updates:

@@ -2,7 +2,7 @@ Effective Date: 11/30/2024
 
 Introduction
 
-This Privacy Policy describes the data collection and usage practices of the Risk: SAR Risk Assessment mobile and web application (the "App") developed by California Search and Rescue, "CALSAR" ("we," "us," or "our").
+This Privacy Policy describes the data collection and usage practices of the Ops: SAR Operation Management Tools mobile and web application (the "App") developed by California Search and Rescue, "CALSAR" ("we," "us," or "our").
 
 We are committed to protecting the privacy of our users. This Privacy Policy explains what information the App may collect, how we use it, and under what circumstances we may disclose it.
 
