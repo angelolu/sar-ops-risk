@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'expo-dev-client';
 import { ThemeProvider } from 'calsar-ui';
+import { PrinterProvider } from '../components/PrinterContext';
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -15,23 +16,25 @@ export const unstable_settings = {
 
 export default function RootLayout() {
     return (
-        <ThemeProvider>
-            <SafeAreaProvider>
-                <Stack
-                    screenOptions={{
-                        // Hide the header for all other routes.
-                        headerShown: false,
-                    }}
-                >
-                    <Stack.Screen
-                        name="index"
-                        options={{
-                            // Hide the header for this route
+        <PrinterProvider>
+            <ThemeProvider>
+                <SafeAreaProvider>
+                    <Stack
+                        screenOptions={{
+                            // Hide the header for all other routes.
                             headerShown: false,
                         }}
-                    />
-                </Stack>
-            </SafeAreaProvider>
-        </ThemeProvider>
+                    >
+                        <Stack.Screen
+                            name="index"
+                            options={{
+                                // Hide the header for this route
+                                headerShown: false,
+                            }}
+                        />
+                    </Stack>
+                </SafeAreaProvider>
+            </ThemeProvider>
+        </PrinterProvider>
     );
 }

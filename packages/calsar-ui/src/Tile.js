@@ -4,15 +4,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ThemeContext } from './ThemeContext';
 
-export const Tile = ({ title, subtitle, children, href = "", icon, width = "auto" }) => {
+export const Tile = ({ title, subtitle, children, href = "", icon, width = "auto", onPress }) => {
     const { colorTheme } = useContext(ThemeContext);
     const styles = tileStyles();
 
     return (
         <View style={[styles.card, { width: width }]}>
             <Pressable
-                onPress={() => { router.navigate(href) }}
-                android_ripple={href === "" ? {} : { color: colorTheme.surfaceContainerHighest }}
+                onPress={() => { onPress ? onPress() : router.navigate(href) }}
+                android_ripple={(href === "" || onPress) ? {} : { color: colorTheme.surfaceContainerHighest }}
                 style={{ flexGrow: 1, padding: 16, gap: 6, justifyContent: "space-between", flexDirection: "row", alignItems: "center" }}>
                 <View style={{ flexDirection: "row", gap: 14, alignItems: "center", flexShrink: 1 }}>
                     {icon}

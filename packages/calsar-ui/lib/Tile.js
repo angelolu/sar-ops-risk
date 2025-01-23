@@ -17,7 +17,8 @@ var Tile = exports.Tile = function Tile(_ref) {
     href = _ref$href === void 0 ? "" : _ref$href,
     icon = _ref.icon,
     _ref$width = _ref.width,
-    width = _ref$width === void 0 ? "auto" : _ref$width;
+    width = _ref$width === void 0 ? "auto" : _ref$width,
+    _onPress = _ref.onPress;
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext.colorTheme;
   var styles = tileStyles();
@@ -27,9 +28,9 @@ var Tile = exports.Tile = function Tile(_ref) {
     }],
     children: /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.Pressable, {
       onPress: function onPress() {
-        _expoRouter.router.navigate(href);
+        _onPress ? _onPress() : _expoRouter.router.navigate(href);
       },
-      android_ripple: href === "" ? {} : {
+      android_ripple: href === "" || _onPress ? {} : {
         color: colorTheme.surfaceContainerHighest
       },
       style: {

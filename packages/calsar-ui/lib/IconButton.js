@@ -31,7 +31,8 @@ var IconButton = exports.IconButton = function IconButton(_ref) {
     color = _ref.color,
     size = _ref.size;
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
-    colorTheme = _useContext.colorTheme;
+    colorTheme = _useContext.colorTheme,
+    getHoverColor = _useContext.getHoverColor;
   var _useState = (0, _react.useState)(false),
     _useState2 = _slicedToArray(_useState, 2),
     focus = _useState2[0],
@@ -46,7 +47,7 @@ var IconButton = exports.IconButton = function IconButton(_ref) {
     tonal: colorTheme.onSecondaryContainer
   };
   var focusTheme = focus && !disabled ? {
-    backgroundColor: colorTheme.surfaceContainerHigh
+    backgroundColor: getHoverColor(colorTheme.surfaceContainerHigh)
   } : {};
   if (ionicons_name) {
     return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {

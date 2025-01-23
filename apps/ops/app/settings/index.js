@@ -1,9 +1,9 @@
-import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BackHeader, Banner, ThemeContext } from 'calsar-ui';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useEffect, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
-import { ThemeContext, Banner, BackHeader } from 'calsar-ui';
 
 const saveData = async (key, value) => {
     try {
@@ -64,7 +64,7 @@ export default function Settings() {
                         <Banner
                             backgroundColor={appearanceState === 1 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={appearanceState === 1 ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialCommunityIcons name="theme-light-dark" size={24} color={appearanceState === 1 ? colorTheme.secondary : disabledColor} />}
+                            icon={<Ionicons name={appearanceState === 1 ? "star-half" : "star-half-outline"} size={24} color={appearanceState === 1 ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={appearanceState === 1 && riskStyles.boldText}>Device Default</Text> ({baseColorScheme})</>}
                             onPress={() => {
                                 saveAppearance(1);
@@ -74,7 +74,7 @@ export default function Settings() {
                         <Banner
                             backgroundColor={appearanceState === 2 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={appearanceState === 2 ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialCommunityIcons name="weather-sunny" size={24} color={appearanceState === 2 ? colorTheme.secondary : disabledColor} />}
+                            icon={<Ionicons name={appearanceState === 2 ? "sunny" : "sunny-outline"} size={24} color={appearanceState === 2 ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={appearanceState === 2 && riskStyles.boldText}>Light</Text></>}
                             onPress={() => {
                                 saveAppearance(2);
@@ -84,7 +84,7 @@ export default function Settings() {
                         <Banner
                             backgroundColor={appearanceState === 3 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={appearanceState === 3 ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialCommunityIcons name="weather-night" size={24} color={appearanceState === 3 ? colorTheme.secondary : disabledColor} />}
+                            icon={<Ionicons name={appearanceState === 3 ? "moon" : "moon-outline"} size={24} color={appearanceState === 3 ? colorTheme.secondary : disabledColor} />}
                             title={<><Text style={appearanceState === 3 && riskStyles.boldText}>Dark</Text></>}
                             onPress={() => {
                                 saveAppearance(3);

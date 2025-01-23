@@ -20,12 +20,12 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
     const { width, height } = useWindowDimensions();
     return (
         <Header style={{ backgroundColor: backgroundColor ? backgroundColor : colorTheme.primaryContainer, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
-            <View style={styles.mainContainer}>
-                <View style={[styles.titleRow, { justifyContent: (!menuButton && width < 600) ? "flex-start" : "space-between" }]}>
+            <View style={[styles.mainContainer]}>
+                <View style={[styles.titleRow, { justifyContent: (!menuButton && width < 600) ? "flex-start" : "space-between", minHeight: (height < 500 || minimize) ? 40 : 60 }]}>
                     {width < 600 ?
                         <View style={styles.leftContainer}>
                             {hideBack ?
-                                <View style={{ height: height < 500 ? 20 : 40 }}></View>
+                                <View></View>
                                 :
                                 <View style={styles.backButtonContainer}>
                                     <Pressable
@@ -44,7 +44,7 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
                         :
                         <>
                             {hideBack ?
-                                <View style={{ height: (height < 500 || minimize) ? 20 : 40 }}></View>
+                                <View></View>
                                 :
                                 <View style={styles.backButtonContainer}>
                                     <Pressable
@@ -63,7 +63,7 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
                         </>
                     }
                     {menuButton ?
-                        <View style={[styles.menuContainer, { alignSelf: 'stretch' }]}>
+                        <View style={[styles.menuContainer]}>
                             {menuButton}
                         </View>
                         :
@@ -85,11 +85,10 @@ const styles = StyleSheet.create({
     mainContainer: {
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
-        padding: 0
+        padding: 0,
+        justifyContent: "center"
     },
     titleRow: {
-        paddingTop: 10,
-        paddingBottom: 10,
         paddingLeft: 6,
         paddingRight: 12,
         flexDirection: 'row',
@@ -125,10 +124,6 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     menuContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        overflow: 'hidden',
     },
     circleButton: {
         flex: 1,

@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemeContext } from './ThemeContext';
 
 export const IconButton = ({ ionicons_name, onPress, small = false, destructive = false, disabled = false, primary = false, tonal = false, color, size }) => {
-    const { colorTheme, } = useContext(ThemeContext);
+    const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const [focus, setFocus] = useState(false);
     const styles = buttonStyles();
     const disabledFun = () => { };
@@ -18,7 +18,7 @@ export const IconButton = ({ ionicons_name, onPress, small = false, destructive 
         tonal: colorTheme.onSecondaryContainer,
     };
 
-    const focusTheme = (focus && !disabled) ? { backgroundColor: colorTheme.surfaceContainerHigh } : {};
+    const focusTheme = (focus && !disabled) ? { backgroundColor: getHoverColor(colorTheme.surfaceContainerHigh) } : {};
 
     if (ionicons_name) {
         return (

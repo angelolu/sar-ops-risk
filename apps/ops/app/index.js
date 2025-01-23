@@ -58,7 +58,11 @@ export default function App() {
                 <BrandingBar
                     textColor={styles.header.color}
                     title="Operation Management Tools"
-                    menuButton={<IconButton ionicons_name={"settings"} onPress={() => { router.navigate("settings") }} color={colorTheme.onPrimaryContainer} size={24} />}
+                    menuButton={<IconButton
+                        ionicons_name={"settings-outline"}
+                        onPress={() => { router.navigate("settings") }}
+                        color={colorTheme.onPrimaryContainer}
+                        size={24} />}
                 />
             </Header>
             <ScrollView

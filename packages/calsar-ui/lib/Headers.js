@@ -48,18 +48,15 @@ function BackHeader(_ref2) {
       borderBottomRightRadius: 0
     },
     children: /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
-      style: styles.mainContainer,
+      style: [styles.mainContainer],
       children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
         style: [styles.titleRow, {
-          justifyContent: !menuButton && width < 600 ? "flex-start" : "space-between"
+          justifyContent: !menuButton && width < 600 ? "flex-start" : "space-between",
+          minHeight: height < 500 || minimize ? 40 : 60
         }],
         children: [width < 600 ? /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
           style: styles.leftContainer,
-          children: [hideBack ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
-            style: {
-              height: height < 500 ? 20 : 40
-            }
-          }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
+          children: [hideBack ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {}) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
             style: styles.backButtonContainer,
             children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Pressable, {
               style: styles.circleButton,
@@ -84,11 +81,7 @@ function BackHeader(_ref2) {
             children: title
           })]
         }) : /*#__PURE__*/(0, _jsxRuntime.jsxs)(_jsxRuntime.Fragment, {
-          children: [hideBack ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
-            style: {
-              height: height < 500 || minimize ? 20 : 40
-            }
-          }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
+          children: [hideBack ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {}) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
             style: styles.backButtonContainer,
             children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Pressable, {
               style: styles.circleButton,
@@ -113,9 +106,7 @@ function BackHeader(_ref2) {
             children: title
           })]
         }), menuButton ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
-          style: [styles.menuContainer, {
-            alignSelf: 'stretch'
-          }],
+          style: [styles.menuContainer],
           children: menuButton
         }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {})]
       }), children, subtitle && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
@@ -137,11 +128,10 @@ var styles = _reactNative.StyleSheet.create({
   mainContainer: {
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    padding: 0
+    padding: 0,
+    justifyContent: "center"
   },
   titleRow: {
-    paddingTop: 10,
-    paddingBottom: 10,
     paddingLeft: 6,
     paddingRight: 12,
     flexDirection: 'row',
@@ -176,12 +166,7 @@ var styles = _reactNative.StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden'
   },
-  menuContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    overflow: 'hidden'
-  },
+  menuContainer: {},
   circleButton: {
     flex: 1,
     justifyContent: 'center',
