@@ -54,14 +54,19 @@ export const TextBox = ({ keyboardType, placeholder, initialValue, onChangeText,
     );
 };
 
-export const EditableText = ({ keyboardType, defaultValue, onChangeText, placeholder, value, style, numberOfLines, suffix = "", limit, disabled = false }) => {
+export const EditableText = ({ keyboardType, defaultValue, onChangeText, placeholder, value, style, numberOfLines, suffix = "", limit, disabled = false, onEditing = () => { } }) => {
     const { colorTheme, colorScheme, getHoverColor } = useContext(ThemeContext);
     const [editing, setEditing] = React.useState(false);
     const [focused, setFocus] = React.useState(false);
     const [text, setText] = React.useState(value);
 
+    const handleSetEditing = (state) => {
+        onEditing(state);
+        setEditing(state);
+    }
+
     const handleConfirm = () => {
-        setEditing(false);
+        handleSetEditing(false);
         setFocus(false);
         if (value !== text) {
             onChangeText(text);
@@ -70,7 +75,7 @@ export const EditableText = ({ keyboardType, defaultValue, onChangeText, placeho
 
     useEffect(() => {
         if (disabled) {
-            setEditing(false);
+            handleSetEditing(false);
             setFocus(false);
         }
     }, [disabled]);
@@ -86,7 +91,7 @@ export const EditableText = ({ keyboardType, defaultValue, onChangeText, placeho
             <Pressable
                 onHoverIn={() => { disabled ? () => { } : setFocus(true) }}
                 onHoverOut={() => { disabled ? () => { } : setFocus(false) }}
-                onPress={() => { disabled ? () => { } : setEditing(true) }}
+                onPress={() => { disabled ? () => { } : handleSetEditing(true) }}
                 android_ripple={{ color: getHoverColor(colorTheme.black, colorScheme === "light" ? 0.1 : 0.8) }}
                 style={[{ backgroundColor: (focused && !disabled) ? getHoverColor(colorTheme.black, colorScheme === "light" ? 0.1 : 0.8) : "transparent", flexDirection: "row", gap: 6, flexShrink: 1 }]}>
                 <Text style={style} numberOfLines={numberOfLines}>{value || defaultValue}</Text>

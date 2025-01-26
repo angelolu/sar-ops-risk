@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
-import { Platform, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Platform } from 'react-native';
 
 export const PrinterContext = createContext();
 
@@ -44,14 +44,36 @@ export const PrinterProvider = ({ children }) => {
             return true;
           }
         }
-        return false;
       }
-    } else {
-      return false;
     }
+    return false;
   }
 
   const isPrinterSupported = isSerialPossiblySupported();
+
+  const printLogo = async () => {
+    await printText("                    %%%%%%%%             ++    ");
+    await printText("               %%%%%%%%%%%%%%%%%%      ++++++  ");
+    await printText("           %%%%%%%%%%%%%%%%%%%%%%%%  +++++++++ ");
+    await printText("         %%%%%%%%%%%%%%%%%%%%%%%%  +++++++++   ");
+    await printText("       %%%%%%%%%%%      ++       +++++++++     ");
+    await printText("      %%%%%%%%%       ++++++   +++++++++       ");
+    await printText("     %%%%%%%%         ++++++++++++++++  %%%    ");
+    await printText("    %%%%%%%            +++++++++++++  %%%%%%   ");
+    await printText("    %%%%%%         %%%%  +++++++++    %%%%%%%  ");
+    await printText("   %%%%%%%       %%%%%%%   +++++      %%%%%%%  ");
+    await printText("   %%%%%%       %%%%%%%%%%             %%%%%%  ");
+    await printText("   %%%%%%     %%%%%%%%%%%%%%    %%     %%%%%%  ");
+    await printText("   %%%%%%   %%%%%%%%%%%%%%%%% %%%%%%   %%%%%%  ");
+    await printText("    %%%  %%%%%%%%%%%%%%%%%% %%%%%%%%%%   %%%%  ");
+    await printText("    %   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  %%   ");
+    await printText("      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     ");
+    await printText("       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      ");
+    await printText("        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%       ");
+    await printText("          %%%%%%%%%%%%%%%%%%%%%%%%%%%%         ");
+    await printText("             %%%%%%%%%%%%%%%%%%%%%%            ");
+    await printText("                 %%%%%%%%%%%%%%                ");
+  }
 
   // Function to send ESC/POS commands
   const sendCommand = async (command) => {

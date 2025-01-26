@@ -72,7 +72,7 @@ export const PrinterTab = ({ incidentInfo, userInfo }) => {
                                 <Text style={styles.sectionBodyTextSmall}>{isPrinterConnected ? "Connected" : "Not connected"}</Text>
                             </View>
                         </KeyValue>
-                        <FilledButton small={width <= 600} icon={isPrinterConnected ? "close" : "print-outline"} text={isPrinterConnected ? "Disconnect" : "Connect"} onPress={handleConnectPrinter} />
+                        <FilledButton small={width <= 600} icon={isPrinterConnected ? "close" : "print-outline"} text={isPrinterConnected ? "Disconnect" : "Connect"} onPress={handleConnectPrinter} primary={!isPrinterConnected} destructive={isPrinterConnected} />
                     </View>
                     {isPrinterConnected && <KeyValue title="Actions">
                         <View style={{ flexDirection: "row", gap: 12, marginTop: 8, justifyContent: "center" }}>
@@ -84,6 +84,18 @@ export const PrinterTab = ({ incidentInfo, userInfo }) => {
                     </KeyValue>}
                 </View>
             }
+            <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <KeyValue title="File storage">
+                        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+                            <View style={[styles.circle, { backgroundColor: colorTheme.garGreenLight }]} />
+                            <Text style={styles.sectionBodyTextSmall}>{"Changes saved locally"}</Text>
+                        </View>
+                    </KeyValue>
+                    <FilledButton small={width <= 600} icon="download" text={"Download"} onPress={handleConnectPrinter} />
+                </View>
+                <Text style={[styles.text, { fontStyle: "italic" }]}>Download the file to open on another device and for record keeping.</Text>
+            </View>
         </>
     );
 }
@@ -106,6 +118,7 @@ const pageStyles = () => {
         standaloneCard: {
             borderRadius: 26,
             minWidth: 450,
+            maxWidth: 600,
             overflow: 'hidden',
             paddingHorizontal: 18,
             paddingVertical: 16,

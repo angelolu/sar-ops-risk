@@ -11,6 +11,7 @@ import { OptionsTab } from '../components/OptionsTab';
 import { OverviewTab } from '../components/OverviewTab';
 import { PrinterContext } from '../components/PrinterContext';
 import { PrinterTab } from '../components/PrinterTab';
+import { PrinterTabIcon } from '../components/PrinterTabIcon';
 import RailContainer from '../components/RailContainer';
 import TabContainer from '../components/TabContainer';
 import { EditableText } from '../components/TextInput';
@@ -395,20 +396,24 @@ export default function OperationPage() {
                 <View style={[styles.background]}>
                     <BackHeader
                         minimize={readOnly}
-                        customTitle={<EditableText disabled={readOnly} style={{ fontSize: 18, flex: -1, fontWeight: '500', color: colorTheme.onPrimaryContainer, flexShrink: 1 }} numberOfLines={1} value={incidentInfo.name} defaultValue={"Untitled file"} onChangeText={(text) => editIncident({ name: text })} limit={50} suffix={readOnly ? "" : ""} />}
+                        customTitle={
+                            <View style={[{ height: 55, flexDirection: "row", gap: 8, justifyContent: "space-between", alignItems: "center", alignSelf: "flex-end", paddingRight: 4, paddingLeft: 12, paddingBottom: 5 }, selectedHeaderItem === 1 && { backgroundColor: colorTheme.surfaceContainerHighest, borderTopLeftRadius: 12, borderTopRightRadius: 12, width: 300 }]}>
+                                <EditableText onEditing={(state) => { state && setSelectedHeaderItem(1) }} disabled={readOnly} style={{ fontSize: 18, flex: -1, fontWeight: '500', color: colorTheme.onPrimaryContainer, flexShrink: 1 }} numberOfLines={1} value={incidentInfo.name} defaultValue={"Untitled file"} onChangeText={(text) => editIncident({ name: text })} limit={50} suffix={readOnly ? "" : ""} />
+                                {selectedHeaderItem === 1 && <IconButton ionicons_name={"caret-up-circle-outline"} onPress={() => { setSelectedHeaderItem(0) }} color={colorTheme.onSurface} size={24} />}
+                            </View>
+                        }
                         href="/"
                         hideBack={width > 600}
                         menuButton={!readOnly && <View style={{ flexDirection: "row", height: 60, alignItems: "flex-end", gap: 4 }}>
-                            <View style={[{ paddingHorizontal: 4, height: 55, paddingTop: 5 }, selectedHeaderItem === 1 && { backgroundColor: colorTheme.surfaceContainerHighest, borderTopLeftRadius: 20, borderTopRightRadius: 20 }]}><IconButton ionicons_name={selectedHeaderItem === 1 ? "caret-up-circle-outline" : "document-text-outline"} onPress={() => { setSelectedHeaderItem(selectedHeaderItem === 1 ? 0 : 1) }} color={selectedHeaderItem === 1 ? colorTheme.onSurface : colorTheme.onPrimaryContainer} size={24} /></View>
                             {isPrinterSupported &&
-                                <View style={[{ paddingHorizontal: 4, height: 55, paddingTop: 5 }, selectedHeaderItem === 2 && { backgroundColor: colorTheme.surfaceContainerHighest, borderTopLeftRadius: 20, borderTopRightRadius: 20 }]}>
+                                <View style={[{ height: 55 }, selectedHeaderItem === 2 && { backgroundColor: colorTheme.surfaceContainerHighest, borderTopLeftRadius: 12, borderTopRightRadius: 12 }]}>
                                     <View>
-                                        <IconButton
+                                        <PrinterTabIcon
                                             ionicons_name={selectedHeaderItem === 2 ? "caret-up-circle-outline" : "print-outline"}
                                             onPress={() => { setSelectedHeaderItem(selectedHeaderItem === 2 ? 0 : 2) }}
                                             color={selectedHeaderItem === 2 ? colorTheme.onSurface : colorTheme.onPrimaryContainer}
+                                            selected={selectedHeaderItem === 2}
                                             size={24} />
-                                        {selectedHeaderItem === 0 && <View style={[styles.circleFixed, { backgroundColor: isPrinterConnected ? colorTheme.garGreenLight : colorTheme.garRedLight }]} />}
                                     </View>
                                 </View>}
                         </View>}
@@ -419,16 +424,22 @@ export default function OperationPage() {
                         <TabContainer readOnly={readOnly} tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
                     }
                     {selectedHeaderItem === 1 &&
-                        <>
-                            <Pressable onPress={() => setSelectedHeaderItem(0)} style={styles.floatingBackground} />
-
+                        <View style={styles.floatingBackground}>
+                            <Pressable onPress={() => setSelectedHeaderItem(0)} style={{
+                                position: 'absolute',
+                                top: 0,
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                borderTopLeftRadius: 20
+                            }} />
                             <ScrollView
-                                contentContainerStyle={styles.floatingViewContainer}
-                                style={[styles.floatingView]}
+                                contentContainerStyle={[styles.floatingViewContainer]}
+                                style={{ alignSelf: "center", marginRight: width > 600 ? 90 : 0, flexGrow: 0 }}
                             >
                                 <InfoTab incidentInfo={incidentInfo} userInfo={userInfo} editIncident={editIncident} editUser={editUser} />
                             </ScrollView>
-                        </>
+                        </View>
                     }
                     {selectedHeaderItem === 2 &&
                         <>
@@ -543,7 +554,7 @@ const pageStyles = () => {
             position: 'absolute',
             top: 60,
             bottom: 0,
-            left: 90,
+            left: width > 600 ? 90 : 0,
             right: 0,
             borderTopLeftRadius: 20,
             backgroundColor: colorTheme.black + Math.round(0.8 * 255).toString(16).toUpperCase()

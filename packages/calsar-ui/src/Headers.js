@@ -4,6 +4,7 @@ import { useContext } from 'react';
 import { Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemeContext } from './ThemeContext';
+import { IconButton } from './IconButton';
 
 export function Header({ children, style }) {
     const insets = useSafeAreaInsets();
@@ -28,12 +29,7 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
                                 <View></View>
                                 :
                                 <View style={styles.backButtonContainer}>
-                                    <Pressable
-                                        style={styles.circleButton}
-                                        android_ripple={{ color: colorTheme.surfaceContainerHighest }}
-                                        onPress={() => { href ? router.navigate(href) : router.back() }}>
-                                        <Ionicons name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} size={24} color={color ? color : colorTheme.onPrimaryContainer} />
-                                    </Pressable>
+                                    <IconButton ionicons_name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} color={color ? color : colorTheme.onPrimaryContainer} onPress={() => { href ? router.navigate(href) : router.back() }} />
                                 </View>}
                             {customTitle ?
                                 customTitle
@@ -44,15 +40,10 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
                         :
                         <>
                             {hideBack ?
-                                <View></View>
+                                <View style={{ flexGrow: 1, flexBasis: 1 }}></View>
                                 :
                                 <View style={styles.backButtonContainer}>
-                                    <Pressable
-                                        style={styles.circleButton}
-                                        android_ripple={{ color: colorTheme.surfaceContainerHighest }}
-                                        onPress={() => { href ? router.navigate(href) : router.back() }}>
-                                        <Ionicons name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} size={24} color={color ? color : colorTheme.onPrimaryContainer} />
-                                    </Pressable>
+                                    <IconButton ionicons_name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} color={color ? color : colorTheme.onPrimaryContainer} onPress={() => { href ? router.navigate(href) : router.back() }} />
                                 </View>
                             }
                             {customTitle ?
@@ -63,11 +54,11 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
                         </>
                     }
                     {menuButton ?
-                        <View style={[styles.menuContainer]}>
+                        <View style={[styles.menuContainer, { flexGrow: 1, flexBasis: 1, alignItems: "flex-end" }]}>
                             {menuButton}
                         </View>
                         :
-                        <View />
+                        <View style={{ flexGrow: 1, flexBasis: 1 }} />
                     }
                 </View>
                 {children}
@@ -122,6 +113,10 @@ const styles = StyleSheet.create({
         minHeight: 40,
         borderRadius: 20,
         overflow: 'hidden',
+        flexGrow: 1,
+        flexBasis: 1,
+        alignItems: "flex-start",
+        justifyContent: "center"
     },
     menuContainer: {
     },

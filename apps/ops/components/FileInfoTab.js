@@ -10,15 +10,15 @@ export const InfoTab = ({ incidentInfo, userInfo, editIncident, editUser }) => {
 
     return (
         <>
-            <View style={[styles.standaloneCard, { backgroundColor: colorTheme.surfaceContainer, alignSelf: "center", flexDirection: "column", flexGrow: 1, justifyContent: "space-between", gap: 8, maxWidth: 600 }]}>
+            {false && <View style={[styles.standaloneCard, { backgroundColor: colorTheme.surfaceContainer, alignSelf: "center", flexDirection: "column", flexGrow: 1, justifyContent: "space-between", gap: 8, maxWidth: 600 }]}>
                 <View style={{ flexDirection: width > 600 ? "row" : "column", justifyContent: "space-between", alignItems: "center", gap: 20 }}>
                     <Text style={[styles.text, { fontStyle: "italic" }]}>Changes auto-saved locally. Download the file to open on another device and for record keeping.</Text>
                     <FilledButton primary small={width <= 600} icon="download" text="Download file" onPress={() => { }} />
                 </View>
-            </View>
+            </View>}
             <View style={{
-                flexDirection: width > 600 ? "row" : "column",
-                gap: 16,
+                flexDirection: "column",
+                gap: 8,
             }}>
                 <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 1, justifyContent: "flex-start", gap: 8 }]}>
                     <KeyValue title="Incident name" value={incidentInfo?.incidentName || "-"} >
@@ -68,6 +68,7 @@ const pageStyles = () => {
         },
         standaloneCard: {
             borderRadius: 26,
+            minWidth: 450,
             overflow: 'hidden',
             paddingHorizontal: 18,
             paddingVertical: 16,
