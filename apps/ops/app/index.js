@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router, useFocusEffect } from 'expo-router';
+import { Banner, BrandingBar, FilledButton, Header, IconButton, MaterialCard, RiskModal, ThemeContext, Tile } from 'calsar-ui';
+import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { FilledButton, IconButton, BrandingBar, Header, Tile, RiskModal, ThemeContext, MaterialCard, Banner } from 'calsar-ui';
+import { RxDBContext } from '../components/RxDBContext';
 
 export default function App() {
     const styles = pageStyles();
@@ -13,43 +13,52 @@ export default function App() {
     const { width } = useWindowDimensions();
 
     const [files, setFiles] = useState([]);
-    const [modalShowing, setModalShowing] = useState(false);
+    const [modalDocument, setModalDocument] = useState(false);
 
-    useFocusEffect(
-        // Callback should be wrapped in `React.useCallback` to avoid running the effect too often.
-        useCallback(() => {
-            // Invoked whenever the route is focused.
-            reloadData();
-        }, [])
-    );
+    const { createFile, getFiles, deleteFile } = useContext(RxDBContext)
 
-    const reloadData = () => {
-        getData("localFiles").then((value) => {
-            if (value) {
-                let fileLoadingPromises = value.map(fileUUID => getData(fileUUID + "-incidentInfo"));
-                Promise.allSettled(fileLoadingPromises).then((results) => {
-                    let newFiles = [];
-                    results.forEach((result) => result.value && newFiles.push(result.value))
-                    setFiles(newFiles);
-                });
-            }
+    useEffect(() => {
+        getFiles().then(query => {
+            query.$.subscribe(files => {
+                let newFiles = [];
+                files.forEach((result) => newFiles.push(result))
+                setFiles(newFiles);
+            });
+        });
+    }, []);
+
+    const handleDeleteFile = (file) => {
+        deleteFile(file);
+    }
+
+    const handleNewFile = () => {
+        createFile().then(id => {
+            router.navigate(id);
         });
     }
 
-    const deleteFileWithUUID = (UUID) => {
-        getData("localFiles").then((value) => {
-            if (value) {
-                const index = value.indexOf(UUID);
-                if (index > -1) {
-                    value.splice(index, 1);
-                }
-                saveData("localFiles", value)
+    const calculateElapsedTime = (dateString) => {
+        if (dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInMs = now - date;
+
+            const seconds = Math.floor(diffInMs / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+
+            if (seconds < 60) {
+                return "just now";
+            } else if (minutes < 60) {
+                return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+            } else if (hours < 48) {
+                return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+            } else {
+                return date.toLocaleString('en-US', { hour12: false });
             }
-        })
-        removeItem(UUID + "-incidentInfo");
-        removeItem(UUID + "-userInfo");
-        removeItem(UUID + "-teamsInfo");
-        removeItem(UUID + "-auditInfo");
+        } else {
+            return "an unknown time ago";
+        }
     }
 
     return (
@@ -74,7 +83,7 @@ export default function App() {
                             <FilledButton small={width <= 600} icon="folder-open" text="Open" onPress={() => { }} /> :
                             <IconButton small tonal ionicons_name="folder-open" onPress={() => { }} />}
 
-                        <FilledButton primary small={width <= 600} icon="add" text="New file" onPress={() => router.navigate("/new")} />
+                        <FilledButton primary small={width <= 600} icon="add" text="New file" onPress={() => handleNewFile()} />
                     </View>
                 </View>
                 <View style={{ gap: 20 }}>
@@ -103,16 +112,16 @@ export default function App() {
                         </ MaterialCard>
 
                         :
-                        <View style={[styles.timerSection, { flexDirection: "column-reverse" }]}>
+                        <View style={[styles.filesSection, { flexDirection: "column-reverse" }]}>
                             {files.map(item => (
                                 <Tile
-                                    key={item.uuid}
-                                    href={"/" + item.uuid}
+                                    key={item.id}
+                                    href={"/" + item.id}
                                     icon={<Ionicons name="document" size={20} color={colorTheme.primary} />}
-                                    title={item.name || "Untitled file"}
-                                    subtitle={("Created " + new Date(item.created).toLocaleString('en-US', { hour12: false }))}
+                                    title={item.fileName || "Untitled file"}
+                                    subtitle={(`Updated ${calculateElapsedTime(item.updated)}. Created ${calculateElapsedTime(item.created)}.`)}
                                 >
-                                    <IconButton small ionicons_name="trash" onPress={() => { setModalShowing(item) }} />
+                                    <IconButton small ionicons_name="trash" onPress={() => { setModalDocument(item) }} />
                                 </Tile>
                             ))}
 
@@ -126,53 +135,26 @@ export default function App() {
                 </View>
             </ScrollView>
             <RiskModal
-                isVisible={modalShowing ? true : false}
+                isVisible={modalDocument ? true : false}
                 title={"Delete file?"}
-                onClose={() => { setModalShowing(false) }}>
+                onClose={() => { setModalDocument(false) }}>
                 <View style={{
                     padding: 20, paddingTop: 0, gap: 20
                 }}>
-                    <Text style={{ color: colorTheme.onSurface }}>{modalShowing.name || "This untitled file"} will be permanently deleted. Download the file before deleting if needed for record keeping.</Text>
+                    <Text style={{ color: colorTheme.onSurface }}>{modalDocument.name || "This untitled file"} will be permanently deleted. Download the file before deleting if needed for record keeping.</Text>
                     <FilledButton
                         rightAlign
                         destructive
                         text={"Delete file"}
                         onPress={() => {
-                            deleteFileWithUUID(modalShowing.uuid);
-                            setModalShowing(false);
-                            reloadData();
+                            handleDeleteFile(modalDocument);
+                            setModalDocument(false);
                         }} />
                 </View>
             </RiskModal>
         </View >
     );
 }
-
-const removeItem = async (key) => {
-    try {
-        await AsyncStorage.removeItem(key);
-    } catch (e) {
-        // saving error
-    }
-};
-
-const saveData = async (key, value) => {
-    try {
-        const jsonValue = JSON.stringify(value);
-        await AsyncStorage.setItem(key, jsonValue);
-    } catch (e) {
-        // saving error
-    }
-};
-
-const getData = async (key) => {
-    try {
-        const jsonValue = await AsyncStorage.getItem(key);
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-        // error reading value
-    }
-};
 
 const pageStyles = () => {
     const { colorTheme } = useContext(ThemeContext);
@@ -201,25 +183,10 @@ const pageStyles = () => {
             gap: 20,
             alignSelf: 'center',
         },
-        sectionTitle: {
-            color: colorTheme.onBackground,
-            fontSize: 20,
-        },
-        timerSection: {
+        filesSection: {
             gap: 4,
             borderRadius: 26,
             overflow: 'hidden'
-        },
-        standaloneCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-            justifyContent: 'space-between',
-            backgroundColor: colorTheme.surfaceContainer
         },
         card: {
             borderRadius: 6,
@@ -231,23 +198,6 @@ const pageStyles = () => {
             justifyContent: 'space-between',
             backgroundColor: colorTheme.surfaceContainer
         },
-        sectionContainer: {
-            flexGrow: 1,
-            justifyContent: 'space-between',
-            flexDirection: 'column',
-        },
-        buttonContainer: {
-            marginTop: 12,
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            gap: 8
-        },
-        sectionTitleContainer: {
-            justifyContent: 'space-between',
-            alignItems: "center",
-            flexDirection: 'row',
-            gap: 8
-        },
         text: {
             fontSize: width > 600 ? 14 : 12,
             color: colorTheme.onSurface
@@ -255,14 +205,6 @@ const pageStyles = () => {
         headerText: {
             fontSize: width > 600 ? 24 : 20,
             color: colorTheme.onBackground
-        },
-        sectionBodyText: {
-            fontSize: width > 600 ? 28 : 20,
-            color: colorTheme.onSurface
-        },
-        sectionBodyTextSmall: {
-            fontSize: width > 600 ? 20 : 16,
-            color: colorTheme.onSurface
         },
         header: {
             padding: 14,

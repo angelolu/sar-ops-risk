@@ -6,11 +6,14 @@ import { shareAsync } from 'expo-sharing';
 import React, { useContext, useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SearchBox } from '../components/TextInput';
+import { RxDBContext } from './RxDBContext';
 
-export const LogTab = ({ logs, incidentInfo, userInfo }) => {
+export const LogTab = ({ incidentInfo, teams }) => {
     const styles = pageStyles();
     const { colorTheme } = useContext(ThemeContext);
+    const { getLogsByFileId } = useContext(RxDBContext)
     const { width } = useWindowDimensions();
+    const [logs, setLogs] = useState([]);
     const [typeFilter, setTypeFilter] = useState(0);
     const [textFilter, setTextFilter] = useState("");
     const [logSlice, setLogSlice] = useState(1);
@@ -25,6 +28,11 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
     useEffect(() => {
         // Load saved settings
         getData("export-date-format").then((value) => { value && setExportDatePreference(value) });
+        getLogsByFileId(incidentInfo.id).then(query => {
+            query.$.subscribe(logs => {
+                setLogs(logs);
+            });
+        });
     }, []);
 
     const textSearch = (text, filter) => {
@@ -34,27 +42,35 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
         return false;
     }
 
+    const parseTeamName = (teamNameToParse) => {
+        if (teamNameToParse === "!@#$") {
+            return incidentInfo.commsCallsign || "OPERATOR"
+        } else {
+            const foundObject = teams.find(obj => obj.id === teamNameToParse);
+            return foundObject ? foundObject.name || "Unnamed" : "Unknown";
+        }
+    }
+
     let displayLogs = logs;
     if (typeFilter === 1) {
-        displayLogs = displayLogs.filter((log) => log.type === "2")
+        displayLogs = displayLogs.filter((log) => log.type === 2)
     }
     if (textFilter && textFilter.length >= 2) {
-        displayLogs = displayLogs.filter((log) => textSearch(log.to, textFilter) || textSearch(log.from, textFilter) || textSearch(log.team, textFilter) || textSearch(log.note, textFilter))
+        displayLogs = displayLogs.filter((log) => textSearch(parseTeamName(log.toTeam), textFilter) || textSearch(parseTeamName(log.toTeam), textFilter) || textSearch(log.message, textFilter))
     }
-    displayLogs.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-    let printToFile = async (displayLogs, incidentInfo, userInfo) => {
+    let printToFile = async (displayLogs, incidentInfo) => {
         const maxLogsLinesPerPage = 24;
         const maxCharsPerLine = 65;
         let logsHTML = "";
         let lines = 0;
         let pages = [];
 
-        if (exportType === 0 || exportType === 1) displayLogs = displayLogs.filter((log) => log.type === "2"); // ICS309, SAR 133 only has radio logs
+        if (exportType === 0 || exportType === 1) displayLogs = displayLogs.filter((log) => log.type === 2); // ICS309, SAR 133 only has radio logs
 
         displayLogs.forEach((log) => {
-            if (log.note) {
-                let logLines = Math.ceil(log.note.length / maxCharsPerLine);
+            if (log.message) {
+                let logLines = Math.ceil(log.message.length / maxCharsPerLine);
                 if ((logLines + lines) > maxLogsLinesPerPage) {
                     lines = 0;
                     pages.push(logsHTML);
@@ -62,16 +78,16 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
                 }
                 lines = lines + logLines;
             } else {
-                // If there is no note, this counts as a single line
+                // If there is no message, this counts as a single line
                 lines = lines + 1;
             }
             logsHTML = logsHTML + `<tr>
-            <td class="time">${exportDatePreference === 1 ? new Date(log.time).toISOString() : new Date(log.time).toLocaleString('en-US', { hour12: false })}</td>
-            ${log.from !== undefined ? `<td class="oneline center">${parseTeamName(log.from || "Unknown")}</td>
-            <td class="oneline center">${parseTeamName(log.team || log.to || "Unknown")}</td>` :
-                    `<td class="oneline center" colspan="2">${parseTeamName(log.team || log.to || "Unknown")}</td>`
+            <td class="time">${exportDatePreference === 1 ? new Date(log.created).toISOString() : new Date(log.created).toLocaleString('en-US', { hour12: false })}</td>
+            ${log.toTeam ? `<td class="oneline center">${parseTeamName(log.fromTeam || "Unknown")}</td>
+            <td class="oneline center">${parseTeamName(log.toTeam || "Unknown")}</td>` :
+                    `<td class="oneline center" colspan="2">${parseTeamName(log.fromTeam || "Unknown")}</td>`
                 }
-            <td class="subject">${log.note || ""}</td>
+            <td class="subject">${log.message || ""}</td>
         </tr>`})
         pages.push(logsHTML);
 
@@ -83,9 +99,9 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
                         <table>
                             <tr>
                                 <th colspan="3">COMMUNICATIONS LOG</th>
-                                <td colspan="2"><p class="small">TASK #</p>${incidentInfo.number || ""}</td>
-                                <td colspan="2"><p class="small">FOR PERIOD</p>FROM: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[0]?.time).toISOString() : new Date(displayLogs[0]?.time).toLocaleString('en-US', { hour12: false })) ||
-                    ""}</br>TO: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[displayLogs.length - 1]?.time).toISOString() : new Date(displayLogs[displayLogs.length - 1]?.time).toLocaleString('en-US', { hour12: false })) ||
+                                <td colspan="2"><p class="small">TASK #</p>${incidentInfo.incidentNumber || ""}</td>
+                                <td colspan="2"><p class="small">FOR PERIOD</p>FROM: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[0]?.created).toISOString() : new Date(displayLogs[0]?.created).toLocaleString('en-US', { hour12: false })) ||
+                    ""}</br>TO: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[displayLogs.length - 1]?.created).toISOString() : new Date(displayLogs[displayLogs.length - 1]?.created).toLocaleString('en-US', { hour12: false })) ||
                     ""}</td>
                             </tr>
                             <tr>
@@ -94,9 +110,9 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
 
                             </tr>
                             <tr>
-                                <td colspan="3"><p class="small">LOG KEEPER</p>${userInfo.name || ""}</td>
-                                <td colspan="2"><p class="small">STATION CALLSIGN</p>${userInfo.callsign || ""}</td>
-                                <td colspan="2"><p class="small">STATION FREQUENCY</p>${userInfo.frequency || ""}</td>
+                                <td colspan="3"><p class="small">LOG KEEPER</p>${incidentInfo.commsName || ""}</td>
+                                <td colspan="2"><p class="small">STATION CALLSIGN</p>${incidentInfo.commsCallsign || ""}</td>
+                                <td colspan="2"><p class="small">STATION FREQUENCY</p>${incidentInfo.commsFrequency || ""}</td>
                             </tr>
                         </table>
                         <table id="tableId">
@@ -129,13 +145,13 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
                         <tr>
                             <th colspan="1" class="center">RADIO LOG</th>
                             <td colspan="1"><p class="small">1. INCIDENT NAME</p>${incidentInfo.incidentName || ""}</td>
-                            <td colspan="1"><p class="small">2. DATE</p>${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[0]?.time).toISOString() : new Date(displayLogs[0]?.time).toLocaleString('en-US', { hour12: false })) ||
+                            <td colspan="1"><p class="small">2. DATE</p>${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[0]?.created).toISOString() : new Date(displayLogs[0]?.created).toLocaleString('en-US', { hour12: false })) ||
                     ""}</td>
-                            <td colspan="1"><p class="small">3. INCIDENT NUMBER</p>${incidentInfo.number || ""}</td>
+                            <td colspan="1"><p class="small">3. INCIDENT NUMBER</p>${incidentInfo.incidentNumber || ""}</td>
                         </tr>
                         <tr>
                             <td colspan="2"><p class="small">4. OPERATOR LOCATION</p></td>
-                            <td colspan="2"><p class="small">5. FREQUENCY</p>${userInfo.frequency || ""}</td>
+                            <td colspan="2"><p class="small">5. FREQUENCY</p>${incidentInfo.commsFrequency || ""}</td>
                         </tr>
                     </table>
                     <table id="tableId">
@@ -156,7 +172,7 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
                         <tr>
                             <td class="center"><b>SAR 133</b><p class="small">BASARC 3/98</p></td>
                             <td><p class="small">6. LOG PREPARED BY</p></td>
-                            <td><p class="small">7. RADIO OPERATOR</p>${userInfo.name || ""}</td>
+                            <td><p class="small">7. RADIO OPERATOR</p>${incidentInfo.commsName || ""}</td>
                         </tr>
                     </table>
                     ${(index + 1 === pages.length) ? "" : `<div class="pagebreak"></div>`}
@@ -167,9 +183,9 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
                         <table>
                             <tr>
                                 <td colspan="3" class="center"><p class="small">OPERATION MANAGEMENT TOOL</p><b>${((exportType === 2 && (typeFilter !== 0 || textFilter !== "") && exportContents !== 1) ? "PARTIAL " : "FULL ")}LOG</b></td>
-                                <td colspan="2"><p class="small">TASK #</p>${incidentInfo.number || ""}</td>
-                                <td colspan="2"><p class="small">PERIOD</p>FROM: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[0]?.time).toISOString() : new Date(displayLogs[0]?.time).toLocaleString('en-US', { hour12: false })) ||
-                    ""}</br>TO: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[displayLogs.length - 1]?.time).toISOString() : new Date(displayLogs[displayLogs.length - 1]?.time).toLocaleString('en-US', { hour12: false })) ||
+                                <td colspan="2"><p class="small">TASK #</p>${incidentInfo.incidentNumber || ""}</td>
+                                <td colspan="2"><p class="small">PERIOD</p>FROM: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[0]?.created).toISOString() : new Date(displayLogs[0]?.created).toLocaleString('en-US', { hour12: false })) ||
+                    ""}</br>TO: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[displayLogs.length - 1]?.created).toISOString() : new Date(displayLogs[displayLogs.length - 1]?.created).toLocaleString('en-US', { hour12: false })) ||
                     ""}</td>
                             </tr>
                             <tr>
@@ -177,9 +193,9 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
                                 <td colspan="6"><p class="small">TASK NAME</p>${incidentInfo.incidentName || ""}</td>
                             </tr>
                             <tr>
-                                <td colspan="3"><p class="small">LOG KEEPER</p>${userInfo.name || ""}</td>
-                                <td colspan="2"><p class="small">STATION CALLSIGN</p>${userInfo.callsign || ""}</td>
-                                <td colspan="2"><p class="small">STATION FREQ./CHANNEL</p>${userInfo.frequency || ""}</td>
+                                <td colspan="3"><p class="small">LOG KEEPER</p>${incidentInfo.commsName || ""}</td>
+                                <td colspan="2"><p class="small">STATION CALLSIGN</p>${incidentInfo.commsCallsign || ""}</td>
+                                <td colspan="2"><p class="small">STATION FREQ./CHANNEL</p>${incidentInfo.commsFrequency || ""}</td>
                             </tr>
                         </table>
                         <table id="tableId">
@@ -283,7 +299,7 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
     const exportCSV = async (logs, filename) => {
         let csvString = "Time,From,To,Message\n";
         logs.forEach((log) => {
-            csvString = csvString + `"${exportDatePreference === 1 ? new Date(log.time).toISOString() : new Date(log.time).toLocaleString('en-US', { hour12: false })}",${log.from !== undefined ? `${parseTeamName(log.from || "Unknown")}` : "(Non-radio log)"},${parseTeamName(log.team || log.to || "Unknown")},"${log.note || ""}"\n`;
+            csvString = csvString + `"${exportDatePreference === 1 ? new Date(log.created).toISOString() : new Date(log.created).toLocaleString('en-US', { hour12: false })}",${log.toTeam ? `${parseTeamName(log.fromTeam || "Unknown")}` : "(Non-radio log)"},${parseTeamName(log.toTeam || "Unknown")},"${log.message || ""}"\n`;
         });
         if (Platform.OS === 'web') {
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
@@ -317,23 +333,13 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
 
     const handleExportButton = () => {
         let logsToExport = displayLogs;
-        logsToExport = logs.sort((a, b) => new Date(a.time) - new Date(b.time)); // Exports are printed in reverse order
+        logsToExport = logs.sort((a, b) => new Date(a.created) - new Date(b.created)); // Exports are printed in reverse order
         if (exportType === 0 || exportType === 1 || exportFileType === 0) {
-            printToFile(logsToExport, incidentInfo, userInfo);
+            printToFile(logsToExport, incidentInfo);
         } else {
-            exportCSV(logsToExport, incidentInfo.name);
+            exportCSV(logsToExport, incidentInfo.fileName);
         }
         setModalShowing(false);
-    }
-
-    const parseTeamName = (teamNameToParse) => {
-        if (teamNameToParse === "!@#$") {
-            return userInfo.callsign || "OPERATOR"
-        } else if (teamNameToParse) {
-            return teamNameToParse;
-        } else {
-            return "Unnamed"
-        }
     }
 
     const LogRow = ({ log, bold = false }) => {
@@ -365,17 +371,17 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
         }
 
         switch (log?.type) {
-            case "3":
+            case 3:
                 // Non-radio operator related changes
-                return (<>{renderRow(new Date(log.time).toLocaleString('en-US', { hour12: false }), "(non-radio)", "Operator", log.note)}</>);
+                return (<>{renderRow(new Date(log.created).toLocaleString('en-US', { hour12: false }), "(non-radio)", "Operator", log.message)}</>);
                 break;
-            case "2":
+            case 2:
                 // Radio log
-                return (<>{renderRow(new Date(log.time).toLocaleString('en-US', { hour12: false }), parseTeamName(log.from), parseTeamName(log.to), log.note)}</>);
+                return (<>{renderRow(new Date(log.created).toLocaleString('en-US', { hour12: false }), parseTeamName(log.fromTeam), parseTeamName(log.toTeam), log.message)}</>);
                 break;
-            case "1":
+            case 1:
                 // Non-radio team related changes
-                return (<>{renderRow(new Date(log.time).toLocaleString('en-US', { hour12: false }), "(non-radio)", parseTeamName(log.team), log.note)}</>);
+                return (<>{renderRow(new Date(log.created).toLocaleString('en-US', { hour12: false }), "(non-radio)", parseTeamName(log.fromTeam), log.message)}</>);
                 break;
             default:
                 // Assume this is a header row?
@@ -404,7 +410,7 @@ export const LogTab = ({ logs, incidentInfo, userInfo }) => {
                 {displayLogs.slice((logSlice - 1) * numLogsPerPage, logSlice * numLogsPerPage).map(log => (
                     <LogRow
                         log={log}
-                        key={log.time + Math.random()}
+                        key={log.id}
                     />
                 ))}
 

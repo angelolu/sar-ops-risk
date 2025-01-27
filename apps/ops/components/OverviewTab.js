@@ -4,8 +4,9 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { EditableText, TextBox } from '../components/TextInput';
 import { PrinterContext } from './PrinterContext';
+import { RxDBContext } from './RxDBContext';
 
-export const OverviewTab = ({ incidentInfo, teams, logs, currentCallsign, removeTeam, setIsRuningWithKey, setAllIsRunning, handleAddTeam, handleResetTimeoutWithKey, handleToggleFlagWithKey, editTeam, addLog, readOnly }) => {
+export const OverviewTab = ({ incidentInfo, teams, removeTeam, setIsRuning, setAllIsRunning, handleAddTeam, handleResetTimeout, handleToggleFlag, editTeam, addLog, readOnly }) => {
     const styles = pageStyles();
     const { width, height } = useWindowDimensions();
     const { colorTheme } = useContext(ThemeContext);
@@ -32,7 +33,7 @@ export const OverviewTab = ({ incidentInfo, teams, logs, currentCallsign, remove
         await setNormal();
         await feedLines(1);
         await printText(`TASK NAME: ${incidentInfo.incidentName || ""}`);
-        await printText(`TASK # ${incidentInfo.number || ""}`);
+        await printText(`TASK # ${incidentInfo.incidentNumber || ""}`);
         await printText(`OP. PERIOD: ${incidentInfo.opPeriod || ""}`);
         await feedLines(1);
         await printText(`CLUE DESCRIPTION: ${description || ""}`);
@@ -49,9 +50,6 @@ export const OverviewTab = ({ incidentInfo, teams, logs, currentCallsign, remove
     const [expanded, setExpanded] = useState(false);
 
     const areTimersRunning = teams.some(item => item.isRunning === true);
-
-    const displayLogs = logs.filter((log) => log.type === "2");
-    displayLogs.sort((a, b) => new Date(b.time) - new Date(a.time));
 
     const textSearch = (text, filter) => {
         if (text && filter) {
@@ -92,7 +90,7 @@ export const OverviewTab = ({ incidentInfo, teams, logs, currentCallsign, remove
                             backgroundColor={colorTheme.surfaceContainer}
                             color={colorTheme.onSurface}
                             icon={<Ionicons name="people" size={24} color={colorTheme.onSurface} />}
-                            title={"Teams will appear here. Create one in the \"Responders\" tab or create an ad-hoc team using the button above"} />
+                            title={"Teams will appear here. Create one in the \"Resources\" tab or create an ad-hoc team using the button above"} />
                         <Banner
                             backgroundColor={colorTheme.secondaryContainer}
                             color={colorTheme.onSecondaryContainer}
@@ -104,27 +102,43 @@ export const OverviewTab = ({ incidentInfo, teams, logs, currentCallsign, remove
                 </>
             }
             <View style={[styles.timerSection, { flexWrap: "wrap", flexDirection: (readOnly && width > 600) ? "row" : "column", gap: readOnly ? 10 : 4 }]}>
-                {teams.map(item => (
-                    <TimerComponent
-                        readOnly={readOnly}
-                        expanded={expanded}
-                        team={item}
-                        teams={teams}
-                        currentCallsign={currentCallsign}
-                        key={item.key}
-                        handleResetTimeout={() => handleResetTimeoutWithKey(item.key)}
-                        handleStartStop={() => setIsRuningWithKey(item.key, !item.isRunning)}
-                        removeTeam={() => removeTeam(item)}
-                        handleToggleFlag={() => handleToggleFlagWithKey(item.key)}
-                        editTeam={(obj, log) => editTeam(item, obj, log)}
-                        showLogTrafficModal={() => {
-                            setLogTrafficTeam(item);
-                            editTeam(item, { editing: true }, false);
-                        }}
-                        addLog={addLog}
-                        lastMessage={displayLogs.find((log) => textSearch(log.to, item.name) || textSearch(log.from, item.name) || textSearch(log.team, item.name))}
-                    />
-                ))}
+                {teams.map(item => {
+                    if (item.removed !== true) {
+                        return <TimerComponent
+                            incidentInfo={incidentInfo}
+                            readOnly={readOnly}
+                            expanded={expanded}
+                            team={item}
+                            teams={teams}
+                            key={item.id}
+                            handleResetTimeout={() => handleResetTimeout(item)}
+                            handleStartStop={() => setIsRuning(item, !item.isRunning)}
+                            removeTeam={() => removeTeam(item)}
+                            handleToggleFlag={() => handleToggleFlag(item)}
+                            editTeam={(obj, log) => editTeam(item, obj, log)}
+                            showLogTrafficModal={() => {
+                                setLogTrafficTeam(item);
+                                editTeam(item, { editing: true }, false);
+                            }}
+                            addLog={addLog}
+                        />
+                    } /*else {
+                        return (
+                            <View key={item.id} style={[styles.wideCard, { backgroundColor: colorTheme.surfaceContainerLowest, flexGrow: width >= 1080 ? 0 : 1, width: (readOnly && ((width - 10 - 20) / 2) - 10 >= 515) ? ((width - 10 - 20) / 2) - 10 : "100%" }]}>
+                                <View style={{
+                                    flexDirection: "row",
+                                    gap: 12,
+                                    flexWrap: "wrap",
+                                    justifyContent: 'space-between',
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 16,
+                                }}>
+                                    <Text style={styles.text}>Deleted: {item.name || "Unnamed team"}</Text>
+                                </View>
+                            </View>
+                        );
+                    }*/
+                })}
             </View>
             <LogTrafficComponent
                 isPrinterConnected={isPrinterConnected}
@@ -135,24 +149,24 @@ export const OverviewTab = ({ incidentInfo, teams, logs, currentCallsign, remove
                 }}
                 team={logTrafficTeam}
                 teams={teams}
-                currentCallsign={currentCallsign}
+                incidentInfo={incidentInfo}
                 addLog={addLog}
                 updateStatus={(text) => editTeam(logTrafficTeam, { status: text }, false)}
                 updateAssignment={(newAssignment) => editTeam(logTrafficTeam, { assignment: newAssignment }, false)}
                 setFlag={(state) => editTeam(logTrafficTeam, { flagged: state }, false)}
-                resetTimeout={() => handleResetTimeoutWithKey(logTrafficTeam?.key)} />
+                resetTimeout={() => handleResetTimeout(logTrafficTeam)} />
         </View>
     );
 }
 
-const LogTrafficComponent = ({ teams, team, currentCallsign, onClose, addLog, updateStatus, updateAssignment, setFlag, resetTimeout, isPrinterConnected = false, handlePrintClueStub }) => {
+const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, addLog, updateStatus, updateAssignment, setFlag, resetTimeout, isPrinterConnected = false, handlePrintClueStub }) => {
     const { colorTheme } = useContext(ThemeContext);
     const styles = pageStyles();
     const [messageType, setMessageType] = useState(0);
     const [messageSubType, setMessageSubType] = useState(0);
     const [fromField, setFromField] = useState(0);
     const [toField, setToField] = useState(0);
-    const [toTeam, setToTeam] = useState("");
+    const [toTeam, setToTeam] = useState(undefined);
     const [selectMode, setSelectMode] = useState(false);
 
     const { width } = useWindowDimensions();
@@ -168,11 +182,11 @@ const LogTrafficComponent = ({ teams, team, currentCallsign, onClose, addLog, up
         if (value === 1) {
             // Enter select mode
             setSelectMode(true);
-            setToTeam("");
+            setToTeam(undefined);
         } else {
             // Exit select mode
             setSelectMode(false);
-            setToTeam("");
+            setToTeam(undefined);
         }
         setToField(value);
     };
@@ -204,7 +218,7 @@ const LogTrafficComponent = ({ teams, team, currentCallsign, onClose, addLog, up
         },
         "Search": {
             "Searching": {
-                message: `Searching assignment ${team?.assignment}`,
+                message: `Searching assignment ${team?.assignment || ""}`,
                 status: "Searching",
             },
             "On break": {
@@ -212,7 +226,7 @@ const LogTrafficComponent = ({ teams, team, currentCallsign, onClose, addLog, up
                 status: "On break",
             },
             "Completed": {
-                message: `Completed assignment ${team?.assignment}`,
+                message: `Completed assignment ${team?.assignment || ""}`,
                 status: "Completed assignment",
                 flag: true
             },
@@ -375,19 +389,19 @@ const LogTrafficComponent = ({ teams, team, currentCallsign, onClose, addLog, up
         }
         if (note) {
             addLog({
-                time: new Date(),
-                type: "2", // 2 for radio logs
-                from: fromField === 0 ? team?.name || "" : "!@#$", // !@#$ will be converted to the operator call sign
-                to: toField === 0 ? (fromField === 0 ? "!@#$" : team?.name || "") : toTeam,
-                note: note
+                created: new Date().toISOString(),
+                type: 2, // 2 for radio logs
+                fromTeam: fromField === 0 ? team?.id || "" : "!@#$", // !@#$ will be converted to the operator call sign
+                toTeam: toField === 0 ? (fromField === 0 ? "!@#$" : team?.id || "") : toTeam.id,
+                message: note
             });
             resetTimeout();
             handleClose();
         }
     }
 
-    let toItems = [fromField === 0 ? currentCallsign || "You" : team?.name ? team?.name : "This team"];
-    if (fromField === 0) toItems.push(toTeam || "Other"); // Only allow recipient selection if the sender is the current team
+    let toItems = [fromField === 0 ? incidentInfo.commsCallsign || "You" : team?.name ? team?.name : "This team"];
+    if (fromField === 0) toItems.push(toTeam?.name || "Other"); // Only allow recipient selection if the sender is the current team
     return (<RiskModal
         overrideWidth={700}
         isVisible={team ? true : false}
@@ -398,12 +412,12 @@ const LogTrafficComponent = ({ teams, team, currentCallsign, onClose, addLog, up
             <View style={{ flexDirection: (width > 600 ? "row" : "column"), gap: (width > 600 ? 20 : 12) }}>
                 <View style={{ flexDirection: "column", gap: 8, flexGrow: (width > 600 ? 1 : 0), flexBasis: (width > 600 ? 0 : "auto") }}>
                     <Text style={{ color: colorTheme.onSurface, alignSelf: "flex-start" }}>From</Text>
-                    <SegmentedButtons small={width <= 600} grow items={[team?.name ? team?.name : "This team", currentCallsign || "You"]} selected={fromField} onPress={(value) => {
+                    <SegmentedButtons small={width <= 600} grow items={[team?.name ? team?.name : "This team", incidentInfo.commsCallsign || "You"]} selected={fromField} onPress={(value) => {
                         setFromField(value);
                         setMessageType(0);
                         setMessageSubType(0);
                         setToField(0);
-                        setToTeam("");
+                        setToTeam(undefined);
                         setSelectMode(false);
                     }} />
                 </View>
@@ -429,9 +443,9 @@ const LogTrafficComponent = ({ teams, team, currentCallsign, onClose, addLog, up
                     </View>
                     <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'center', flexWrap: "wrap-reverse" }}>
                         {teams.map(t => {
-                            if (t.name && t.name != team?.name) {
-                                return <FilledButton small key={t?.key} text={t.name} onPress={() => {
-                                    setToTeam(t.name);
+                            if (t.name && t.id != team?.id && t.removed !== true) {
+                                return <FilledButton small key={t?.id} text={t.name} onPress={() => {
+                                    setToTeam(t);
                                     setSelectMode(false);
                                 }} />
                             }
@@ -506,15 +520,26 @@ const SectionContainer = ({ children, maxWidth, width, justifyContent, style, no
     );
 }
 
-const TimerComponent = ({ team, currentCallsign, handleResetTimeout, handleStartStop, removeTeam, handleToggleFlag, editTeam, showLogTrafficModal, expanded, lastMessage, readOnly }) => {
+const TimerComponent = ({ incidentInfo, team, teams, handleResetTimeout, handleStartStop, removeTeam, handleToggleFlag, editTeam, showLogTrafficModal, expanded, readOnly }) => {
     const { colorTheme } = useContext(ThemeContext);
+    const { getLastRadioLog } = useContext(RxDBContext)
     const styles = pageStyles();
     const [time, setTime] = useState(team.lastTimeRemaining);
     const intervalRef = useRef(null);
     const { width } = useWindowDimensions();
     const [deleteModalShowing, setDeleteModalShowing] = useState(false);
+    const [lastLog, setLastLog] = useState(null);
     const lastStartRef = useRef(team.lastStart);
     const lastTimeRemainingRef = useRef(team.lastTimeRemaining);
+
+
+    useEffect(() => {
+        getLastRadioLog(incidentInfo.id, team.id).then(query => {
+            query.$.subscribe(log => {
+                setLastLog(log)
+            });
+        });
+    }, []);
 
     useEffect(() => {
         if (team.isRunning) {
@@ -550,11 +575,10 @@ const TimerComponent = ({ team, currentCallsign, handleResetTimeout, handleStart
 
     const parseTeamName = (teamNameToParse) => {
         if (teamNameToParse === "!@#$") {
-            return currentCallsign || "OPERATOR"
-        } else if (teamNameToParse) {
-            return teamNameToParse;
+            return incidentInfo.commsCallsign || "OPERATOR"
         } else {
-            return "unnamed team"
+            const foundObject = teams.find(obj => obj.id === teamNameToParse);
+            return foundObject ? foundObject.name || "Unnamed" : "Unknown";
         }
     }
 
@@ -582,7 +606,6 @@ const TimerComponent = ({ team, currentCallsign, handleResetTimeout, handleStart
             return "an unknown time ago";
         }
     }
-
 
     const formatTime = (seconds) => {
         if (seconds <= -3600) return ">-10 hrs"
@@ -670,7 +693,7 @@ const TimerComponent = ({ team, currentCallsign, handleResetTimeout, handleStart
                         </View>
                     </RiskModal>
                 </View>
-                {(expanded || readOnly) && team.name &&
+                {(expanded || readOnly) &&
                     <View style={{
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -688,10 +711,10 @@ const TimerComponent = ({ team, currentCallsign, handleResetTimeout, handleStart
                             flexDirection: "row",
                             gap: 12
                         }}>
-                            <Text style={[styles.text, { fontStyle: 'italic', flexShrink: 0, color: colorTheme.onSurfaceVariant }]} numberOfLines={1}>{lastMessage ? `${parseTeamName(lastMessage.from)} to ${parseTeamName(lastMessage.to)}` : ""}</Text>
-                            <Text style={[styles.text, { color: colorTheme.onSurfaceVariant }]} numberOfLines={1}>{lastMessage ? `${lastMessage.note}` : "No previous traffic found"}</Text>
+                            <Text style={[styles.text, { fontStyle: 'italic', flexShrink: 0, color: colorTheme.onSurfaceVariant }]} numberOfLines={1}>{lastLog ? `${parseTeamName(lastLog.fromTeam)} to ${parseTeamName(lastLog.toTeam)}` : ""}</Text>
+                            <Text style={[styles.text, { color: colorTheme.onSurfaceVariant }]} numberOfLines={1}>{lastLog ? `${lastLog.message}` : "No previous traffic found"}</Text>
                         </View>
-                        <Text style={[styles.text, { fontStyle: 'italic', flexShrink: 0, color: colorTheme.onSurfaceVariant }]} numberOfLines={1}>{lastMessage ? `${calculateElapsedTime(lastMessage.time)}` : ""}</Text>
+                        <Text style={[styles.text, { fontStyle: 'italic', flexShrink: 0, color: colorTheme.onSurfaceVariant }]} numberOfLines={1}>{lastLog ? `${calculateElapsedTime(lastLog.created)}` : ""}</Text>
                     </View>
                 }
             </View>

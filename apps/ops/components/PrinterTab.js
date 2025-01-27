@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { PrinterContext } from './PrinterContext';
 
-export const PrinterTab = ({ incidentInfo, userInfo }) => {
+export const PrinterTab = ({ incidentInfo }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
     const styles = pageStyles();
@@ -32,12 +32,12 @@ export const PrinterTab = ({ incidentInfo, userInfo }) => {
         await setNormal();
         await feedLines(1);
         await printText(`TASK NAME: ${incidentInfo.incidentName || ""}`);
-        await printText(`TASK # ${incidentInfo.number || ""}`);
+        await printText(`TASK # ${incidentInfo.incidentNumber || ""}`);
         await printText(`OP. PERIOD ${incidentInfo.opPeriod || ""}`);
         await feedLines(1);
-        await printText(`LOG KEEPER: ${userInfo.name || ""}`);
-        await printText(`STATION CALLSIGN: ${userInfo.callsign || ""}`);
-        await printText(`STATION FREQ./CHANNEL: ${userInfo.frequency || ""}`)
+        await printText(`LOG KEEPER: ${incidentInfo.commsName || ""}`);
+        await printText(`STATION CALLSIGN: ${incidentInfo.commsCallsign || ""}`);
+        await printText(`STATION FREQ./CHANNEL: ${incidentInfo.commsFrequency || ""}`)
         await feedLines(1);
         await setBold();
         await setCenterAlign();

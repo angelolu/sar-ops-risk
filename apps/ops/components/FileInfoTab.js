@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { EditableText } from './TextInput';
 
-export const InfoTab = ({ incidentInfo, userInfo, editIncident, editUser }) => {
+export const InfoTab = ({ incidentInfo, editIncident }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
     const styles = pageStyles();
@@ -25,7 +25,7 @@ export const InfoTab = ({ incidentInfo, userInfo, editIncident, editUser }) => {
                         <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.incidentName} defaultValue="Tap to set" onChangeText={(text) => editIncident({ incidentName: text })} limit={50} />
                     </KeyValue>
                     <KeyValue title="Incident number">
-                        <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.number} placeholder="LAW-20..." defaultValue="Tap to set" onChangeText={(text) => editIncident({ number: text })} limit={50} />
+                        <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.incidentNumber} placeholder="LAW-20..." defaultValue="Tap to set" onChangeText={(text) => editIncident({ incidentNumber: text })} limit={50} />
                     </KeyValue>
                     <KeyValue title="Operational period" >
                         <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.opPeriod} defaultValue="Tap to set" onChangeText={(text) => editIncident({ opPeriod: text })} limit={12} />
@@ -33,13 +33,13 @@ export const InfoTab = ({ incidentInfo, userInfo, editIncident, editUser }) => {
                 </View>
                 <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
                     <KeyValue title="Operator/log keeper">
-                        <EditableText style={styles.sectionBodyTextSmall} value={userInfo.name} defaultValue="Tap to set" onChangeText={(text) => editUser({ name: text })} />
+                        <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.commsName} defaultValue="Tap to set" onChangeText={(text) => editIncident({ commsName: text })} />
                     </KeyValue>
                     <KeyValue title="Operator callsign" >
-                        <EditableText style={styles.sectionBodyTextSmall} value={userInfo.callsign} defaultValue="Tap to set" onChangeText={(text) => editUser({ callsign: text })} limit={12} />
+                        <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.commsCallsign} defaultValue="Tap to set" onChangeText={(text) => editIncident({ commsCallsign: text })} limit={12} />
                     </KeyValue>
                     <KeyValue title="Frequency/channel" >
-                        <EditableText style={styles.sectionBodyTextSmall} value={userInfo.frequency} defaultValue="Tap to set" onChangeText={(text) => editUser({ frequency: text })} limit={50} />
+                        <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.commsFrequency} defaultValue="Tap to set" onChangeText={(text) => editIncident({ commsFrequency: text })} limit={50} />
                     </KeyValue>
                 </View>
             </View >
