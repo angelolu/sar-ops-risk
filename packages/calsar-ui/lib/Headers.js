@@ -12,6 +12,7 @@ var _reactNative = require("react-native");
 var _reactNativeSafeAreaContext = require("react-native-safe-area-context");
 var _ThemeContext = require("./ThemeContext");
 var _IconButton = require("./IconButton");
+var _styles = require("./styles");
 var _jsxRuntime = require("react/jsx-runtime");
 function Header(_ref) {
   var children = _ref.children,
@@ -42,6 +43,7 @@ function BackHeader(_ref2) {
   var _useWindowDimensions = (0, _reactNative.useWindowDimensions)(),
     width = _useWindowDimensions.width,
     height = _useWindowDimensions.height;
+  var textStyle = (0, _styles.textStyles)();
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(Header, {
     style: {
       backgroundColor: backgroundColor ? backgroundColor : colorTheme.primaryContainer,
@@ -67,7 +69,7 @@ function BackHeader(_ref2) {
               }
             })
           }), customTitle ? customTitle : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-            style: [styles.title, {
+            style: [textStyle.headerText, {
               color: color ? color : colorTheme.onPrimaryContainer
             }],
             adjustsFontSizeToFit: true,
@@ -90,7 +92,7 @@ function BackHeader(_ref2) {
               }
             })
           }), customTitle ? customTitle : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-            style: [styles.title, {
+            style: [textStyle.headerText, {
               color: color ? color : colorTheme.onPrimaryContainer
             }],
             adjustsFontSizeToFit: true,

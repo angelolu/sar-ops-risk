@@ -8,6 +8,7 @@ var _expoRouter = require("expo-router");
 var _react = require("react");
 var _reactNative = require("react-native");
 var _ThemeContext = require("./ThemeContext");
+var _styles = require("./styles");
 var _jsxRuntime = require("react/jsx-runtime");
 var MaterialCard = exports.MaterialCard = function MaterialCard(_ref) {
   var title = _ref.title,
@@ -22,12 +23,13 @@ var MaterialCard = exports.MaterialCard = function MaterialCard(_ref) {
     colorTheme = _useContext.colorTheme;
   if (typeof color === 'undefined') color = colorTheme.surfaceContainer;
   var styles = cardStyles();
+  var textStyle = (0, _styles.textStyles)();
   var contents = /*#__PURE__*/(0, _jsxRuntime.jsxs)(_jsxRuntime.Fragment, {
     children: [title && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-      style: styles.title,
+      style: textStyle.cardTitleText,
       children: title
     }), subtitle && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-      style: [styles.subtitle, title ? {} : {
+      style: [textStyle.text, title ? {} : {
         marginTop: 0
       }],
       children: subtitle
@@ -48,13 +50,15 @@ var MaterialCard = exports.MaterialCard = function MaterialCard(_ref) {
       },
       style: {
         flexGrow: 1,
-        padding: 24
+        padding: 24,
+        gap: 8
       },
       children: contents
     }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
       style: {
         flexGrow: 1,
-        padding: 24
+        padding: 24,
+        gap: 8
       },
       children: contents
     })
@@ -70,15 +74,6 @@ var cardStyles = function cardStyles() {
       borderRadius: 26,
       // Rounded corners
       overflow: 'hidden'
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: '500',
-      color: colorTheme.primary
-    },
-    subtitle: {
-      color: colorTheme.onSurface,
-      marginTop: 8
     }
   });
 };

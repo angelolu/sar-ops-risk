@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Banner, BrandingBar, FilledButton, Header, IconButton, MaterialCard, RiskModal, ThemeContext, Tile } from 'calsar-ui';
+import { Banner, BrandingBar, FilledButton, Header, IconButton, MaterialCard, RiskModal, textStyles, ThemeContext, Tile } from 'calsar-ui';
 import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { RxDBContext } from '../components/RxDBContext';
+import { getElapsedTimeString, getSimpleDateString } from '../components/helperFunctions';
 
 export default function App() {
     const styles = pageStyles();
+    const textStyle = textStyles();
     const { colorTheme, colorScheme } = useContext(ThemeContext);
     setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
     const { width } = useWindowDimensions();
@@ -24,6 +26,7 @@ export default function App() {
                 files.forEach((result) => newFiles.push(result))
                 setFiles(newFiles);
             });
+            return () => { query.$.unsubscribe() };
         });
     }, []);
 
@@ -37,30 +40,6 @@ export default function App() {
         });
     }
 
-    const calculateElapsedTime = (dateString) => {
-        if (dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffInMs = now - date;
-
-            const seconds = Math.floor(diffInMs / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-
-            if (seconds < 60) {
-                return "just now";
-            } else if (minutes < 60) {
-                return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
-            } else if (hours < 48) {
-                return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-            } else {
-                return date.toLocaleString('en-US', { hour12: false });
-            }
-        } else {
-            return "an unknown time ago";
-        }
-    }
-
     return (
         <View style={styles.background}>
             <Header style={styles.header}>
@@ -70,14 +49,14 @@ export default function App() {
                     menuButton={<IconButton
                         ionicons_name={"settings-outline"}
                         onPress={() => { router.navigate("settings") }}
-                        color={colorTheme.onPrimaryContainer}
+                        color={styles.header.color}
                         size={24} />}
                 />
             </Header>
             <ScrollView
                 contentContainerStyle={[styles.mainScroll, { width: (width > 1200 ? 1200 : width) }]}>
                 <View style={{ flexDirection: "row", gap: 8, justifyContent: "space-between", alignItems: "center" }}>
-                    <Text style={styles.headerText}>Files</Text>
+                    <Text style={textStyle.pageNameText}>Files</Text>
                     <View style={{ flexDirection: "row", gap: 16 }}>
                         {width > 600 ?
                             <FilledButton small={width <= 600} icon="folder-open" text="Open" onPress={() => { }} /> :
@@ -88,29 +67,23 @@ export default function App() {
                 </View>
                 <View style={{ gap: 20 }}>
                     {files.length === 0 ?
-                        <MaterialCard
-                            noMargin
-                            title="Let's get started!">
-
-                            <View style={{ flexDirection: (width > 600 ? "row" : "column"), gap: 12, marginTop: 14, flexWrap: (width > 600 ? "wrap" : "no-wrap") }}>
-                                <Banner
-                                    backgroundColor={colorTheme.surfaceContainerHigh}
-                                    color={colorTheme.onSurface}
-                                    icon={<Ionicons name="planet" size={24} color={colorTheme.onSurface} />}
-                                    title={"Create your first file or open a file using the buttons above"} />
-                                <Banner
-                                    backgroundColor={colorTheme.surfaceContainerHigh}
-                                    color={colorTheme.onSurface}
-                                    icon={<Ionicons name="trail-sign" size={24} color={colorTheme.onSurface} />}
-                                    title={"Making one file per operational period is recommended"} />
-                                <Banner
-                                    backgroundColor={colorTheme.surfaceContainerHigh}
-                                    color={colorTheme.onSurface}
-                                    icon={<Ionicons name="hourglass" size={24} color={colorTheme.onSurface} />}
-                                    title={"Adjust app settings, such as the contact timeout, by tapping the cog icon in the header"} />
-                            </View>
-                        </ MaterialCard>
-
+                        <View style={{ flexDirection: (width > 600 ? "row" : "column"), gap: 12, flexWrap: (width > 600 ? "wrap" : "no-wrap") }}>
+                            <Banner
+                                backgroundColor={colorTheme.surfaceContainer}
+                                color={colorTheme.onSurface}
+                                icon={<Ionicons name="flame-outline" size={24} color={colorTheme.onSurface} />}
+                                title={"Create your first file or import a file with the buttons above"} />
+                            <Banner
+                                backgroundColor={colorTheme.surfaceContainer}
+                                color={colorTheme.onSurface}
+                                icon={<Ionicons name="documents-outline" size={24} color={colorTheme.onSurface} />}
+                                title={"Making one file per operational period is recommended"} />
+                            <Banner
+                                backgroundColor={colorTheme.surfaceContainer}
+                                color={colorTheme.onSurface}
+                                icon={<Ionicons name="hourglass-outline" size={24} color={colorTheme.onSurface} />}
+                                title={"Adjust app settings, such as the contact timeout, by tapping the cog icon in the header"} />
+                        </View>
                         :
                         <View style={[styles.filesSection, { flexDirection: "column-reverse" }]}>
                             {files.map(item => (
@@ -119,7 +92,7 @@ export default function App() {
                                     href={"/" + item.id}
                                     icon={<Ionicons name="document" size={20} color={colorTheme.primary} />}
                                     title={item.fileName || "Untitled file"}
-                                    subtitle={(`Updated ${calculateElapsedTime(item.updated)}. Created ${calculateElapsedTime(item.created)}.`)}
+                                    subtitle={(`Updated ${getElapsedTimeString(item.updated)}. Created ${getSimpleDateString(item.created)}.`)}
                                 >
                                     <IconButton small ionicons_name="trash" onPress={() => { setModalDocument(item) }} />
                                 </Tile>
@@ -130,7 +103,7 @@ export default function App() {
                     <MaterialCard
                         noMargin
                         title="Disclaimer">
-                        <Text style={[styles.text]}>{`The app is provided "as is" without any warranties, express or implied. The author of the app shall not be liable for any errors or omissions in the app, including but not limited to bugs or malfunctions. You understand that using any software, including this app, involves the risk of data loss. It is your responsibility to maintain regular backups of all critical data and to have adequate fallback mechanisms. You assume all risks associated with the use of the app, including but not limited to any potential harm or injury resulting from reliance on the app's data or functionality.`}</Text>
+                        <Text style={[textStyle.secondaryText]}>{`The app is provided "as is" without any warranties, express or implied. The author of the app shall not be liable for any errors or omissions in the app, including but not limited to bugs or malfunctions. You understand that using any software, including this app, involves the risk of data loss. It is your responsibility to maintain regular backups of all critical data and to have adequate fallback mechanisms. You assume all risks associated with the use of the app, including but not limited to any potential harm or injury resulting from reliance on the app's data or functionality.`}</Text>
                     </MaterialCard>
                 </View>
             </ScrollView>
@@ -141,7 +114,7 @@ export default function App() {
                 <View style={{
                     padding: 20, paddingTop: 0, gap: 20
                 }}>
-                    <Text style={{ color: colorTheme.onSurface }}>{modalDocument.name || "This untitled file"} will be permanently deleted. Download the file before deleting if needed for record keeping.</Text>
+                    <Text style={textStyle.text}>{modalDocument.name || "This untitled file"} will be permanently deleted. Download the file before deleting if needed for record keeping.</Text>
                     <FilledButton
                         rightAlign
                         destructive

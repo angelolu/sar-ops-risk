@@ -1,49 +1,66 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BackHeader, IconButton, MaterialCard, ThemeContext } from 'calsar-ui';
+import { Ionicons } from '@expo/vector-icons';
+import { BackHeader, IconButton, textStyles, ThemeContext } from 'calsar-ui';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import React, { useContext, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { CluePanel } from '../components/CluesTab';
+import { CommsPanel, LogPanel } from '../components/CommsTab';
 import { InfoTab } from '../components/FileInfoTab';
-import { LogTab } from '../components/LogTab';
+import { getAsyncStorageData, saveAsyncStorageData } from '../components/helperFunctions';
+import { validateLocationString } from '../components/MapPanel';
 import { OptionsTab } from '../components/OptionsTab';
 import { OverviewTab } from '../components/OverviewTab';
+import { PlanningPanel } from '../components/PlanningTab';
 import { PrinterContext } from '../components/PrinterContext';
 import { PrinterTab } from '../components/PrinterTab';
 import { PrinterTabIcon } from '../components/PrinterTabIcon';
-import RailContainer from '../components/RailContainer';
-import { RespondersTab } from '../components/RespondersTab';
+import RailContainer, { AnimatedBG } from '../components/RailContainer';
+import { ResourcesPanel, TeamsPanel } from '../components/RespondersTab';
 import { RxDBContext } from '../components/RxDBContext';
 import TabContainer from '../components/TabContainer';
 import { EditableText } from '../components/TextInput';
 
+const calculateRemainingTime = (lastStart, lastTimeRemaining) => {
+    const elapsedTime = lastStart ? (Date.now() - new Date(lastStart)) / 1000 : 0;
+    return lastTimeRemaining - Math.floor(elapsedTime);
+}
+
 export default function OperationPage() {
-    const styles = pageStyles();
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const { printText, isPrinterSupported } = useContext(PrinterContext);
-    const { getFileByID, getTeamsByFileId, deleteDocument, createTeam, createLog } = useContext(RxDBContext)
+    const { isPrinterSupported } = useContext(PrinterContext);
+    const { getFileByID, getTeamsByFileId, createLog, getAssignmentById, getAssignmentsByFileId, getClueById, getCluesByFileId } = useContext(RxDBContext)
 
     setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
     const { width } = useWindowDimensions();
-
-    const { } = useContext(RxDBContext)
-
     const localParams = useLocalSearchParams();
-    const [activeTab, setActiveTab] = useState("Overview");
-    const [timeoutDefault, setTimeoutDefault] = useState(3600);
+
+    const styles = pageStyles();
+    const textStyle = textStyles();
+
+    const [activeTab, setActiveTab] = useState("");
     const [fileLoaded, setFileLoaded] = useState(0);
     const [readOnly, setReadOnly] = useState(false);
-
     const [incidentInfo, setIncidentInfo] = useState({});
-    const [teamsInfo, setTeamsInfo] = useState([]);
-
+    const [teams, setTeams] = useState([]);
+    const [activeTeams, setActiveTeams] = useState([]);
     const [selectedHeaderItem, setSelectedHeaderItem] = useState(0);
+    const [markers, setMarkers] = useState([]);
+    const watchedItems = useRef({ clues: [], incidents: [] });
 
-    const loadFile = (sort = false) => {
+
+    useEffect(() => {
         getFileByID(localParams.file).then(query => {
             query.$.subscribe(file => {
                 if (file) {
                     setIncidentInfo(file);
+                    getAsyncStorageData("lasttab-" + file.id).then((value) => {
+                        if (value) {
+                            setActiveTab(prev => prev !== "" ? prev : value);
+                        } else {
+                            setActiveTab("Overview");
+                        }
+                    });
                     setFileLoaded(1);
                 } else {
                     setFileLoaded(-1);
@@ -53,48 +70,81 @@ export default function OperationPage() {
 
         getTeamsByFileId(localParams.file).then(query => {
             query.$.subscribe(teams => {
-                setTeamsInfo(teams);
+                setTeams(teams);
+                setActiveTeams(teams.filter(team => !team.removed));
             });
         });
 
-        /*getData(localParams.file + "-incidentInfo").then((value) => {
-            if (value) {
-                if (value.new === 1) {
-                    // If the incident is new, show the file tab/dropdown
-                    //width > 600 ? setActiveTab("File") : setFileBarShowing(true);
-                    setIncidentInfo({ ...value, ...{ new: 0 } });
-                } else {
-                    setIncidentInfo(value);
-                }
-                setFileLoaded(1);
-            } else {
-                // File not found
-                setFileLoaded(-1);
-            }
-        });
-        getData(localParams.file + "-userInfo").then((value) => { value && setUserInfo(value) });
-        getData(localParams.file + "-teamsInfo").then((value) => {
-            if (value) {
-                if (sort) {
-                    setTeamsInfo(value.sort((a, b) => {
-                        const nameA = a.name || "";
-                        const nameB = b.name || "";
-                        return nameA.localeCompare(nameB);
-                    }));
-                } else {
-                    setTeamsInfo(value)
-                }
-            }
-
-        });
-        getData(localParams.file + "-auditInfo").then((value) => { value && setLogInfo(value) });*/
-    }
+    }, []);
 
     useEffect(() => {
-        // Load saved settings
-        getData("timeout-seconds").then((value) => { value && setTimeoutDefault(value) });
-        loadFile();
-    }, []);
+        handleSetReadOnly(readOnly);
+
+        return () => handleSetReadOnly(false);
+    }, [readOnly]);
+
+    useEffect(() => {
+        // TODO: only the leader tab should notify the user
+        getAssignmentsByFileId(incidentInfo.id).then(query => {
+            query.$.subscribe(result => {
+                if (watchedItems.current.incidents.length === 0) {
+                    // Initial load
+                } else {
+                    // See if there are any new incidents
+                    let newIncidents = result.filter(incident => !watchedItems.current.incidents.some(i => i.id === incident.id));
+                    if (newIncidents.length > 0) {
+                        // Notify user of new incidents
+                        newIncidents.forEach(incident => {
+                            if (incident.type === "inc" && Notification.permission === "granted") {
+                                new Notification(`New incident`, {
+                                    body: `${incident.notes || "No description provided"}`
+                                });
+                            }
+                        });
+                    }
+                }
+                watchedItems.current.incidents = result;
+                return () => {
+                    query.$.unsubscribe()
+                    watchedItems.current.incidents = [];
+                };
+            });
+        });
+        getCluesByFileId(incidentInfo.id).then(query => {
+            query.$.subscribe(result => {
+                if (watchedItems.current.clues.length === 0) {
+                    // Initial load
+                } else {
+                    // See if there are any new incidents
+                    let newIncidents = result.filter(incident => !watchedItems.current.clues.some(i => i.id === incident.id));
+                    if (newIncidents.length > 0) {
+                        // Notify user of new incidents
+                        newIncidents.forEach(incident => {
+                            if (Notification.permission === "granted") {
+                                new Notification(`New clue`, {
+                                    body: `${incident.name || ""}${incident.notes || ""}`
+                                });
+                            }
+                        });
+                    }
+                }
+                watchedItems.current.clues = result;
+                return () => {
+                    query.$.unsubscribe()
+                    watchedItems.current.clues = [];
+                };
+            });
+        });
+    }, [incidentInfo.id]);
+
+    const notifyFileUpdated = () => {
+        if (incidentInfo) incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
+    }
+
+    const handleSetActiveTab = (tab) => {
+        saveAsyncStorageData("lasttab-" + incidentInfo.id, tab);
+        setActiveTab(tab);
+    }
 
     const handleSetReadOnly = (state) => {
         if (state) {
@@ -103,44 +153,55 @@ export default function OperationPage() {
         }
     }
 
-    useEffect(() => {
-        handleSetReadOnly(readOnly);
-
-        return () => handleSetReadOnly(false);
-    }, [readOnly]);
-
-    const setIsRuning = (teamToUpdate, state) => {
-        if (teamToUpdate.isRunning !== state) {
-            if (state) {
-                // Start timer
-                teamToUpdate.incrementalPatch({ lastStart: new Date().toISOString(), isRunning: true });
-            } else {
-                // Stop timer by recording the amount of time left
-                teamToUpdate.incrementalPatch({ lastTimeRemaining: calculateRemainingTime(teamToUpdate.lastStart, teamToUpdate.lastTimeRemaining), isRunning: false });
-            }
-            incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
+    const handleAddMarker = (marker) => {
+        // Start listening for changes to the marker
+        switch (marker.type) {
+            case "Incidents":
+                if (marker.id) {
+                    getAssignmentById(marker.id).then(query => {
+                        marker.subscription = query.$.subscribe(result => {
+                            if (result && validateLocationString(result.location, false) !== null) {
+                                setMarkers(prev => [...prev, { ...marker, name: result.name, description: result.notes, location: result.location, color: colorTheme.garRedLight }]);
+                            } else {
+                                setMarkers(prev => prev.filter(item => item.id !== marker.id));
+                                marker.subscription.unsubscribe();
+                            }
+                        });
+                    });
+                }
+                break;
+            case "Clues":
+                if (marker.id) {
+                    getClueById(marker.id).then(query => {
+                        marker.subscription = query.$.subscribe(result => {
+                            if (result && validateLocationString(result.location, false) !== null) {
+                                setMarkers(prev => [...prev, { ...marker, name: result.name, description: result.notes, location: result.location, color: colorTheme.garAmberDark }]);
+                            } else {
+                                setMarkers(prev => prev.filter(item => item.id !== marker.id));
+                                marker.subscription.unsubscribe();
+                            }
+                        });
+                    });
+                }
+                break;
+            default:
+                console.log("Unknown marker type");
+                break;
         }
-    };
+    }
 
-    const setAllIsRunning = (state) => {
-        teamsInfo.map(team => !team.removed && setIsRuning(team, state))
-    };
-
-    const removeTeam = (team) => {
-        team.incrementalPatch({ removed: true });
-        incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-        addLog({
-            created: new Date().toISOString(),
-            type: 1, // 1 for Team-related
-            fromTeam: team.id || "",
-            message: "Removed team"
-        });
-    };
+    const handleRemoveMarker = (markerID) => {
+        const marker = markers.find(item => item.id === markerID);
+        if (marker.subscription) {
+            marker.subscription.unsubscribe();
+        }
+        setMarkers(markers.filter(item => item.id !== marker.id));
+    }
 
     const editTeam = (team, fieldToMerge, log = true) => {
         if (team) {
             team.incrementalPatch(fieldToMerge);
-            incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
+            notifyFileUpdated();
             if (log) {
                 let changes = "";
                 for (var key in fieldToMerge) {
@@ -153,12 +214,13 @@ export default function OperationPage() {
                     }
                 }
 
-                addLog({
+                createLog(incidentInfo.id, {
                     created: new Date().toISOString(),
                     type: 1, // 1 for Team-related
                     fromTeam: team.id || "",
                     message: changes
                 });
+                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
             }
         }
     };
@@ -177,90 +239,56 @@ export default function OperationPage() {
                     }
                 }
             }
-            addLog({
+            createLog(incidentInfo.id, {
                 created: new Date().toISOString(),
                 type: 3, // 1 for Team-related
                 fromTeam: "",
                 message: changes
             });
+            incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
         }
     };
-
-    const parseTeamName = (teamNameToParse) => {
-        if (teamNameToParse === "!@#$") {
-            return incidentInfo.commsCallsign || "OPERATOR"
-        } else if (teamNameToParse) {
-            return teamNameToParse;
-        } else {
-            return "Unnamed"
-        }
-    }
-
-    function format24HourTime(date) {
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        return `${hours}:${minutes}:${seconds}`;
-    }
-
-    const addLog = async (fieldToAdd) => {
-        if (fieldToAdd.type === "2" && fieldToAdd.time && fieldToAdd.fromTeam && fieldToAdd.toTeam && fieldToAdd.message) {
-            await printText(`${format24HourTime(new Date(fieldToAdd.created))}, ${parseTeamName(fieldToAdd.fromTeam)} TO ${parseTeamName(fieldToAdd.toTeam)}`);
-            await printText(`  ${fieldToAdd.message}`);
-        }
-        createLog(incidentInfo.id, fieldToAdd);
-        incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-    };
-
-    const addAdHocTeam = () => {
-        createTeam(incidentInfo.id)
-            .then(team => team.incrementalPatch({
-                type: "Ad-hoc"
-            }))
-        incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-    }
-
-    const handleResetTimeout = (teamToUpdate) => {
-        if (teamToUpdate.isRunning === true) {
-            teamToUpdate.incrementalPatch({ lastStart: new Date().toISOString(), lastTimeRemaining: timeoutDefault, isRunning: true });
-        } else {
-            teamToUpdate.incrementalPatch({ lastStart: undefined, lastTimeRemaining: timeoutDefault, isRunning: false });
-        }
-
-        incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-    }
-
-    const handleToggleFlag = (teamToUpdate) => {
-        teamToUpdate.incrementalPatch({ flagged: !teamToUpdate.flagged });
-        incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-    }
 
     if (fileLoaded === 1) {
+        const areTeamsFlagged = activeTeams.filter(item => item.status !== "Inactive").some(item => item.flagged === true);
+
+        const areTeamsError = activeTeams.filter(item => item.status !== "Inactive").some(item => {
+            const timeRemaining = item.isRunning
+                ? calculateRemainingTime(item.lastStart, item.lastTimeRemaining)
+                : item.lastTimeRemaining;
+            return item.status !== "Inactive" ? timeRemaining < 0 : false;
+        });
+
         const tabs = [
             {
                 name: "Overview",
                 icon: "earth",
-                content: <OverviewTab incidentInfo={incidentInfo} readOnly={readOnly} teams={teamsInfo} removeTeam={removeTeam} setIsRuning={setIsRuning} setAllIsRunning={setAllIsRunning} handleAddTeam={addAdHocTeam} handleResetTimeout={handleResetTimeout} handleToggleFlag={handleToggleFlag} editTeam={editTeam} addLog={addLog} />
+                content: <AnimatedBG warn={areTeamsFlagged} error={areTeamsError} image={(activeTeams.length === 0 ? 0.1 : 0.8)}><OverviewTab incidentInfo={incidentInfo} teams={teams} activeTeams={activeTeams} mapShowing={markers && markers.length > 0} /></AnimatedBG>,
             },
             {
                 name: "Resources",
                 icon: "id-card",
-                content: <RespondersTab incidentInfo={incidentInfo} teams={teamsInfo} />
+                content: <ResourcesPanel fileId={incidentInfo.id} notifyFileUpdated={notifyFileUpdated} activeTeams={activeTeams} editTeam={editTeam} />,
+                rightPanel: <TeamsPanel fileId={incidentInfo.id} notifyFileUpdated={notifyFileUpdated} activeTeams={activeTeams} editTeam={editTeam} infoFunction={teamResourcesInfo} />,
             },
             {
-                name: "Planning",
-                icon: "navigate-circle",
-                content: <><MaterialCard
-                    noMargin
-                    title="Nothing here yet!"
-                    subtitle="This section is still under construction. Please set assignments manually in the Overview tab.">
-                </MaterialCard></>
+                name: "Tasks",
+                icon: "clipboard",
+                content: <PlanningPanel fileId={incidentInfo.id} notifyFileUpdated={notifyFileUpdated} activeTeams={activeTeams} markers={markers} addMarker={handleAddMarker} removeMarker={handleRemoveMarker} />,
+                rightPanel: <TeamsPanel fileId={incidentInfo.id} notifyFileUpdated={notifyFileUpdated} activeTeams={activeTeams} editTeam={editTeam} infoFunction={teamPlanningInfo} />,
             },
             {
-                name: "Logs",
-                icon: "receipt",
-                content: <LogTab incidentInfo={incidentInfo} teams={teamsInfo} />
-
+                name: "Clues",
+                icon: "telescope",
+                content: <>
+                    <CluePanel fileId={incidentInfo.id} notifyFileUpdated={notifyFileUpdated} teams={teams} markers={markers} addMarker={handleAddMarker} removeMarker={handleRemoveMarker} />,
+                </>,
+            },
+            {
+                name: "Comms",
+                icon: "chatbubbles",
+                content: <AnimatedBG warn={areTeamsFlagged} error={areTeamsError} image={(activeTeams.filter(team => team.status !== "Inactive").length === 0 ? 0.1 : 0.8)}><CommsPanel incidentInfo={incidentInfo} teams={teams} editTeam={editTeam} activeTeams={activeTeams} addMarker={handleAddMarker} /></AnimatedBG>,
+                rightPanel: <LogPanel incidentInfo={incidentInfo} teams={activeTeams} editTeam={editTeam} />,
             },
             {
                 name: "Options",
@@ -277,25 +305,13 @@ export default function OperationPage() {
             },
         ];
 
-        const areTeamsFlagged = teamsInfo.some(item => item.flagged === true);
-        const areTeamsError = teamsInfo.some(item => {
-            let timeRemaining;
-            if (item.isRunning) {
-                timeRemaining = calculateRemainingTime(item.lastStart, item.lastTimeRemaining);
-            } else {
-                timeRemaining = item.lastTimeRemaining;
-            }
-
-            return timeRemaining < 0;
-        });
-
         return (
             <View style={[styles.background]}>
                 <BackHeader
                     minimize={readOnly}
                     customTitle={
                         <View style={[{ height: 55, flexDirection: "row", gap: 8, justifyContent: "space-between", alignItems: "center", alignSelf: "flex-end", paddingRight: 4, paddingLeft: 12, paddingBottom: 5 }, selectedHeaderItem === 1 && { backgroundColor: colorTheme.surfaceContainerHighest, borderTopLeftRadius: 12, borderTopRightRadius: 12, width: 300 }]}>
-                            <EditableText onEditing={(state) => { state && setSelectedHeaderItem(1) }} disabled={readOnly} style={{ fontSize: 18, flex: -1, fontWeight: '500', color: colorTheme.onPrimaryContainer, flexShrink: 1 }} numberOfLines={1} value={incidentInfo.fileName} defaultValue={"Untitled file"} onChangeText={(text) => editIncident({ fileName: text })} limit={50} suffix={readOnly ? "" : ""} />
+                            <EditableText onEditing={(state) => { state && setSelectedHeaderItem(1) }} disabled={readOnly} style={[textStyle.headerText]} numberOfLines={1} value={incidentInfo.fileName} defaultValue={"Untitled file"} onChangeText={(text) => editIncident({ fileName: text })} limit={50} suffix={readOnly ? "" : ""} />
                             {selectedHeaderItem === 1 && <IconButton ionicons_name={"caret-up-circle-outline"} onPress={() => { setSelectedHeaderItem(0) }} color={colorTheme.onSurface} size={24} />}
                         </View>
                     }
@@ -316,9 +332,9 @@ export default function OperationPage() {
                     </View>}
                 />
                 {width > 600 ?
-                    <RailContainer readOnly={readOnly} warn={areTeamsFlagged} error={areTeamsError} tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} image={activeTab === "Overview" ? (teamsInfo.length === 0 ? 0.1 : 0.8) : 1} />
+                    <RailContainer file={incidentInfo} readOnly={readOnly} tabs={tabs} activeTab={activeTab} setActiveTab={handleSetActiveTab} markers={markers} removeMarker={handleRemoveMarker} teams={activeTeams} />
                     :
-                    <TabContainer readOnly={readOnly} tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabContainer readOnly={readOnly} tabs={tabs} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
                 }
                 {selectedHeaderItem === 1 &&
                     <View style={styles.floatingBackground}>
@@ -345,7 +361,7 @@ export default function OperationPage() {
                             contentContainerStyle={styles.floatingViewContainer}
                             style={[styles.floatingView]}
                         >
-                            <PrinterTab setReadOnly={setReadOnly} incidentInfo={incidentInfo} />
+                            <PrinterTab incidentInfo={incidentInfo} />
                         </ScrollView>
                     </>
                 }
@@ -375,15 +391,6 @@ export default function OperationPage() {
 
 }
 
-const getData = async (key) => {
-    try {
-        const jsonValue = await AsyncStorage.getItem(key);
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-        // error reading value
-    }
-};
-
 function isEmpty(obj) {
     for (const prop in obj) {
         if (Object.hasOwn(obj, prop)) {
@@ -394,19 +401,206 @@ function isEmpty(obj) {
     return true;
 }
 
-const calculateRemainingTime = (lastStart, lastTimeRemaining) => {
-    const now = new Date();
+const teamResourcesInfo = (teamId) => {
+    return <>
+        <KeyChild icon="people-outline"><AssignedPeopleText teamId={teamId} /></KeyChild>
+        <KeyChild icon="bag-handle-outline"><AssignedEquipmentText teamId={teamId} /></KeyChild>
+    </>;
+}
 
-    let lastTime;
-    if (lastStart) {
-        lastTime = new Date(lastStart);
+const teamPlanningInfo = (teamId, team) => {
+    return <>
+        <KeyChild icon="arrow-forward-circle-outline"><CurrentAssignmentText team={team} /></KeyChild>
+        <KeyChild icon="list-outline"><TaskQueueText team={team} /></KeyChild>
+    </>;
+}
+
+const KeyChild = ({ icon, children }) => {
+    const { colorTheme } = useContext(ThemeContext);
+    if (!children) return null;
+
+    return (<View style={{ flexDirection: "row", gap: 2, alignItems: "center", gap: 8 }}>
+        <Ionicons name={icon} size={16} color={colorTheme.onSurface} />
+        {children}
+    </View>
+    );
+}
+
+const CurrentAssignmentText = ({ team }) => {
+    const { getAssignmentById } = useContext(RxDBContext);
+
+    const [assignmentName, setAssignmentName] = useState("");
+    const [loaded, setLoaded] = useState(false);
+
+    const textStyle = textStyles();
+
+    // Return a string of people who are assigned to this team, separated by commas
+    useEffect(() => {
+        let subscription;
+        if (team.assignment) {
+            getAssignmentById(team.assignment).then(query => {
+                subscription = query.$.subscribe(result => {
+                    setAssignmentName(result?.name || "-");
+                    setLoaded(true);
+                });
+            });
+        } else {
+            setAssignmentName("-");
+            setLoaded(true);
+        }
+
+        return () => {
+            if (subscription) {
+                subscription.unsubscribe();
+            }
+        };
+    }, [team.assignment, getAssignmentById]);
+
+    return <Text style={textStyle.tertiaryText}>
+        {loaded ?
+            `Now: ${assignmentName}` || "-"
+            :
+            "Loading..."
+        }
+    </Text>
+}
+
+const TaskQueueText = ({ team }) => {
+    const { getAssignmentById, getAssignmentsByTeamId } = useContext(RxDBContext);
+
+    const [assignmentName, setAssignmentName] = useState("");
+    const [allAssignments, setAllAssignments] = useState([]);
+    const [loaded, setLoaded] = useState(false);
+
+    const textStyle = textStyles();
+
+    // Return a string of people who are assigned to this team, separated by commas
+    useEffect(() => {
+        let subscription, subscription2;
+        if (team.id) {
+            getAssignmentsByTeamId(team.id).then(query => {
+                subscription2 = query.$.subscribe(result => {
+                    setAllAssignments(result);
+                    setLoaded(true);
+                });
+            });
+        }
+
+        if (team.assignment) {
+            getAssignmentById(team.assignment).then(query => {
+                subscription = query.$.subscribe(result => {
+                    setAssignmentName(result?.name || "Unknown");
+                    setLoaded(true);
+                });
+            });
+        }
+
+        return () => {
+            if (subscription)
+                subscription.unsubscribe();
+            if (subscription2)
+                subscription2.unsubscribe();
+        };
+    }, [team.id, team.assignment, getAssignmentById, getAssignmentsByTeamId]);
+
+    let assignmentText = "Queued: ";
+
+    const queuedAssignments = allAssignments.filter(assignment => assignment.name !== assignmentName);
+    if (queuedAssignments.length > 0) {
+        assignmentText += queuedAssignments.map(assignment => {
+            return `${assignment.name || "Unnamed task"}`;
+        }).join(", ");
     } else {
-        lastTime = new Date(now);
+        assignmentText += "-";
     }
 
-    const diff = now.getTime() - lastTime.getTime();
+    return <Text style={textStyle.tertiaryText}>
+        {loaded ?
+            assignmentText || "-"
+            :
+            "Loading..."
+        }
+    </Text>
+}
 
-    return lastTimeRemaining - Math.floor(diff / 1000);
+const AssignedPeopleText = ({ teamId }) => {
+    const { getPeopleByTeamId } = useContext(RxDBContext);
+
+    const [assignedPeople, setAssignedPeople] = useState([]);
+    const [loaded, setLoaded] = useState(false);
+
+    const textStyle = textStyles();
+
+    // Return a string of people who are assigned to this team, separated by commas
+    useEffect(() => {
+        let subscription;
+        if (teamId) {
+            getPeopleByTeamId(teamId).then(query => {
+                subscription = query.$.subscribe(result => {
+                    setAssignedPeople(result);
+                    setLoaded(true);
+                });
+            });
+        }
+
+        return () => {
+            if (subscription) {
+                subscription.unsubscribe();
+            }
+        };
+    }, [teamId, getPeopleByTeamId]);
+
+    return <Text style={textStyle.tertiaryText}>
+        {loaded ?
+            assignedPeople.length === 0 ? "-" :
+                assignedPeople.map((person, index) => {
+                    if (index === assignedPeople.length - 1) {
+                        return person.name;
+                    } else {
+                        return person.name + ", ";
+                    }
+                })
+            :
+            "Loading..."
+        }
+    </Text>
+}
+
+const AssignedEquipmentText = ({ teamId }) => {
+    const { getEquipmentByTeamId } = useContext(RxDBContext);
+
+    const [assignedPeople, setAssignedPeople] = useState([]);
+    const [loaded, setLoaded] = useState(false);
+
+    const textStyle = textStyles();
+
+    // Return a string of people who are assigned to this team, separated by commas
+    useEffect(() => {
+        if (teamId) {
+            getEquipmentByTeamId(teamId).then(query => {
+                query.$.subscribe(result => {
+                    setAssignedPeople(result);
+                    setLoaded(true);
+                });
+                return () => { query.$.unsubscribe() };
+            });
+        }
+    }, [teamId]);
+
+    return <Text style={textStyle.tertiaryText}>
+        {loaded ?
+            assignedPeople.length === 0 ? "-" :
+                assignedPeople.map((person, index) => {
+                    if (index === assignedPeople.length - 1) {
+                        return person.name;
+                    } else {
+                        return person.name + ", ";
+                    }
+                })
+            :
+            "Loading..."
+        }
+    </Text>
 }
 
 const pageStyles = () => {
@@ -430,7 +624,7 @@ const pageStyles = () => {
             borderBottomRightRadius: 20,
             overflow: "hidden",
             paddingVertical: 12,
-            paddingHorizontal: 16,
+            paddingHorizontal: 12,
             alignSelf: "flex-end",
             backgroundColor: colorTheme.surfaceContainerHighest,
         },

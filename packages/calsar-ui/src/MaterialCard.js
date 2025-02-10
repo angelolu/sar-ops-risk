@@ -3,29 +3,32 @@ import { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ThemeContext } from './ThemeContext';
+import { textStyles } from './styles';
 
 export const MaterialCard = ({ title, subtitle, children, href = "", color, noMargin = false }) => {
   const { colorTheme } = useContext(ThemeContext);
   if (typeof color === 'undefined') color = colorTheme.surfaceContainer;
   const styles = cardStyles();
+  const textStyle = textStyles();
 
   const contents = <>
-    {title && <Text style={styles.title}>{title}</Text>}
-    {subtitle && <Text style={[styles.subtitle, title ? {} : { marginTop: 0 }]}>{subtitle}</Text>}
+    {title && <Text style={textStyle.cardTitleText}>{title}</Text>}
+    {subtitle && <Text style={[textStyle.text, title ? {} : { marginTop: 0 }]}>{subtitle}</Text>}
     {children}
   </>;
+
   return (
     <View style={[styles.card, { backgroundColor: color }, noMargin && { marginHorizontal: 0 }]}>
       {href ?
         <Pressable
           onPress={() => { router.navigate(href) }}
           android_ripple={href === "" ? {} : { color: colorTheme.surfaceContainerHighest }}
-          style={{ flexGrow: 1, padding: 24 }}>
+          style={{ flexGrow: 1, padding: 24, gap: 8 }}>
           {contents}
         </Pressable>
         :
         <View
-          style={{ flexGrow: 1, padding: 24 }}>
+          style={{ flexGrow: 1, padding: 24, gap: 8 }}>
           {contents}
         </View>
       }
@@ -42,15 +45,6 @@ const cardStyles = () => {
       marginRight: 20,
       borderRadius: 26, // Rounded corners
       overflow: 'hidden',
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: '500',
-      color: colorTheme.primary,
-    },
-    subtitle: {
-      color: colorTheme.onSurface,
-      marginTop: 8,
     },
   });
 }

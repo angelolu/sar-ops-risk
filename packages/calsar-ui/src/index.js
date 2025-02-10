@@ -8,6 +8,7 @@ import { Banner } from './Banner'
 import { Header, BackHeader } from './Headers'
 import { BrandingBar } from './Branding'
 import { RiskModal } from './RiskModal'
+import { textStyles } from './styles'
 
 export { FilledButton, SegmentedButtons, IconButton, ShareButton };
 export { ThemeProvider, ThemeContext };
@@ -16,3 +17,4 @@ export { MaterialCard };
 export { Banner };
 export { Header, BackHeader, BrandingBar };
 export { RiskModal };
+export { textStyles };

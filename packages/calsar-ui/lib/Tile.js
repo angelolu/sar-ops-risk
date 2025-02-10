@@ -8,6 +8,7 @@ var _expoRouter = require("expo-router");
 var _react = require("react");
 var _reactNative = require("react-native");
 var _ThemeContext = require("./ThemeContext");
+var _styles = require("./styles");
 var _jsxRuntime = require("react/jsx-runtime");
 var Tile = exports.Tile = function Tile(_ref) {
   var title = _ref.title,
@@ -22,6 +23,7 @@ var Tile = exports.Tile = function Tile(_ref) {
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext.colorTheme;
   var styles = tileStyles();
+  var textStyle = (0, _styles.textStyles)();
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
     style: [styles.card, {
       width: width
@@ -54,11 +56,11 @@ var Tile = exports.Tile = function Tile(_ref) {
             gap: 2
           },
           children: [title && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-            style: styles.title,
+            style: textStyle.rowTitleTextPrimary,
             numberOfLines: 1,
             children: title
           }), subtitle && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-            style: styles.subtitle,
+            style: textStyle.tertiaryText,
             numberOfLines: 1,
             children: subtitle
           })]
@@ -76,13 +78,6 @@ var tileStyles = function tileStyles() {
       borderRadius: 6,
       // Rounded corners
       overflow: 'hidden'
-    },
-    title: {
-      fontSize: 18,
-      color: colorTheme.primary
-    },
-    subtitle: {
-      color: colorTheme.onSurface
     }
   });
 };
