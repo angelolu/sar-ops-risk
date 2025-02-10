@@ -8,13 +8,15 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { ThemeContext } from 'calsar-ui';
+import { textStyles, ThemeContext } from 'calsar-ui';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 const HikerBG = require('../assets/images/hiker.svg');
 
 export function RailButton({ icon, title, active, onClick }) {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const [focus, setFocus] = useState(false);
+    const textStyle = textStyles();
 
     let focusColor = active ? getHoverColor(colorTheme.secondaryFixed, 0.8) : getHoverColor(colorTheme.primary, 0.3);
     const focusTheme = (focus) ? {
@@ -39,17 +41,16 @@ export function RailButton({ icon, title, active, onClick }) {
             <View style={[{ backgroundColor: active ? colorTheme.secondaryFixed : "transparent", height: 28, justifyContent: "center", alignItems: "center", width: 50, borderRadius: 14 }, focusTheme]}>
                 <Ionicons name={active ? icon : `${icon}-outline`} size={active ? 20 : 22} color={active ? colorTheme.onSecondaryFixed : colorTheme.primary} />
             </View>
-            {title && <Text style={{ color: colorTheme.onPrimaryContainer, textAlign: 'center', fontSize: 12, fontWeight: active ? "bold" : "normal" }}>{title}</Text>}
+            {title && <Text style={[textStyle.tertiaryText, { color: colorTheme.onPrimaryContainer, textAlign: 'center', fontWeight: active ? "bold" : "normal" }]}>{title}</Text>}
         </Pressable>
 
     );
 }
 
-export default function RailContainer({ tabs, activeTab, setActiveTab, image = false, error = false, warn = false, readOnly = false }) {
-    const styles = pageStyles();
+export const AnimatedBG = ({ children, image = false, colorOnly = false, error = false, warn = false }) => {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const activeTabContent = tabs.find(tab => tab.name === activeTab)?.content;
-    const { width } = useWindowDimensions();
+    const styles = pageStyles();
+
     const [errorSate, setErrorState] = useState(false);
     const [warnState, setWarnState] = useState(false);
     const [currentAB, setCurrentAB] = useState(0); // 0 is A, 1 is B
@@ -117,6 +118,20 @@ export default function RailContainer({ tabs, activeTab, setActiveTab, image = f
         if (image) animateBanner();
     }, [image]);
 
+    return <ImageBackground source={image && !colorOnly && HikerBG} resizeMode="cover" style={[styles.image]}>
+        <Animated.View style={[styles.overlayView, bgAnimatedStyle]} />
+        {children}
+    </ImageBackground>
+}
+
+export default function RailContainer({ tabs, activeTab, setActiveTab, readOnly = false }) {
+    const styles = pageStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const [draggingPanel, setDraggingPanel] = useState(false);
+
+    const activeTabContent = tabs.find(tab => tab.name === activeTab)?.content;
+    const rightPanel = tabs.find(tab => tab.name === activeTab)?.rightPanel || false;
+
     return (
         <View style={{ flexGrow: 1, flexShrink: 1, flexDirection: "row", backgroundColor: colorTheme.primaryContainer }}>
             {!readOnly &&
@@ -134,15 +149,25 @@ export default function RailContainer({ tabs, activeTab, setActiveTab, image = f
                         ))}
                     </View>
                 </ScrollView>}
-            <ImageBackground source={image && HikerBG} resizeMode="cover" style={[styles.image, readOnly && { borderTopLeftRadius: 0 }]}>
-                <Animated.View style={[styles.overlayView, bgAnimatedStyle, readOnly && { borderTopLeftRadius: 0 }]} />
-                <View style={[styles.container]}>
-                    <ScrollView
-                        contentContainerStyle={[styles.mainScroll, { width: readOnly ? width - 10 : ((width > 1080 ? 1080 : width) - 90 - 10) }]}>
+            <View style={[styles.container]}>
+                <PanelGroup
+                    direction="horizontal"
+                    autoSaveId={"defaultTab"}
+                    style={{ width: "100%", backgroundColor: colorTheme.primaryContainer }}
+                >
+                    <Panel minSize={30} style={{ height: "100%", backgroundColor: colorTheme.background, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
                         {activeTabContent}
-                    </ScrollView>
-                </View>
-            </ImageBackground>
+                    </Panel>
+                    {rightPanel && <>
+                        <PanelResizeHandle
+                            style={{ width: 3, backgroundColor: draggingPanel ? colorTheme.outline : colorTheme.primaryContainer }}
+                            onDragging={setDraggingPanel} />
+                        <Panel defaultSize={30} minSize={30} style={{ height: "100%", backgroundColor: colorTheme.background, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+                            {rightPanel}
+                        </Panel>
+                    </>}
+                </PanelGroup >
+            </View>
         </View>
     );
 }
@@ -157,6 +182,7 @@ const pageStyles = () => {
             paddingRight: 10,
             paddingLeft: 20,
             gap: 20,
+            alignSelf: 'center',
         },
         image: {
             flex: 1,
@@ -176,7 +202,6 @@ const pageStyles = () => {
         container: {
             flex: 1,
             height: '100%',
-            alignSelf: 'center',
         },
         text: {
             color: colorTheme.onPrimaryContainer

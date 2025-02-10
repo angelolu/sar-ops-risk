@@ -3,11 +3,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from './ThemeContext';
+import { textStyles } from './styles';
 
 
-export const FilledButton = ({ text, onPress, small = false, icon = false, disabled = false, destructive = false, primary = false, rightAlign = false, backgroundColor }) => {
+export const FilledButton = ({ text, onPress, small = false, icon = false, disabled = false, destructive = false, primary = false, rightAlign = false, backgroundColor, selected = false }) => {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const [focus, setFocus] = useState(false);
+    const textStyle = textStyles();
     const buttonStyle = buttonStyles();
 
     const disabledFun = () => { };
@@ -16,6 +18,7 @@ export const FilledButton = ({ text, onPress, small = false, icon = false, disab
         disabled: getHoverColor(colorTheme.onSurface, 0.3),
         default: focus ? getHoverColor(colorTheme.surfaceContainerHigh) : "transparent",
         primary: focus ? getHoverColor(colorTheme.primary) : colorTheme.primary,
+        selected: focus ? getHoverColor(colorTheme.secondary) : colorTheme.secondary,
         destructive: focus ? getHoverColor(colorTheme.error, 0.1) : "transparent",
     };
 
@@ -23,6 +26,7 @@ export const FilledButton = ({ text, onPress, small = false, icon = false, disab
         disabled: getHoverColor(colorTheme.surface),
         default: colorTheme.secondary,
         primary: colorTheme.onPrimary,
+        selected: colorTheme.onSecondary,
         destructive: colorTheme.error,
     };
 
@@ -32,10 +36,10 @@ export const FilledButton = ({ text, onPress, small = false, icon = false, disab
             small && buttonStyle.smallBaseContainer,
             rightAlign && { alignSelf: 'flex-end', },
             {
-                backgroundColor: (disabled ? buttonColors.disabled : primary ? buttonColors.primary : destructive ? buttonColors.destructive : buttonColors.default),
+                backgroundColor: (selected ? buttonColors.selected : disabled ? buttonColors.disabled : primary ? buttonColors.primary : destructive ? buttonColors.destructive : buttonColors.default),
                 outlineStyle: "solid",
-                outlineWidth: (disabled || primary) ? 0 : 2,
-                outlineColor: (destructive ? textColors.destructive : textColors.default),
+                outlineWidth: 2,
+                outlineColor: (destructive ? textColors.destructive : disabled ? buttonColors.disabled : primary ? buttonColors.primary : textColors.default),
             },
             backgroundColor && { backgroundColor: backgroundColor }]}>
             <Pressable
@@ -47,8 +51,8 @@ export const FilledButton = ({ text, onPress, small = false, icon = false, disab
                 <View style={{ flexDirection: 'row', gap: 12, alignItems: "center" }}>
                     {icon && <Ionicons name={icon} size={small ? 16 : 20} color={(disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default)} />}
                     <Text style={[
-                        buttonStyle.text,
-                        { color: (disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default) }
+                        textStyle.buttonText,
+                        { color: (selected ? textColors.selected : disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default) }
                     ]}>{text}</Text>
                 </View>
             </Pressable >
@@ -60,6 +64,7 @@ export const SegmentedButtons = ({ items, selected, onPress, noCheck = false, sm
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const [focusArray, setFocusArray] = useState(Array(items.length).fill(false));
     const buttonStyle = buttonStyles();
+    const textStyle = textStyles();
 
     const getButtonBGTheme = (focus, colorTheme) => {
         const buttonColors = {
@@ -117,7 +122,7 @@ export const SegmentedButtons = ({ items, selected, onPress, noCheck = false, sm
                     <View style={{ flexDirection: 'row', gap: 12, alignItems: "center" }}>
                         {i === selected && !noCheck && <Ionicons name="checkmark" size={small ? 16 : 20} color={disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default} />}
                         <Text style={[
-                            buttonStyle.text,
+                            textStyle.buttonText,
                             { color: disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default }
                         ]} >{item}</Text>
                     </View>
@@ -150,10 +155,5 @@ const buttonStyles = () => {
             height: 34,
             paddingHorizontal: 16
         },
-        text: {
-            userSelect: 'none',
-            color: colorTheme.secondary,
-            fontWeight: '500',
-        }
     });
 }

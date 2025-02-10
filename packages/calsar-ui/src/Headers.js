@@ -5,6 +5,7 @@ import { Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemeContext } from './ThemeContext';
 import { IconButton } from './IconButton';
+import { textStyles } from './styles';
 
 export function Header({ children, style }) {
     const insets = useSafeAreaInsets();
@@ -19,6 +20,7 @@ export function Header({ children, style }) {
 export function BackHeader({ children, title, customTitle, subtitle, backgroundColor, color, menuButton, hideBack = false, href, minimize = false }) {
     const { colorTheme } = useContext(ThemeContext);
     const { width, height } = useWindowDimensions();
+    const textStyle = textStyles();
     return (
         <Header style={{ backgroundColor: backgroundColor ? backgroundColor : colorTheme.primaryContainer, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
             <View style={[styles.mainContainer]}>
@@ -34,7 +36,7 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
                             {customTitle ?
                                 customTitle
                                 :
-                                <Text style={[styles.title, { color: color ? color : colorTheme.onPrimaryContainer }]} adjustsFontSizeToFit={true} numberOfLines={1}>{title}</Text>
+                                <Text style={[textStyle.headerText, { color: color ? color : colorTheme.onPrimaryContainer }]} adjustsFontSizeToFit={true} numberOfLines={1}>{title}</Text>
                             }
                         </View>
                         :
@@ -49,7 +51,7 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
                             {customTitle ?
                                 customTitle
                                 :
-                                <Text style={[styles.title, { color: color ? color : colorTheme.onPrimaryContainer }]} adjustsFontSizeToFit={true} numberOfLines={1}>{title}</Text>
+                                <Text style={[textStyle.headerText, { color: color ? color : colorTheme.onPrimaryContainer }]} adjustsFontSizeToFit={true} numberOfLines={1}>{title}</Text>
                             }
                         </>
                     }

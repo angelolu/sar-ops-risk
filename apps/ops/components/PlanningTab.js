@@ -1,87 +1,72 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { Banner, FilledButton, IconButton, RiskModal, textStyles, ThemeContext } from 'calsar-ui';
+import { Banner, FilledButton, IconButton, MaterialCard, RiskModal, textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { RxDBContext } from './RxDBContext';
 import SwitcherContainer from './SwitcherContainer';
 import { EditableText, TextBox } from './TextInput';
 
-export const ResourcesPanel = ({ fileId, notifyFileUpdated, activeTeams }) => {
-    const [activeTab, setActiveTab] = useState("People");
+export const PlanningPanel = ({ incidentInfo, activeTeams }) => {
+    const [activeTab, setActiveTab] = useState("Assignments");
     const tabs = [
         {
-            name: "People",
-            icon: "earth",
+            name: "Assignments",
+            icon: "navigate",
             content: <>
-                <PeoplePanel fileId={fileId} notifyFileUpdated={notifyFileUpdated} teams={activeTeams} />
+                <AssignmentPanel incidentInfo={incidentInfo} teams={activeTeams} />
             </>
         },
         {
-            name: "Equipment",
+            name: "Incidents",
             icon: "earth",
             content: <>
-                <EquipmentPanel fileId={fileId} notifyFileUpdated={notifyFileUpdated} teams={activeTeams} />
+                <EquipmentPanel incidentInfo={incidentInfo} teams={activeTeams} />
             </>
-        },
+        }
     ];
 
     return <SwitcherContainer tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />;
 }
 
-const PeoplePanel = ({ fileId, notifyFileUpdated, teams }) => {
+const AssignmentPanel = ({ incidentInfo, teams }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const { getPeopleByFileId, deleteDocument } = useContext(RxDBContext)
+    const { getAssignmentsByFileId, deleteDocument } = useContext(RxDBContext);
 
     const { width, height } = useWindowDimensions();
 
     const styles = pageStyles();
     const textStyle = textStyles();
 
-    const [people, setPeople] = useState([]);
-    const [agencyList, setAgencyList] = useState([]);
-    const [addPersonModalShowing, setAddPersonModalShowing] = useState(false);
-    const [deletePerson, setDeletePerson] = useState(null);
-    const [assignTeamPerson, setAssignTeamPerson] = useState(null);
-    const [selectedPerson, setSelectedPerson] = useState(null);
+    const [assignments, setAssignments] = useState([]);
+    const [addAssignmentModalShowing, setAddAssignmentModalShowing] = useState(false);
+    const [deleteAssignment, setDeleteAssignment] = useState(null);
+    const [assignTeamAssignment, setAssignTeamAssignment] = useState(null);
+    const [selectedAssignment, setSelectedAssignment] = useState(null);
 
     useEffect(() => {
-        // Load saved settings
-        getPeopleByFileId(fileId).then(query => {
+        getAssignmentsByFileId(incidentInfo.id).then(query => {
             query.$.subscribe(result => {
-                setPeople(result);
-                // regenerates the agency names list
-                let agencyNames = result.map(item => item.agency).filter((value, index, self) => self.indexOf(value) === index).filter(item => item !== "" && item !== undefined);
-                setAgencyList(agencyNames);
+                setAssignments(result);
                 return () => { query.$.unsubscribe() };
             });
         });
     }, []);
 
-    const removePerson = () => {
-        deleteDocument(deletePerson);
-        setDeletePerson(null);
+    const removeAssignment = () => {
+        deleteDocument(deleteAssignment);
+        setDeleteAssignment(null);
     };
 
-    let peopleList = [];
-    let tempList = [];
-    let currentAgency = "";
+    let assignmentList = [];
 
-    people.map(item => {
-        if (item.agency !== currentAgency) {
-            if (tempList.length > 0) {
-                peopleList.push(<View key={Date.now() + item.agency + "_cont"} style={styles.cardContainer}>{tempList}</View>);
-                tempList = [];
-            }
-            peopleList.push(<Text key={Date.now() + item.agency} style={[textStyle.sectionTitleText]}>{item.agency || "No agency"}</Text>);
-            currentAgency = item.agency;
-        }
-        tempList.push(
+    assignments.map(item => {
+        assignmentList.push(
             <Pressable
                 key={item.id}
                 onPress={() => {
                     setSelectedPerson(item);
-                    setAddPersonModalShowing(true);
+                    setAddAssignmentModalShowing(true);
                 }}
                 onLongPress={() => { }}
                 style={[styles.card, { flexDirection: "row", gap: 16, justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }, { backgroundColor: colorTheme.surfaceContainer }]}>
@@ -100,81 +85,68 @@ const PeoplePanel = ({ fileId, notifyFileUpdated, teams }) => {
                     </> : <></>}
                 <View style={{ flexDirection: "row", gap: 8, justifyContent: "flex-start", alignItems: "center" }}>
                     {item.teamId ?
-                        <Chip title={"Team " + teams.find(team => team.id === item.teamId).name} color={colorTheme.tertiaryContainer} onCancel={() => item.incrementalPatch({ teamId: "" }).then(() => notifyFileUpdated())} />
+                        <Chip title={"Team " + teams.find(team => team.id === item.teamId).name} color={colorTheme.tertiaryContainer} onCancel={() => item.incrementalPatch({ teamId: "" }).then(() => incidentInfo.incrementalPatch({ updated: new Date().toISOString() }))} />
                         :
                         <IconButton
                             small
                             tonal={!item.teamId}
                             ionicons_name={item.teamId ? "download-outline" : "push-outline"}
-                            onPress={() => item.teamId ? item.incrementalPatch({ teamId: "" }).then(() => notifyFileUpdated()) : setAssignTeamPerson(item)} />
+                            onPress={() => item.teamId ? item.incrementalPatch({ teamId: "" }).then(() => incidentInfo.incrementalPatch({ updated: new Date().toISOString() })) : setAssignTeamAssignment(item)} />
                     }
-                    <>{(!item.teamId || item.teamId === "") && <IconButton small ionicons_name="trash" onPress={() => setDeletePerson(item)} />}</>
+                    <>{(!item.teamId || item.teamId === "") && <IconButton small ionicons_name="trash" onPress={() => setDeleteAssignment(item)} />}</>
                 </View>
             </Pressable>
         );
     })
 
-    if (tempList.length > 0) {
-        peopleList.push(<View key={Date.now() + "last_cont"} style={styles.cardContainer}>{tempList}</View>);
-    }
-
     return <View style={{ gap: 14 }}>
         <View style={{ flexDirection: "row", gap: 14, flexWrap: "wrap", flex: 1, alignSelf: "flex-end" }}>
-            <FilledButton small={width <= 600 || height < 500} backgroundColor={colorTheme.background} icon={"people"} text={"Quick assign"} onPress={() => { }} />
-            <FilledButton small={width <= 600 || height < 500} primary icon="person-add" text={"Person"} onPress={() => setAddPersonModalShowing(true)} />
-            <IconButton outline small={width <= 600 || height < 500} backgroundColor={colorTheme.background} ionicons_name={"share-outline"} text={"Export"} onPress={() => { }} />
+            <FilledButton small={width <= 600 || height < 500} primary icon="add" text={"Assignment"} onPress={() => setAddAssignmentModalShowing(true)} />
         </View>
-        {people.length === 0 ?
+        {assignments.length === 0 ?
             <View style={{ flexDirection: "column", maxWidth: 1200, gap: 20 }}>
                 <View style={{ flexDirection: ("row"), gap: 8, flexWrap: ("wrap") }}>
                     <Banner
                         backgroundColor={colorTheme.surfaceContainer}
                         color={colorTheme.onSurface}
-                        icon={<Ionicons name="people" size={24} color={colorTheme.onSurface} />}
-                        title={"Tap the button above to add a person"} />
-                    <Banner
-                        backgroundColor={colorTheme.surfaceContainer}
-                        color={colorTheme.onSurface}
-                        icon={<Ionicons name="chatbubble-ellipses-outline" size={24} color={colorTheme.onSurface} />}
-                        title={"People can be assigned to teams randomly, according to rules, or manually"} />
+                        icon={<Ionicons name="clipboard-outline" size={24} color={colorTheme.onSurface} />}
+                        title={"Tap the button above to add an assignment"} />
                 </View>
             </View>
             :
-            <>{peopleList}</>
+            <>{assignmentList}</>
         }
-        <AddPersonModal
-            isVisible={addPersonModalShowing}
+        {/*<AddAssignmentModal
+            isVisible={addAssignmentModalShowing}
             onClose={() => {
                 setAddPersonModalShowing(false);
                 setSelectedPerson(null);
             }}
             agencyList={agencyList}
-            fileId={fileId}
-            notifyFileUpdated={notifyFileUpdated}
+            incidentInfo={incidentInfo}
             person={selectedPerson} />
-        <AssignTeamPersonModal
+        <AssignTeamAssignmentModal
             onClose={() => {
-                setAssignTeamPerson(null);
+                setAssignTeamAssignment(null);
             }}
             teams={teams}
-            fileId={fileId}
-            notifyFileUpdated={notifyFileUpdated}
-            person={assignTeamPerson} />
+            incidentInfo={incidentInfo}
+            person={assignTeamAssignment} />
         <RiskModal
-            isVisible={deletePerson !== null}
+            isVisible={deleteAssignment !== null}
             title={"Delete person?"}
-            onClose={() => { setDeletePerson(null) }}>
+            onClose={() => { setDeleteAssignment(null) }}>
             <View style={{
                 padding: 20, paddingTop: 0, gap: 20
             }}>
-                <Text style={{ color: colorTheme.onSurface }}>{deletePerson && deletePerson.name} will be removed, but any radio logs won't be affected</Text>
-                <FilledButton rightAlign destructive text={"Delete person"} onPress={removePerson} />
+                <Text style={{ color: colorTheme.onSurface }}>{deleteAssignment && deleteAssignment.name} will be removed, but any radio logs won't be affected</Text>
+                <FilledButton rightAlign destructive text={"Delete assignment"} onPress={removeAssignment} />
             </View>
-        </RiskModal>
+        </RiskModal>*/}
     </View>;
 }
 
-const EquipmentPanel = ({ fileId, notifyFileUpdated, teams }) => {
+const EquipmentPanel = ({ incidentInfo, teams }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { getEquipmentByFileId, deleteDocument } = useContext(RxDBContext)
 
@@ -190,7 +162,7 @@ const EquipmentPanel = ({ fileId, notifyFileUpdated, teams }) => {
 
     useEffect(() => {
         // Load saved settings
-        getEquipmentByFileId(fileId).then(query => {
+        getEquipmentByFileId(incidentInfo.id).then(query => {
             query.$.subscribe(result => {
                 setEquipment(result);
                 // regenerates the agency names list
@@ -282,8 +254,7 @@ const EquipmentPanel = ({ fileId, notifyFileUpdated, teams }) => {
             }}
             teams={teams}
             agencyList={agencyList}
-            fileId={fileId}
-            notifyFileUpdated={notifyFileUpdated}
+            incidentInfo={incidentInfo}
             equipment={selectedEquipment} />
         <RiskModal
             isVisible={deletePerson !== null}
@@ -299,186 +270,11 @@ const EquipmentPanel = ({ fileId, notifyFileUpdated, teams }) => {
     </View>;
 }
 
-const KeyChild = ({ icon, children }) => {
-    const { colorTheme } = useContext(ThemeContext);
-    if (!children) return null;
 
-    return (<View style={{ flexDirection: "row", gap: 2, alignItems: "center", gap: 8 }}>
-        <Ionicons name={icon} size={16} color={colorTheme.onSurface} />
-        {children}
-    </View>
-    );
-}
-
-const AssignedPeopleText = ({ teamId }) => {
-    const { getPeopleByTeamId } = useContext(RxDBContext);
-
-    const [assignedPeople, setAssignedPeople] = useState([]);
-    const [loaded, setLoaded] = useState(false);
-
-    const textStyle = textStyles();
-
-    // Return a string of people who are assigned to this team, separated by commas
-    useEffect(() => {
-        let subscription;
-        if (teamId) {
-            getPeopleByTeamId(teamId).then(query => {
-                subscription = query.$.subscribe(result => {
-                    setAssignedPeople(result);
-                    setLoaded(true);
-                });
-            });
-        }
-
-        return () => {
-            if (subscription) {
-                subscription.unsubscribe();
-            }
-        };
-    }, [teamId, getPeopleByTeamId]);
-
-    return <Text style={textStyle.tertiaryText}>
-        {loaded ?
-            assignedPeople.length === 0 ? "-" :
-                assignedPeople.map((person, index) => {
-                    if (index === assignedPeople.length - 1) {
-                        return person.name;
-                    } else {
-                        return person.name + ", ";
-                    }
-                })
-            :
-            "Loading..."
-        }
-    </Text>
-}
-
-const AssignedEquipmentText = ({ teamId }) => {
-    const { getEquipmentByTeamId } = useContext(RxDBContext);
-
-    const [assignedPeople, setAssignedPeople] = useState([]);
-    const [loaded, setLoaded] = useState(false);
-
-    const textStyle = textStyles();
-
-    // Return a string of people who are assigned to this team, separated by commas
-    useEffect(() => {
-        if (teamId) {
-            getEquipmentByTeamId(teamId).then(query => {
-                query.$.subscribe(result => {
-                    setAssignedPeople(result);
-                    setLoaded(true);
-                });
-                return () => { query.$.unsubscribe() };
-            });
-        }
-    }, [teamId]);
-
-    return <Text style={textStyle.tertiaryText}>
-        {loaded ?
-            assignedPeople.length === 0 ? "-" :
-                assignedPeople.map((person, index) => {
-                    if (index === assignedPeople.length - 1) {
-                        return person.name;
-                    } else {
-                        return person.name + ", ";
-                    }
-                })
-            :
-            "Loading..."
-        }
-    </Text>
-}
-
-export const TeamsPanel = ({ fileId, notifyFileUpdated, activeTeams, editTeam }) => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width, height } = useWindowDimensions();
-    const { createTeam } = useContext(RxDBContext);
-    const [deleteTeam, setDeleteTeam] = useState(null);
-    const styles = pageStyles();
-    const textStyle = textStyles();
-
-    const removeTeam = () => {
-        deleteTeam.incrementalPatch({ removed: true });
-        notifyFileUpdated();
-        setDeleteTeam(null);
-    }
-
-    const setAvailable = (team, state) => {
-        team.incrementalPatch({ status: state ? "Available" : "Inactive" });
-        notifyFileUpdated();
-    }
-
-    return <ScrollView contentContainerStyle={{ gap: 12, paddingTop: 20, paddingBottom: 20, paddingRight: 10, paddingLeft: 20 }} style={{ height: "100%", paddingRight: 8 }}>
-        <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 14 }}>
-            <FilledButton small={width <= 600 || height < 500} primary icon="add" text={"Team"} onPress={() => createTeam(fileId, "", "Inactive")} />
-            <IconButton outline small={width <= 600 || height < 500} backgroundColor={colorTheme.background} ionicons_name={"share-outline"} text={"Export"} onPress={() => { }} />
-        </View>
-        {activeTeams.length === 0 ?
-            <View style={{ flexDirection: "column", maxWidth: 1200, gap: 20 }}>
-                <View style={{ flexDirection: ("row"), gap: 8, flexWrap: ("wrap") }}>
-                    <Banner
-                        backgroundColor={colorTheme.surfaceContainer}
-                        color={colorTheme.onSurface}
-                        icon={<Ionicons name="people" size={24} color={colorTheme.onSurface} />}
-                        title={"Tap the button above to create a team"} />
-                </View>
-            </View>
-            :
-            <View style={styles.cardContainer}>
-                {activeTeams.map(item => {
-                    return <View
-                        style={[styles.card, { flexDirection: "row", gap: 16, justifyContent: "space-between", flexWrap: "wrap" }, (item.status === "Inactive") && { backgroundColor: colorTheme.surfaceContainerLowest }]}
-                        key={item.id}
-                    >
-                        <View style={{ flexDirection: "column", gap: 4, minWidth: 90, flex: 1 }}>
-                            <EditableText
-                                style={[textStyle.rowTitleTextBold, { fontWeight: "bold" }]}
-                                numberOfLines={1} value={item.name}
-                                defaultValue="-"
-                                onChangeText={(text) => editTeam(item, { name: text })}
-                                limit={10} />
-                            <EditableText
-                                style={[textStyle.tertiaryText]}
-                                numberOfLines={1} value={item.type}
-                                defaultValue="No type"
-                                onChangeText={(text) => editTeam(item, { type: text })}
-                                limit={12} />
-                        </View>
-                        <View style={{ flexDirection: "column", gap: 8, flex: 4, flexWrap: "wrap", minWidth: 150 }}>
-                            <EditableText
-                                style={[textStyle.text]}
-                                numberOfLines={1}
-                                value={item.status}
-                                defaultValue={item.status || "No status"}
-                                onChangeText={(text) => editTeam(item, { status: text })}
-                                limit={50} />
-                            <KeyChild icon="people-outline"><AssignedPeopleText teamId={item.id} /></KeyChild>
-                            <KeyChild icon="bag-handle-outline"><AssignedEquipmentText teamId={item.id} /></KeyChild>
-                        </View>
-                        <View style={{ flexDirection: "column", gap: 8 }}>
-                            <>{item.type !== "Ad-hoc" && <IconButton small tonal={(item.status === "Inactive")} ionicons_name={(item.status === "Inactive") ? "log-in-outline" : "log-out-outline"} onPress={() => setAvailable(item, (item.status !== "Inactive") ? false : true)} />}</>
-                            <>{(item.status === "Inactive" || item.type === "Ad-hoc" || item.type) && <IconButton small ionicons_name="trash" onPress={() => setDeleteTeam(item)} />}</>
-                        </View>
-                    </View>
-                })}
-            </View>
-        }
-        <RiskModal
-            isVisible={deleteTeam !== null}
-            title={"Delete team?"}
-            onClose={() => { setDeleteTeam(null) }}>
-            <View style={{
-                padding: 20, paddingTop: 0, gap: 20
-            }}>
-                <View style={{ flexDirection: "column", gap: 8 }}>
-                    <Text style={{ color: colorTheme.onSurface }}>{deleteTeam && deleteTeam.name ? deleteTeam.name : "This team"} will be removed, but any radio logs won't be affected.</Text>
-                </View>
-                <FilledButton rightAlign destructive text={"Delete team"} onPress={removeTeam} />
-            </View>
-        </RiskModal >
-    </ScrollView>;
-}
+const getLabelFromValue = (options, value) => {
+    const option = options.find(opt => opt.value === value);
+    return option ? option.label : value;
+};
 
 const Chip = ({ title, onCancel, color }) => {
     const { colorTheme } = useContext(ThemeContext);
@@ -497,11 +293,6 @@ const IconChip = ({ icon, onCancel, color }) => {
         {onCancel !== undefined && <Ionicons name="close" size={18} color={colorTheme.onSurface} onPress={onCancel} />}
     </View>
 }
-
-const getLabelFromValue = (options, value) => {
-    const option = options.find(opt => opt.value === value);
-    return option ? option.label : value;
-};
 
 const TYPE_OPTIONS = [
     { label: "Type", value: "default" },
@@ -545,7 +336,7 @@ const ADDITIONAL_ATTRS_OPTIONS = [
     { label: "HAZMAT", value: "hazmat" }
 ];
 
-const AddPersonModal = ({ fileId, notifyFileUpdated, person, isVisible, onClose, agencyList }) => {
+const AddPersonModal = ({ incidentInfo, person, isVisible, onClose, agencyList }) => {
     const initialFormState = {
         name: '',
         idNumber: '',
@@ -590,11 +381,11 @@ const AddPersonModal = ({ fileId, notifyFileUpdated, person, isVisible, onClose,
             if (person) {
                 // update person
                 person.incrementalPatch(formData);
-                notifyFileUpdated();
+                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
             } else {
                 // create person
-                createPerson(fileId, formData);
-                notifyFileUpdated();
+                createPerson(incidentInfo.id, formData);
+                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
             }
             handleClose();
         } else {
@@ -707,7 +498,7 @@ const AddPersonModal = ({ fileId, notifyFileUpdated, person, isVisible, onClose,
     </RiskModal >);
 }
 
-const AddEquipmentModal = ({ fileId, notifyFileUpdated, equipment, isVisible, onClose, agencyList, teams }) => {
+const AddEquipmentModal = ({ incidentInfo, equipment, isVisible, onClose, agencyList, teams }) => {
     const initialFormState = {
         name: '',
         quantity: 0,
@@ -755,11 +546,11 @@ const AddEquipmentModal = ({ fileId, notifyFileUpdated, equipment, isVisible, on
             if (equipment) {
                 // update equipment
                 equipment.incrementalPatch({ ...formData, ...{ teamId: selectedTeams } });
-                notifyFileUpdated();
+                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
             } else {
                 // create equipment
-                createEquipment(fileId, { ...formData, ...{ teamId: selectedTeams } });
-                notifyFileUpdated();
+                createEquipment(incidentInfo.id, { ...formData, ...{ teamId: selectedTeams } });
+                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
             }
             handleClose();
         } else {
@@ -819,7 +610,7 @@ const AddEquipmentModal = ({ fileId, notifyFileUpdated, equipment, isVisible, on
     </RiskModal >);
 }
 
-const AssignTeamPersonModal = ({ fileId, notifyFileUpdated, person, onClose, teams }) => {
+const AssignTeamPersonModal = ({ incidentInfo, person, onClose, teams }) => {
     const styles = pageStyles();
     const textStyle = textStyles();
 
@@ -837,7 +628,7 @@ const AssignTeamPersonModal = ({ fileId, notifyFileUpdated, person, onClose, tea
                     if (t.name !== "")
                         return <FilledButton small key={t?.id} text={t.name} onPress={() => {
                             person.incrementalPatch({ teamId: t.id });
-                            notifyFileUpdated();
+                            incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
                             handleClose();
                         }} />
                 })}
@@ -847,7 +638,7 @@ const AssignTeamPersonModal = ({ fileId, notifyFileUpdated, person, onClose, tea
     </RiskModal >);
 }
 
-const TemplateModal = ({ fileId, notifyFileUpdated, people, isVisible, onClose }) => {
+const TemplateModal = ({ incidentInfo, people, isVisible, onClose }) => {
     const { colorTheme } = useContext(ThemeContext);
     const styles = pageStyles();
     const textStyle = textStyles();

@@ -56,13 +56,20 @@ export default function TabContainer({ tabs, activeTab, setActiveTab, readOnly =
     const styles = pageStyles();
     const { colorTheme } = useContext(ThemeContext);
     const activeTabContent = tabs.find(tab => tab.name === activeTab)?.content;
+    const noContainer = tabs.find(tab => tab.name === activeTab)?.noContainer || false;
 
     return (
         <View style={{ flexGrow: 1, flexShrink: 1 }}>
-            <ScrollView
-                contentContainerStyle={[styles.mainScroll]}>
-                {activeTabContent}
-            </ScrollView>
+            {noContainer ?
+                <>
+                    {activeTabContent}
+                </>
+                :
+                <ScrollView
+                    contentContainerStyle={[styles.mainScroll]}>
+                    {activeTabContent}
+                </ScrollView>
+            }
             {!readOnly && <View style={{ flexDirection: "row", height: 80, backgroundColor: colorTheme.surfaceContainerLow }}>
                 {tabs.filter(item => !item.bottom).map(item => (
                     <TabButton key={item.name} title={item.name} icon={item.icon} active={item.name === activeTab} onClick={() => { setActiveTab(item.name) }} />

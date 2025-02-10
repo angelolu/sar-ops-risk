@@ -12,6 +12,8 @@ import { wrappedKeyCompressionStorage } from 'rxdb/plugins/key-compression';
 addRxPlugin(RxDBMigrationSchemaPlugin);
 addRxPlugin(RxDBDevModePlugin);
 
+const TIMEOUT_DEFAULT = 3600;
+
 const fileSchema = {
   version: 1,
   keyCompression: true,
@@ -118,6 +120,156 @@ const logSchema = {
   required: ['id', 'fileId', 'fromTeam']
 }
 
+const peopleSchema = {
+  version: 1,
+  keyCompression: true,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: {
+      type: 'string',
+      maxLength: 100
+    },
+    fileId: {
+      type: 'string',
+      maxLength: 100
+    },
+    teamId: {
+      type: 'string',
+      maxLength: 100
+    },
+    name: {
+      type: 'string'
+    },
+    email: {
+      type: 'string'
+    },
+    agency: {
+      type: 'string'
+    },
+    role: {
+      type: 'string'
+    },
+    type: {
+      type: 'string'
+    },
+    idNumber: {
+      type: 'string'
+    },
+    arrivalTime: {
+      type: 'string'
+    },
+    departureTime: {
+      type: 'string'
+    },
+    created: {
+      type: 'string'
+    },
+    medCert: {
+      type: 'string'
+    },
+    status: {
+      type: 'string'
+    },
+    additionalAttrs: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    },
+    phone: {
+      type: 'string'
+    },
+    notes: {
+      type: 'string'
+    },
+    trackingURL: {
+      type: 'string'
+    }
+  },
+  required: ['id', 'fileId', 'created']
+};
+
+const equipmentSchema = {
+  version: 0,
+  keyCompression: true,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: {
+      type: 'string',
+      maxLength: 100
+    },
+    fileId: {
+      type: 'string',
+      maxLength: 100
+    },
+    name: {
+      type: 'string'
+    },
+    quantity: {
+      type: 'number'
+    },
+    agency: {
+      type: 'string'
+    },
+    teamId: {
+      type: 'array',
+      items: {
+        type: 'string',
+        maxLength: 100
+      }
+    },
+    created: {
+      type: 'string'
+    },
+    notes: {
+      type: 'string'
+    },
+  },
+  required: ['id', 'fileId', 'created']
+};
+
+const assignmentsSchema = {
+  version: 0,
+  keyCompression: true,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: {
+      type: 'string',
+      maxLength: 100
+    },
+    fileId: {
+      type: 'string',
+      maxLength: 100
+    },
+    name: {
+      type: 'string'
+    },
+    teamId: {
+      type: 'array',
+      items: {
+        type: 'string',
+        maxLength: 100
+      }
+    },
+    type: {
+      type: 'string',
+      maxLength: 25
+    },
+    created: {
+      type: 'string'
+    },
+    flagged: { type: 'boolean' },
+    completed: { type: 'boolean' },
+    notes: {
+      type: 'string'
+    },
+  },
+  required: ['id', 'fileId', 'created', 'type']
+};
+
 export const RxDBContext = createContext();
 
 export const RxDBProvider = ({ children }) => {
@@ -169,10 +321,26 @@ export const RxDBProvider = ({ children }) => {
               },
             }
           },
+          people: {
+            schema: peopleSchema,
+            migrationStrategies: {
+              1: function (oldDoc) {
+                // Renamed types
+                return oldDoc;
+              },
+            }
+          },
+          equipment: {
+            schema: equipmentSchema,
+            migrationStrategies: {}
+          },
+          assignments: {
+            schema: assignmentsSchema,
+            migrationStrategies: {}
+          },
         });
 
         filesDBRef.current = myDB;
-
         dbReady.current = true;
       } catch (error) {
         console.error('Initialization error:', error);
@@ -243,7 +411,7 @@ export const RxDBProvider = ({ children }) => {
     }
   };
 
-  const createTeam = async (fileId) => {
+  const createTeam = async (fileId, type = "", status = "") => {
     await waitForInit();
     let timeoutDefault = await getData("timeout-seconds");
     return new Promise(async (resolve) => {
@@ -252,11 +420,11 @@ export const RxDBProvider = ({ children }) => {
         id: newTeamUUID,
         fileId: fileId, // Associate team with the file
         name: '',
-        type: '',
-        status: '',
+        type: type,
+        status: status,
         flagged: false,
         lastStart: ``,
-        lastTimeRemaining: timeoutDefault || 3600,
+        lastTimeRemaining: timeoutDefault || TIMEOUT_DEFAULT,
         isRunning: false,
         created: new Date().toISOString(),
       });
@@ -271,7 +439,7 @@ export const RxDBProvider = ({ children }) => {
         fileId: fileId,
         //removed: { $ne: true }
       },
-      sort: [{ created: 'desc' }]
+      sort: [{ name: 'asc' }]
     });
   }
 
@@ -311,7 +479,6 @@ export const RxDBProvider = ({ children }) => {
 
   const createLog = async (fileId, logInfo) => {
     await waitForInit();
-    let timeoutDefault = await getData("timeout-seconds");
     return new Promise(async (resolve) => {
       const newTeamUUID = uuidv4();
       const myDocument = await filesDBRef.current.logs.insert({
@@ -322,6 +489,123 @@ export const RxDBProvider = ({ children }) => {
         ...logInfo
       });
       resolve(myDocument);
+    });
+  }
+
+  const createPerson = async (fileId, personObj) => {
+    await waitForInit();
+    return new Promise(async (resolve) => {
+      const newPersonUUID = uuidv4();
+      const myDocument = await filesDBRef.current.people.insert({
+        ...{
+          id: newPersonUUID,
+          fileId: fileId,
+          created: new Date().toISOString()
+        }, ...personObj
+      });
+      resolve(myDocument);
+    });
+  }
+
+  const getPeopleByTeamId = async (teamId) => {
+    await waitForInit();
+    return await filesDBRef.current.people.find({
+      selector: {
+        teamId: teamId,
+      },
+      sort: [{ name: 'asc' }]
+    });
+  }
+
+  const getPeopleByFileId = async (fileId) => {
+    await waitForInit();
+    return await filesDBRef.current.people.find({
+      selector: {
+        fileId: fileId,
+      },
+      sort: [
+        { agency: 'desc' },
+        { name: 'asc' },
+      ]
+    });
+  }
+
+  const createEquipment = async (fileId, equipmentObj) => {
+    await waitForInit();
+    return new Promise(async (resolve) => {
+      const newPersonUUID = uuidv4();
+      const myDocument = await filesDBRef.current.equipment.insert({
+        ...{
+          id: newPersonUUID,
+          fileId: fileId,
+          created: new Date().toISOString()
+        }, ...equipmentObj
+      });
+      resolve(myDocument);
+    });
+  }
+
+  const getEquipmentByTeamId = async (teamId) => {
+    await waitForInit();
+    return await filesDBRef.current.equipment.find({
+      selector: {
+        teamId: {
+          $in: [teamId]  // Matches if array contains teamId
+        }
+      },
+      sort: [{ name: 'asc' }]
+    });
+  }
+
+  const getEquipmentByFileId = async (fileId) => {
+    await waitForInit();
+    return await filesDBRef.current.equipment.find({
+      selector: {
+        fileId: fileId,
+      },
+      sort: [
+        { agency: 'desc' },
+        { name: 'asc' }
+      ]
+    });
+  }
+
+  const createAssignment = async (fileId, assignmentObj) => {
+    await waitForInit();
+    return new Promise(async (resolve) => {
+      const newAssignmentUUID = uuidv4();
+      const myDocument = await filesDBRef.current.assignments.insert({
+        ...{
+          id: newAssignmentUUID,
+          fileId: fileId,
+          created: new Date().toISOString()
+        }, ...assignmentObj
+      });
+      resolve(myDocument);
+    });
+  }
+
+  const getAssignmentsByTeamId = async (teamId) => {
+    await waitForInit();
+    return await filesDBRef.current.assignments.find({
+      selector: {
+        teamId: {
+          $in: [teamId]  // Matches if array contains teamId
+        }
+      },
+      sort: [{ name: 'asc' }]
+    });
+  }
+
+  const getAssignmentsByFileId = async (fileId) => {
+    await waitForInit();
+    return await filesDBRef.current.assignments.find({
+      selector: {
+        fileId: fileId,
+      },
+      sort: [
+        { name: 'asc' }
+      ]
     });
   }
 
@@ -336,7 +620,16 @@ export const RxDBProvider = ({ children }) => {
       deleteDocument,
       getLogsByFileId,
       createLog,
-      getLastRadioLog
+      getLastRadioLog,
+      createPerson,
+      getPeopleByTeamId,
+      getPeopleByFileId,
+      createEquipment,
+      getEquipmentByTeamId,
+      getEquipmentByFileId,
+      createAssignment,
+      getAssignmentsByTeamId,
+      getAssignmentsByFileId
     }}>
       {children}
     </RxDBContext.Provider>

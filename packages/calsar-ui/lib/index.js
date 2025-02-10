@@ -81,6 +81,12 @@ Object.defineProperty(exports, "Tile", {
     return _Tile.Tile;
   }
 });
+Object.defineProperty(exports, "textStyles", {
+  enumerable: true,
+  get: function get() {
+    return _styles.textStyles;
+  }
+});
 var _FilledButton = require("./FilledButton");
 var _IconButton = require("./IconButton");
 var _ShareButton = require("./ShareButton");
@@ -91,3 +97,4 @@ var _Banner = require("./Banner");
 var _Headers = require("./Headers");
 var _Branding = require("./Branding");
 var _RiskModal = require("./RiskModal");
+var _styles = require("./styles");

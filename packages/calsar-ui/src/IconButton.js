@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemeContext } from './ThemeContext';
 
-export const IconButton = ({ ionicons_name, onPress, small = false, destructive = false, disabled = false, primary = false, tonal = false, color, size }) => {
+export const IconButton = ({ ionicons_name, onPress, small = false, destructive = false, disabled = false, primary = false, tonal = false, outline = false, color, size }) => {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const [focus, setFocus] = useState(false);
     const styles = buttonStyles();
@@ -22,14 +22,14 @@ export const IconButton = ({ ionicons_name, onPress, small = false, destructive 
 
     if (ionicons_name) {
         return (
-            <View style={[styles.baseContainer, small && styles.smallBaseContainer, disabled && styles.disabled, primary && styles.primary, tonal && styles.tonal]}>
+            <View style={[styles.baseContainer, small && styles.smallBaseContainer, disabled && styles.disabled, primary && styles.primary, tonal && styles.tonal, outline && { outlineStyle: "solid", outlineWidth: 2, outlineColor: colorTheme.secondary }]}>
                 <Pressable
                     onHoverIn={() => { setFocus(true) }}
                     onHoverOut={() => { setFocus(false) }}
                     onPress={disabled ? disabledFun : onPress}
                     android_ripple={disabled || { color: colorTheme.surfaceContainerHighest }}
                     style={[styles.pressable, focusTheme]}>
-                    <Ionicons name={ionicons_name} size={small ? 16 : (size || 24)} color={color || (disabled && textColors.disabled) || (destructive && textColors.destructive) || (primary && textColors.primary) || (tonal && textColors.tonal) || textColors.basic} />
+                    <Ionicons name={ionicons_name} size={small ? 16 : (size || outline ? 20 : 24)} color={color || (disabled && textColors.disabled) || (destructive && textColors.destructive) || (primary && textColors.primary) || (tonal && textColors.tonal) || (outline && colorTheme.secondary) || textColors.basic} />
                 </Pressable >
             </View >
         );
