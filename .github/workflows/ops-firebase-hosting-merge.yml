@@ -7,16 +7,18 @@ on:
     branches:
       - main
     paths:
-      - 'apps/ops/**'
-      - 'packages/**'
+      - "apps/ops/**"
+      - "packages/**"
 jobs:
   ops_build_and_deploy:
     runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_MAPBOX_API: ${{ secrets.PUBLIC_MAPBOX_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - working-directory: apps/ops  # Change directory to apps/ops
+      - working-directory: apps/ops # Change directory to apps/ops
         run: npm install
-      - working-directory: apps/ops  # Change directory to apps/ops again
+      - working-directory: apps/ops # Change directory to apps/ops again
         run: npm run predeploy
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
