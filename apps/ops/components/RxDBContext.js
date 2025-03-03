@@ -1,18 +1,18 @@
-import React, { createContext, useEffect, useState, useRef } from 'react';
-import { Platform } from 'react-native';
-import { v4 as uuidv4 } from 'uuid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import React, { createContext, useEffect, useRef } from 'react';
 import { addRxPlugin, createRxDatabase } from 'rxdb';
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
-import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
-import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
-import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
 import { wrappedKeyCompressionStorage } from 'rxdb/plugins/key-compression';
+import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
+import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
+import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
+import { v4 as uuidv4 } from 'uuid';
+import { getTimeoutDefault } from './helperFunctions';
 addRxPlugin(RxDBMigrationSchemaPlugin);
-addRxPlugin(RxDBDevModePlugin);
 
-const TIMEOUT_DEFAULT = 3600;
+if (__DEV__) {
+  addRxPlugin(RxDBDevModePlugin);
+}
 
 const fileSchema = {
   version: 1,
@@ -230,8 +230,8 @@ const equipmentSchema = {
   required: ['id', 'fileId', 'created']
 };
 
-const assignmentsSchema = {
-  version: 0,
+const tasksSchema = {
+  version: 1,
   keyCompression: true,
   primaryKey: 'id',
   type: 'object',
@@ -258,13 +258,124 @@ const assignmentsSchema = {
       type: 'string',
       maxLength: 25
     },
+    location: {
+      type: 'string'
+    },
     created: {
       type: 'string'
     },
     flagged: { type: 'boolean' },
     completed: { type: 'boolean' },
+    completedAt: { type: 'string' },
+    completedBy: { type: 'string' },
     notes: {
       type: 'string'
+    },
+  },
+  required: ['id', 'fileId', 'created']
+};
+
+const cluesSchema = {
+  version: 2,
+  keyCompression: true,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: {
+      type: 'string',
+      maxLength: 100
+    },
+    fileId: {
+      type: 'string',
+      maxLength: 100
+    },
+    name: {
+      type: 'string'
+    },
+    foundByTeamId: {
+      type: 'string',
+      maxLength: 100
+    },
+    assignmentId: {
+      type: 'string',
+      maxLength: 100
+    },
+    description: {
+      type: 'string'
+    },
+    location: {
+      type: 'string'
+    },
+    state: {
+      type: 'string',
+      enum: ['New', 'Investigating', 'Escalated', 'Closed', 'Ignored']
+    },
+    flagged: {
+      type: 'boolean'
+    },
+    created: {
+      type: 'string'
+    },
+    notes: {
+      type: 'string'
+    }
+  },
+  required: ['id', 'fileId', 'created']
+};
+
+const commsQueueSchema = {
+  version: 1,
+  keyCompression: true,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: {
+      type: 'string',
+      maxLength: 100
+    },
+    fileId: {
+      type: 'string',
+      maxLength: 100
+    },
+    message: {
+      type: 'string'
+    },
+    fromId: {
+      type: 'string',
+      maxLength: 100
+    },
+    toOpsTeam: {
+      type: 'string',
+    },
+    toFieldTeamId: {
+      type: 'string',
+      maxLength: 100
+    },
+    type: {
+      type: 'string',
+      enum: ['General', 'Task', 'Clue', 'Resource']
+    },
+    subtype: {
+      type: 'string',
+    },
+    relatedId: {
+      type: 'string',
+      maxLength: 100
+    },
+    created: {
+      type: 'string'
+    },
+    acknowledgedTime: {
+      type: 'string'
+    },
+    closed: {
+      type: 'boolean'
+    },
+    response: {
+      type: 'string'
+    },
+    flagged: {
+      type: 'boolean'
     },
   },
   required: ['id', 'fileId', 'created', 'type']
@@ -279,14 +390,24 @@ export const RxDBProvider = ({ children }) => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        const myDB = await createRxDatabase({
-          name: 'files_db',
-          storage: wrappedKeyCompressionStorage({
-            storage: wrappedValidateAjvStorage({
+        let myDB;
+        if (__DEV__) {
+          myDB = await createRxDatabase({
+            name: 'files_db',
+            storage: wrappedKeyCompressionStorage({
+              storage: wrappedValidateAjvStorage({
+                storage: getRxStorageDexie()
+              })
+            })
+          });
+        } else {
+          myDB = await createRxDatabase({
+            name: 'files_db',
+            storage: wrappedKeyCompressionStorage({
               storage: getRxStorageDexie()
             })
-          })
-        });
+          });
+        }
 
         await myDB.addCollections({
           files: {
@@ -334,10 +455,37 @@ export const RxDBProvider = ({ children }) => {
             schema: equipmentSchema,
             migrationStrategies: {}
           },
-          assignments: {
-            schema: assignmentsSchema,
-            migrationStrategies: {}
+          tasks: {
+            schema: tasksSchema,
+            migrationStrategies: {
+              1: function (oldDoc) {
+                // Added completedAt field
+                return oldDoc;
+              }
+            }
           },
+          clues: {
+            schema: cluesSchema,
+            migrationStrategies: {
+              1: function (oldDoc) {
+                // added state strings
+                return oldDoc;
+              },
+              2: function (oldDoc) {
+                // added name field
+                return oldDoc;
+              },
+            }
+          },
+          commsQueue: {
+            schema: commsQueueSchema,
+            migrationStrategies: {
+              1: function (oldDoc) {
+                // added state strings
+                return oldDoc;
+              }
+            }
+          }
         });
 
         filesDBRef.current = myDB;
@@ -413,7 +561,6 @@ export const RxDBProvider = ({ children }) => {
 
   const createTeam = async (fileId, type = "", status = "") => {
     await waitForInit();
-    let timeoutDefault = await getData("timeout-seconds");
     return new Promise(async (resolve) => {
       const newTeamUUID = uuidv4();
       const myDocument = await filesDBRef.current.teams.insert({
@@ -424,7 +571,7 @@ export const RxDBProvider = ({ children }) => {
         status: status,
         flagged: false,
         lastStart: ``,
-        lastTimeRemaining: timeoutDefault || TIMEOUT_DEFAULT,
+        lastTimeRemaining: await getTimeoutDefault(),
         isRunning: false,
         created: new Date().toISOString(),
       });
@@ -442,6 +589,46 @@ export const RxDBProvider = ({ children }) => {
       sort: [{ name: 'asc' }]
     });
   }
+
+  const removeTeam = async (team) => {
+    await waitForInit();
+    // Unassign all people from the team
+    const peopleQuery = filesDBRef.current.people.find({
+      selector: {
+        teamId: team.id,
+      }
+    });
+    await peopleQuery.incrementalPatch({ teamId: "" });
+    // Unassign all equipment from the team
+    const equipmentQuery = filesDBRef.current.equipment.find({
+      selector: {
+        teamId: {
+          $in: [team.id]  // Matches if array contains teamId
+        }
+      }
+    });
+    await equipmentQuery.incrementalModify((docData) => {
+      // remove team.id from the teamId array
+      docData.teamId = docData.teamId.filter((id) => id !== team.id);
+      return docData;
+    });
+    // Unassign team from all queued tasks
+    const tasksQuery = filesDBRef.current.tasks.find({
+      selector: {
+        teamId: {
+          $in: [team.id]  // Matches if array contains teamId
+        }
+      }
+    });
+    await tasksQuery.incrementalModify((docData) => {
+      // remove team.id from the teamId array
+      docData.teamId = docData.teamId.filter((id) => id !== team.id);
+      return docData;
+    });
+    // We don't actually delete the team, we just mark it as removed so it can still be queried for logs
+    await team.incrementalPatch({ removed: true });
+  }
+
 
   const deleteDocument = async (document) => {
     await waitForInit();
@@ -570,11 +757,11 @@ export const RxDBProvider = ({ children }) => {
     });
   }
 
-  const createAssignment = async (fileId, assignmentObj) => {
+  const createAssignment = async (fileId, assignmentObj = {}) => {
     await waitForInit();
     return new Promise(async (resolve) => {
       const newAssignmentUUID = uuidv4();
-      const myDocument = await filesDBRef.current.assignments.insert({
+      const myDocument = await filesDBRef.current.tasks.insert({
         ...{
           id: newAssignmentUUID,
           fileId: fileId,
@@ -585,9 +772,18 @@ export const RxDBProvider = ({ children }) => {
     });
   }
 
+  const getAssignmentById = async (assignmentId) => {
+    await waitForInit();
+    return await filesDBRef.current.tasks.findOne({
+      selector: {
+        id: assignmentId
+      }
+    });
+  }
+
   const getAssignmentsByTeamId = async (teamId) => {
     await waitForInit();
-    return await filesDBRef.current.assignments.find({
+    return await filesDBRef.current.tasks.find({
       selector: {
         teamId: {
           $in: [teamId]  // Matches if array contains teamId
@@ -599,13 +795,76 @@ export const RxDBProvider = ({ children }) => {
 
   const getAssignmentsByFileId = async (fileId) => {
     await waitForInit();
-    return await filesDBRef.current.assignments.find({
+    return await filesDBRef.current.tasks.find({
       selector: {
         fileId: fileId,
       },
       sort: [
         { name: 'asc' }
       ]
+    });
+  }
+
+  const getCluesByFileId = async (fileId) => {
+    await waitForInit();
+    return await filesDBRef.current.clues.find({
+      selector: {
+        fileId: fileId,
+      },
+      sort: [
+        { created: 'desc' }
+      ]
+    });
+  }
+
+  const createClue = async (fileId, clueObj) => {
+    await waitForInit();
+    return new Promise(async (resolve) => {
+      const newClueUUID = uuidv4();
+      const myDocument = await filesDBRef.current.clues.insert({
+        ...{
+          id: newClueUUID,
+          fileId: fileId,
+          created: new Date().toISOString()
+        }, ...clueObj
+      });
+      resolve(myDocument);
+    });
+  }
+
+  const getClueById = async (clueId) => {
+    await waitForInit();
+    return await filesDBRef.current.clues.findOne({
+      selector: {
+        id: clueId
+      }
+    });
+  }
+
+  const getCommsQueueMessagesByFileId = async (fileId) => {
+    await waitForInit();
+    return await filesDBRef.current.commsQueue.find({
+      selector: {
+        fileId: fileId,
+      },
+      sort: [
+        { created: 'desc' }
+      ]
+    });
+  }
+
+  const createCommsQueueMessage = async (fileId, messageObj) => {
+    await waitForInit();
+    return new Promise(async (resolve) => {
+      const newUUID = uuidv4();
+      const myDocument = await filesDBRef.current.commsQueue.insert({
+        ...{
+          id: newUUID,
+          fileId: fileId,
+          created: new Date().toISOString()
+        }, ...messageObj
+      });
+      resolve(myDocument);
     });
   }
 
@@ -616,6 +875,7 @@ export const RxDBProvider = ({ children }) => {
       deleteFile,
       getFileByID,
       createTeam,
+      removeTeam,
       getTeamsByFileId,
       deleteDocument,
       getLogsByFileId,
@@ -628,8 +888,14 @@ export const RxDBProvider = ({ children }) => {
       getEquipmentByTeamId,
       getEquipmentByFileId,
       createAssignment,
+      getAssignmentById,
       getAssignmentsByTeamId,
-      getAssignmentsByFileId
+      getAssignmentsByFileId,
+      getCluesByFileId,
+      createClue,
+      getClueById,
+      getCommsQueueMessagesByFileId,
+      createCommsQueueMessage
     }}>
       {children}
     </RxDBContext.Provider>

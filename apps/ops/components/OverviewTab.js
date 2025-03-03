@@ -1,14 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Banner, FilledButton, IconButton, RiskModal, SegmentedButtons, textStyles, ThemeContext } from 'calsar-ui';
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Banner, textStyles, ThemeContext } from 'calsar-ui';
+import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { EditableText, TextBox } from '../components/TextInput';
-import { PrinterContext } from './PrinterContext';
-import { RxDBContext } from './RxDBContext';
 import { TimerComponent } from './TimerComponent';
 
-export const OverviewTab = ({ incidentInfo, teams, activeTeams }) => {
-    const { width, height } = useWindowDimensions();
+export const OverviewTab = ({ incidentInfo, teams, activeTeams, mapShowing }) => {
+    const { width } = useWindowDimensions();
     const { colorTheme } = useContext(ThemeContext);
 
     const styles = pageStyles();
@@ -28,6 +25,7 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams }) => {
                     team={item}
                     teams={teams}
                     key={item.id}
+                    fullWidth={mapShowing}
                 />);
             } else {
                 tempDisabled.push(<TimerComponent
@@ -36,6 +34,7 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams }) => {
                     team={item}
                     teams={teams}
                     key={item.id}
+                    fullWidth={mapShowing}
                 />);
             }
         });
@@ -57,7 +56,7 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams }) => {
                             backgroundColor={colorTheme.surfaceContainer}
                             color={colorTheme.onSurface}
                             icon={<Ionicons name="sparkles" size={24} color={colorTheme.onSurface} />}
-                            title={"All changes are saved automatically"} />
+                            title={"Changes are saved automatically"} />
                         <Banner
                             backgroundColor={colorTheme.surfaceContainer}
                             color={colorTheme.onSurface}
@@ -72,13 +71,12 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams }) => {
                             backgroundColor={colorTheme.surfaceContainer}
                             color={colorTheme.onSurface}
                             icon={<Ionicons name="print" size={24} color={colorTheme.onSurface} />}
-                            title={"Tap the status box in the header to connect a thermal printer for constant log printing"} />
+                            title={"Tap the status box in the header to connect a thermal printer"} />
                         <Banner
                             backgroundColor={colorTheme.secondaryContainer}
                             color={colorTheme.onSecondaryContainer}
                             icon={<Ionicons name="lock-closed" size={24} color={colorTheme.onSecondaryContainer} />}
                             title={"All data is stored in this browser and will be deleted if browsing data is cleared"}>
-                            <Text style={[styles.text, { color: colorTheme.onSecondaryContainer }]}>{"Download this file for safekeeping " + (width > 600 ? "from the \"File\" tab" : "by tapping the file icon in the header") + ". Refer to agency data classification and storage requirements."}</Text>
                         </Banner>
                     </View>
                 </View>
@@ -112,66 +110,10 @@ const pageStyles = () => {
             paddingLeft: 20,
             gap: 12,
         },
-        background: {
-            backgroundColor: colorTheme.background,
-            height: '100%'
-        },
-        sectionTitle: {
-            color: colorTheme.onBackground,
-            fontSize: 20,
-        },
         timerSection: {
             gap: 4,
             borderRadius: 26,
             overflow: 'hidden'
-        },
-        wideCard: {
-            borderRadius: 6,
-            backgroundColor: colorTheme.surfaceContainer,
-            flexDirection: "column",
-        },
-        card: {
-            borderRadius: 6,
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: width > 600 ? 12 : 8,
-            justifyContent: 'space-between',
-            backgroundColor: colorTheme.surfaceContainer
-        },
-        sectionContainer: {
-            flexGrow: 1,
-            justifyContent: 'space-between',
-            flexDirection: 'column',
-        },
-        sectionContainerDivider: {
-            paddingRight: 10,
-            borderRightColor: colorTheme.outlineVariant,
-            borderRightWidth: StyleSheet.hairlineWidth,
-        },
-        sectionTitleContainer: {
-            justifyContent: 'space-between',
-            alignItems: "center",
-            flexDirection: 'row',
-            gap: 8
-        },
-        text: {
-            fontSize: width > 600 ? 14 : 12,
-            color: colorTheme.onSurface
-        },
-        sectionBodyText: {
-            fontSize: width > 600 ? 28 : 20,
-            color: colorTheme.onSurface
-        },
-        sectionBodyTextSmall: {
-            fontSize: width > 600 ? 20 : 16,
-            color: colorTheme.onSurface
-        },
-        header: {
-            padding: 14,
-            backgroundColor: colorTheme.brand,
-            color: colorTheme.white,
         },
     });
 }

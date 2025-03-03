@@ -5,6 +5,7 @@ import { setStatusBarStyle } from 'expo-status-bar';
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { RxDBContext } from '../components/RxDBContext';
+import { getElapsedTimeString, getSimpleDateString } from '../components/helperFunctions';
 
 export default function App() {
     const styles = pageStyles();
@@ -37,30 +38,6 @@ export default function App() {
         createFile().then(id => {
             router.navigate(id);
         });
-    }
-
-    const calculateElapsedTime = (dateString) => {
-        if (dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffInMs = now - date;
-
-            const seconds = Math.floor(diffInMs / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-
-            if (seconds < 60) {
-                return "just now";
-            } else if (minutes < 60) {
-                return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
-            } else if (hours < 48) {
-                return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-            } else {
-                return date.toLocaleString('en-US', { hour12: false });
-            }
-        } else {
-            return "an unknown time ago";
-        }
     }
 
     return (
@@ -115,7 +92,7 @@ export default function App() {
                                     href={"/" + item.id}
                                     icon={<Ionicons name="document" size={20} color={colorTheme.primary} />}
                                     title={item.fileName || "Untitled file"}
-                                    subtitle={(`Updated ${calculateElapsedTime(item.updated)}. Created ${calculateElapsedTime(item.created)}.`)}
+                                    subtitle={(`Updated ${getElapsedTimeString(item.updated)}. Created ${getSimpleDateString(item.created)}.`)}
                                 >
                                     <IconButton small ionicons_name="trash" onPress={() => { setModalDocument(item) }} />
                                 </Tile>

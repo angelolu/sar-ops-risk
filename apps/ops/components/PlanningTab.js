@@ -1,27 +1,28 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
-import { Banner, FilledButton, IconButton, MaterialCard, RiskModal, textStyles, ThemeContext } from 'calsar-ui';
+import { Banner, FilledButton, IconButton, RiskModal, SegmentedButtons, textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, { FadingTransition } from 'react-native-reanimated';
+import { validateLocationString } from './MapPanel';
 import { RxDBContext } from './RxDBContext';
 import SwitcherContainer from './SwitcherContainer';
 import { EditableText, TextBox } from './TextInput';
 
-export const PlanningPanel = ({ incidentInfo, activeTeams }) => {
+export const PlanningPanel = ({ fileId, notifyFileUpdated, activeTeams, markers, removeMarker, addMarker }) => {
     const [activeTab, setActiveTab] = useState("Assignments");
     const tabs = [
         {
             name: "Assignments",
             icon: "navigate",
             content: <>
-                <AssignmentPanel incidentInfo={incidentInfo} teams={activeTeams} />
+                <AssignmentPanel fileId={fileId} notifyFileUpdated={notifyFileUpdated} teams={activeTeams} />
             </>
         },
         {
             name: "Incidents",
             icon: "earth",
             content: <>
-                <EquipmentPanel incidentInfo={incidentInfo} teams={activeTeams} />
+                <AssignmentPanel incidents fileId={fileId} notifyFileUpdated={notifyFileUpdated} teams={activeTeams} markers={markers} addMarker={addMarker} removeMarker={removeMarker} />
             </>
         }
     ];
@@ -29,9 +30,92 @@ export const PlanningPanel = ({ incidentInfo, activeTeams }) => {
     return <SwitcherContainer tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />;
 }
 
-const AssignmentPanel = ({ incidentInfo, teams }) => {
+const ListItem = ({ teams, item, notifyFileUpdated, setAssignTeamAssignment, setDeleteAssignment, markers, removeMarker, addMarker, incidents }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const { getAssignmentsByFileId, deleteDocument } = useContext(RxDBContext);
+    const styles = pageStyles();
+    const textStyle = textStyles();
+
+    // Compute the text for the chip based on the teams assigned to the assignment
+    let completingTeams = teams.filter(t => t?.assignment === item.id);
+    if (completingTeams.length > 0) {
+        item.completingTeamNames = completingTeams.map(t => t?.name).join(", ");
+    } else if (item.teamId && item.teamId.length > 0) {
+        // No teams are currently completing the assignment
+        item.completingTeamNames = "";
+        let assignedTeams = item.teamId.map(id => teams.find(t => t.id === id));
+        item.queuedTeamNames = assignedTeams.map(t => t?.name).join(", ");
+    } else {
+        item.completingTeamNames = "";
+        item.queuedTeamNames = "";
+    }
+
+    let isInMarkerArray;
+
+    if (markers && markers.length > 0) {
+        isInMarkerArray = markers.find(marker => marker.id === item.id);
+    }
+
+    return (
+        <View style={[styles.card, { flexDirection: "row", gap: 16, justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }, { backgroundColor: colorTheme.surfaceContainer }]}>
+            <View style={{ flexDirection: "column", gap: 8, maxWidth: 100 }}>
+                <EditableText
+                    style={[textStyle.rowTitleText]}
+                    numberOfLines={2} value={item.name}
+                    defaultValue={incidents ? "Unnamed incident" : "Unnamed assignment"}
+                    onChangeText={(text) => item.incrementalPatch({ name: text }).then(() => notifyFileUpdated())}
+                    limit={20} />
+            </View>
+            <View style={{ flexDirection: "row", gap: 8, flex: 4, minWidth: 200 }}>
+                <EditableText
+                    style={[textStyle.secondaryText]}
+                    numberOfLines={2} value={item.notes}
+                    defaultValue="No description"
+                    onChangeText={(text) => item.incrementalPatch({ notes: text }).then(() => notifyFileUpdated())}
+                    limit={300} />
+            </View>
+            {incidents && <View style={{ flexDirection: "row", gap: 8, flex: 2, minWidth: 200, alignItems: "center" }}>
+                <EditableText
+                    style={[textStyle.secondaryText]}
+                    numberOfLines={2} value={item.location}
+                    defaultValue="No location"
+                    onChangeText={(text) => item.incrementalPatch({ location: text }).then(() => notifyFileUpdated())}
+                    limit={300} />
+            </View>}
+            <View style={{ flexDirection: "row", gap: 8, justifyContent: "flex-start", alignItems: "center" }}>
+                {item.name ? ((item.teamId && item.teamId.length > 0) || (item.completingTeamNames && item.completingTeamNames.length > 0) ?
+                    <Chip
+                        title={item.completed ? `Completed` : item.completingTeamNames ? `In progress (${item.completingTeamNames})` : `Queued (${item.queuedTeamNames})`}
+                        color={item.completed ? colorTheme.garGreenDark : item.completingTeamNames ? colorTheme.tertiaryContainer : colorTheme.surfaceContainerHighest}
+                        onPress={(item.completingTeamNames || item.completed) ? undefined : () => { setAssignTeamAssignment(item) }} />
+                    // TODO: add a modal to change an in progress assignment
+                    :
+                    <Chip title={"Unassigned"} color={colorTheme.secondaryContainer} onPress={() => { setAssignTeamAssignment(item) }} />)
+                    :
+                    <Chip title={"Task name required"} color={colorTheme.surfaceContainerLowest} />
+                }
+                <>{(!item.teamId || (item.teamId && item.teamId.length === 0)) && <IconButton small ionicons_name="trash" onPress={() => setDeleteAssignment(item)} />}</>
+                <>{item.location && validateLocationString(item.location, false) !== null && <IconButton small ionicons_name={isInMarkerArray ? "map" : "map-outline"} onPress={() => {
+                    if (isInMarkerArray) {
+                        removeMarker(item.id);
+                    } else {
+                        addMarker({
+                            type: "Incidents",
+                            id: item.id
+                        })
+                    }
+                }} />}</>
+                <IconButton small ionicons_name={item.flagged ? "flag" : "flag-outline"} onPress={() => {
+                    item.incrementalPatch({ flagged: !item.flagged });
+                    notifyFileUpdated();
+                }} />
+            </View>
+        </View>
+    );
+}
+
+const AssignmentPanel = ({ fileId, notifyFileUpdated, teams, incidents = false, addMarker, markers, removeMarker }) => {
+    const { colorTheme } = useContext(ThemeContext);
+    const { getAssignmentsByFileId, deleteDocument, createAssignment } = useContext(RxDBContext);
 
     const { width, height } = useWindowDimensions();
 
@@ -39,14 +123,13 @@ const AssignmentPanel = ({ incidentInfo, teams }) => {
     const textStyle = textStyles();
 
     const [assignments, setAssignments] = useState([]);
-    const [addAssignmentModalShowing, setAddAssignmentModalShowing] = useState(false);
     const [deleteAssignment, setDeleteAssignment] = useState(null);
     const [assignTeamAssignment, setAssignTeamAssignment] = useState(null);
-    const [selectedAssignment, setSelectedAssignment] = useState(null);
 
     useEffect(() => {
-        getAssignmentsByFileId(incidentInfo.id).then(query => {
+        getAssignmentsByFileId(fileId).then(query => {
             query.$.subscribe(result => {
+                // print out incident name and the teamID from each result
                 setAssignments(result);
                 return () => { query.$.unsubscribe() };
             });
@@ -59,586 +142,241 @@ const AssignmentPanel = ({ incidentInfo, teams }) => {
     };
 
     let assignmentList = [];
+    let priorityAssignmentList = [];
+
+    // TODO: can't unassign an assignment from a team
 
     assignments.map(item => {
-        assignmentList.push(
-            <Pressable
-                key={item.id}
-                onPress={() => {
-                    setSelectedPerson(item);
-                    setAddAssignmentModalShowing(true);
-                }}
-                onLongPress={() => { }}
-                style={[styles.card, { flexDirection: "row", gap: 16, justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }, { backgroundColor: colorTheme.surfaceContainer }]}>
-                <View style={{ flexDirection: "row", gap: 8, minWidth: 125, flex: 2, flexWrap: "wrap", alignItems: "center" }}>
-                    <Text style={[textStyle.rowTitleText, { paddingRight: 8 }]} numberOfLines={1}>{item.name}{item.idNumber ? ` #${item.idNumber}` : ""}</Text>
-                    {(item.type && item?.type !== "default" || item.role) && <Chip title={`${item?.type !== "default" ? getLabelFromValue(TYPE_OPTIONS, item.type) : ""}${item?.type !== "default" && item.role ? ` ${getLabelFromValue(ROLE_OPTIONS, item.role).toLowerCase()}` : `${getLabelFromValue(ROLE_OPTIONS, item.role)}`}`} color={colorTheme.surfaceContainerHigh} />}
-                    {item.medCert && item.medCert !== "default" && <Chip title={getLabelFromValue(MED_CERT_OPTIONS, item.medCert)} color={colorTheme.surfaceContainerHigh} />}
-                    {item.additionalAttrs && item.additionalAttrs.map(attr => <Chip key={attr} title={getLabelFromValue(ADDITIONAL_ATTRS_OPTIONS, attr)} color={attr === "cand" ? colorTheme.secondaryContainer : colorTheme.surfaceContainerHigh} />)}
-                    <>{(item.phone || item.email) && <IconChip icon={"call-outline"} />}</>
-                    <>{(item.trackingURL) && <IconChip icon={"location-outline"} />}</>
-                </View>
-                {item.notes ?
-                    <><View style={{ flexDirection: "column", gap: 8, flex: 2, flexWrap: "wrap", minWidth: 300 }}>
-                        <>{item.notes && <Text style={[textStyle.text]}>{item.notes}</Text>}</>
-                    </View>
-                    </> : <></>}
-                <View style={{ flexDirection: "row", gap: 8, justifyContent: "flex-start", alignItems: "center" }}>
-                    {item.teamId ?
-                        <Chip title={"Team " + teams.find(team => team.id === item.teamId).name} color={colorTheme.tertiaryContainer} onCancel={() => item.incrementalPatch({ teamId: "" }).then(() => incidentInfo.incrementalPatch({ updated: new Date().toISOString() }))} />
-                        :
-                        <IconButton
-                            small
-                            tonal={!item.teamId}
-                            ionicons_name={item.teamId ? "download-outline" : "push-outline"}
-                            onPress={() => item.teamId ? item.incrementalPatch({ teamId: "" }).then(() => incidentInfo.incrementalPatch({ updated: new Date().toISOString() })) : setAssignTeamAssignment(item)} />
-                    }
-                    <>{(!item.teamId || item.teamId === "") && <IconButton small ionicons_name="trash" onPress={() => setDeleteAssignment(item)} />}</>
-                </View>
-            </Pressable>
-        );
+        if (incidents && item.type !== "inc") return;
+        if (!incidents && item.type === "inc") return;
+
+        // TODO: be smarter about the use of the teamID array in tasks vs the assignment field in teams. Right now if the team is assigned to a task, the teamID array may still be empty. Maybe make some helper functions to keep it consistent
+        // TODO: do not allow assigning unnamed tasks to teams
+
+        if (item.flagged) {
+            priorityAssignmentList.push(item);
+        } else {
+            assignmentList.push(item);
+        }
     })
 
     return <View style={{ gap: 14 }}>
-        <View style={{ flexDirection: "row", gap: 14, flexWrap: "wrap", flex: 1, alignSelf: "flex-end" }}>
-            <FilledButton small={width <= 600 || height < 500} primary icon="add" text={"Assignment"} onPress={() => setAddAssignmentModalShowing(true)} />
+        <View style={{ flexDirection: "row", gap: 14, flexWrap: "wrap", alignSelf: "flex-end" }}>
+            <FilledButton small={width <= 600 || height < 500} primary icon="add" text={incidents ? "Incident" : "Assignment"} onPress={() => incidents ? createAssignment(fileId, { type: "inc" }) : createAssignment(fileId)} />
         </View>
-        {assignments.length === 0 ?
+        {assignmentList.length + priorityAssignmentList.length === 0 ?
             <View style={{ flexDirection: "column", maxWidth: 1200, gap: 20 }}>
                 <View style={{ flexDirection: ("row"), gap: 8, flexWrap: ("wrap") }}>
                     <Banner
                         backgroundColor={colorTheme.surfaceContainer}
                         color={colorTheme.onSurface}
                         icon={<Ionicons name="clipboard-outline" size={24} color={colorTheme.onSurface} />}
-                        title={"Tap the button above to add an assignment"} />
+                        title={"Tap the button above to add an " + (incidents ? "incident" : "assignment")} />
                 </View>
             </View>
             :
-            <>{assignmentList}</>
+            <>
+                {priorityAssignmentList.length > 0 && <>
+                    <Text style={[textStyle.sectionTitleText]}>Priority {incidents ? "incidents" : "assignments"}</Text>
+                    <Animated.FlatList
+                        contentContainerStyle={styles.cardContainer}
+                        data={priorityAssignmentList}
+                        renderItem={({ item }) => <ListItem teams={teams} item={item} incidents={incidents} notifyFileUpdated={notifyFileUpdated} setAssignTeamAssignment={setAssignTeamAssignment} setDeleteAssignment={setDeleteAssignment} markers={markers} removeMarker={removeMarker} addMarker={addMarker} />}
+                        keyExtractor={item => item.id}
+                        itemLayoutAnimation={FadingTransition}
+                    />
+                    <Text style={[textStyle.sectionTitleText]}>Others</Text>
+                </>}
+                <Animated.FlatList
+                    contentContainerStyle={styles.cardContainer}
+                    data={assignmentList}
+                    renderItem={({ item }) => <ListItem teams={teams} item={item} incidents={incidents} notifyFileUpdated={notifyFileUpdated} setAssignTeamAssignment={setAssignTeamAssignment} setDeleteAssignment={setDeleteAssignment} markers={markers} removeMarker={removeMarker} addMarker={addMarker} />}
+                    keyExtractor={item => item.id}
+                    itemLayoutAnimation={FadingTransition}
+                />
+            </>
         }
-        {/*<AddAssignmentModal
-            isVisible={addAssignmentModalShowing}
-            onClose={() => {
-                setAddPersonModalShowing(false);
-                setSelectedPerson(null);
-            }}
-            agencyList={agencyList}
-            incidentInfo={incidentInfo}
-            person={selectedPerson} />
         <AssignTeamAssignmentModal
+            fileId={fileId}
+            incidents={incidents}
             onClose={() => {
                 setAssignTeamAssignment(null);
             }}
             teams={teams}
-            incidentInfo={incidentInfo}
-            person={assignTeamAssignment} />
+            notifyFileUpdated={notifyFileUpdated}
+            assignment={assignTeamAssignment} />
         <RiskModal
             isVisible={deleteAssignment !== null}
-            title={"Delete person?"}
+            title={`Delete ${incidents ? "incident" : "assignment"}?`}
             onClose={() => { setDeleteAssignment(null) }}>
             <View style={{
                 padding: 20, paddingTop: 0, gap: 20
             }}>
-                <Text style={{ color: colorTheme.onSurface }}>{deleteAssignment && deleteAssignment.name} will be removed, but any radio logs won't be affected</Text>
-                <FilledButton rightAlign destructive text={"Delete assignment"} onPress={removeAssignment} />
-            </View>
-        </RiskModal>*/}
-    </View>;
-}
-
-const EquipmentPanel = ({ incidentInfo, teams }) => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { getEquipmentByFileId, deleteDocument } = useContext(RxDBContext)
-
-    const { width, height } = useWindowDimensions();
-    const [equipment, setEquipment] = useState([]);
-    const [agencyList, setAgencyList] = useState([]);
-    const [addEquipmentModalShowing, setAddEquipmentModalShowing] = useState(false);
-    const [deletePerson, setDeletePerson] = useState(null);
-    const [assignTeamPerson, setAssignTeamPerson] = useState(null);
-    const [selectedEquipment, setSelectedEquipment] = useState(null);
-    const styles = pageStyles();
-    const textStyle = textStyles();
-
-    useEffect(() => {
-        // Load saved settings
-        getEquipmentByFileId(incidentInfo.id).then(query => {
-            query.$.subscribe(result => {
-                setEquipment(result);
-                // regenerates the agency names list
-                let agencyNames = result.map(item => item.agency).filter((value, index, self) => self.indexOf(value) === index).filter(item => item !== "" && item !== undefined);
-                setAgencyList(agencyNames);
-                return () => { query.$.unsubscribe() };
-            });
-        });
-    }, []);
-
-    const removeEquipment = () => {
-        deleteDocument(deletePerson);
-        setDeletePerson(null);
-    };
-
-    let equipmentList = [];
-    let tempList = [];
-    let currentAgency = "";
-
-    equipment.map(item => {
-        if (item.agency !== currentAgency) {
-            if (tempList.length > 0) {
-                equipmentList.push(<View key={Date.now() + item.agency + "_cont"} style={styles.cardContainer}>{tempList}</View>);
-                tempList = [];
-            }
-            equipmentList.push(<Text key={Date.now() + item.agency} style={[textStyle.sectionTitleText]}>{item.agency || "No agency"}</Text>);
-            currentAgency = item.agency;
-        }
-
-        let remaining = item.quantity - (item.teamId?.length || 0);
-        tempList.push(
-            <Pressable
-                key={item.id}
-                onPress={() => {
-                    setSelectedEquipment(item);
-                    setAddEquipmentModalShowing(true);
-                }}
-                onLongPress={() => { }}
-                style={[styles.card, { flexDirection: "row", gap: 16, justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }, { backgroundColor: colorTheme.surfaceContainer }]}>
-                <View style={{ flexDirection: "row", gap: 8, minWidth: 250, flex: 2, flexWrap: "wrap" }}>
-                    <Text style={[textStyle.rowTitleText, { paddingRight: 8 }]} numberOfLines={1}>{item.name}{item.idNumber ? `, #${item.idNumber}` : ""}</Text>
-                </View>
-                {item.notes ?
-                    <><View style={{ flexDirection: "column", gap: 8, flex: 3, flexWrap: "wrap", minWidth: 250 }}>
-                        <>{item.notes && <Text style={[textStyle.text]}>{item.notes}</Text>}</>
-                    </View>
-                    </> : <></>}
-                <View style={{ flexDirection: "row", gap: 8, justifyContent: "flex-start" }}>
-                    <Chip title={`${item.quantity - remaining}/${item.quantity} assigned`} color={remaining === item.quantity ? colorTheme.secondaryContainer : colorTheme.tertiaryContainer} />
-                    <>{(remaining === item.quantity) && <IconButton small ionicons_name="trash" onPress={() => setDeletePerson(item)} />}</>
-                </View>
-            </Pressable>
-        );
-    })
-
-    if (tempList.length > 0) {
-        equipmentList.push(<View key={Date.now() + "last_cont"} style={styles.cardContainer}>{tempList}</View>);
-        tempList = [];
-    }
-
-    return <View style={{ gap: 14 }}>
-        <View style={{ flexDirection: "row", gap: 14, flexWrap: "wrap", flex: 1, alignSelf: "flex-end" }}>
-            <FilledButton small={width <= 600 || height < 500} primary icon="add" text={"Equipment"} onPress={() => setAddEquipmentModalShowing(true)} />
-            <IconButton outline small={width <= 600 || height < 500} backgroundColor={colorTheme.background} ionicons_name={"share-outline"} text={"Export"} onPress={() => { }} />
-        </View>
-        {equipment.length === 0 ?
-            <View style={{ flexDirection: "column", maxWidth: 1200, gap: 20 }}>
-                <View style={{ flexDirection: ("row"), gap: 8, flexWrap: ("wrap") }}>
-                    <Banner
-                        backgroundColor={colorTheme.surfaceContainer}
-                        color={colorTheme.onSurface}
-                        icon={<Ionicons name="medkit-outline" size={24} color={colorTheme.onSurface} />}
-                        title={"Tap the button above to add equipment"} />
-                    <Banner
-                        backgroundColor={colorTheme.surfaceContainer}
-                        color={colorTheme.onSurface}
-                        icon={<Ionicons name="chatbubble-ellipses-outline" size={24} color={colorTheme.onSurface} />}
-                        title={"Available equipment can be assigned to teams"} />
-                </View>
-            </View>
-            :
-            <>{equipmentList}</>
-        }
-        <AddEquipmentModal
-            isVisible={addEquipmentModalShowing}
-            onClose={() => {
-                setAddEquipmentModalShowing(false);
-                setSelectedEquipment(null);
-            }}
-            teams={teams}
-            agencyList={agencyList}
-            incidentInfo={incidentInfo}
-            equipment={selectedEquipment} />
-        <RiskModal
-            isVisible={deletePerson !== null}
-            title={"Delete equipment?"}
-            onClose={() => { setDeletePerson(null) }}>
-            <View style={{
-                padding: 20, paddingTop: 0, gap: 20
-            }}>
-                <Text style={{ color: colorTheme.onSurface }}>{deletePerson && deletePerson.name} will be deleted</Text>
-                <FilledButton rightAlign destructive text={"Delete"} onPress={removeEquipment} />
+                <Text style={{ color: colorTheme.onSurface }}>{(deleteAssignment && deleteAssignment.name) ? `Assignment ${deleteAssignment.name}` : `Unnamed ${incidents ? "incident" : "assignment"}`} will be removed</Text>
+                <FilledButton rightAlign destructive text={"Delete"} onPress={removeAssignment} />
             </View>
         </RiskModal>
     </View>;
 }
 
 
-const getLabelFromValue = (options, value) => {
-    const option = options.find(opt => opt.value === value);
-    return option ? option.label : value;
-};
-
-const Chip = ({ title, onCancel, color }) => {
+const Chip = ({ title, onCancel, color, onPress }) => {
     const { colorTheme } = useContext(ThemeContext);
     const textStyle = textStyles();
 
-    return <View style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainer, paddingHorizontal: 12, borderRadius: 8 }}>
+    const content = (<>
         <Text style={textStyle.chipText}>{title}</Text>
         {onCancel !== undefined && <Ionicons name="close" size={18} color={colorTheme.onSurface} onPress={onCancel} />}
-    </View>
+    </>);
+    if (onPress) {
+        return <Pressable
+            onPress={onPress}
+            style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainer, paddingHorizontal: 12, borderRadius: 8 }}>
+            {content}
+        </Pressable>
+    } else {
+        return <View style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainer, paddingHorizontal: 12, borderRadius: 8 }}>
+            {content}
+        </View>
+    }
 }
 
-const IconChip = ({ icon, onCancel, color }) => {
+const IconChip = ({ icon, onCancel, color, onPress }) => {
     const { colorTheme } = useContext(ThemeContext);
-    return <View style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainerHighest, paddingHorizontal: 8, borderRadius: 8 }}>
+
+    const content = (<>
         <Ionicons name={icon} size={18} color={colorTheme.onSurface} />
         {onCancel !== undefined && <Ionicons name="close" size={18} color={colorTheme.onSurface} onPress={onCancel} />}
-    </View>
+    </>);
+    if (onPress) {
+        return <Pressable
+            onPress={onPress}
+            style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainerHighest, paddingHorizontal: 8, borderRadius: 8 }}>
+            {content}
+        </Pressable>
+    } else {
+        return <View style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainerHighest, paddingHorizontal: 8, borderRadius: 8 }}>
+            {content}
+        </View>
+    }
 }
 
-const TYPE_OPTIONS = [
-    { label: "Type", value: "default" },
-    { label: "T1", value: "1" },
-    { label: "T2", value: "2" },
-    { label: "T3", value: "3" },
-    { label: "T4", value: "4" }
-];
-
-const ROLE_OPTIONS = [
-    { label: "Ground", value: "ground" },
-    { label: "Canine handler", value: "canine" },
-    { label: "Canine flanker", value: "flanker" },
-    { label: "Command/overhead", value: "command" },
-    { label: "Law enforcement", value: "law" },
-    { label: "Water", value: "water" },
-    { label: "Air", value: "air" },
-    { label: "Drone", value: "drone" },
-];
-
-const MED_CERT_OPTIONS = [
-    { label: "Medical qualification", value: "default" },
-    { label: "No med", value: "none" },
-    { label: "WFA", value: "WFA" },
-    { label: "WFR", value: "WFR" },
-    { label: "EMT-B", value: "EMTB" },
-    { label: "EMT-P", value: "EMTP" },
-    { label: "PA", value: "PA" },
-    { label: "RN", value: "RN" },
-    { label: "MD/DO/NP", value: "MD" }
-];
-
-const ADDITIONAL_ATTRS_OPTIONS = [
-    { label: "Tap to add additional attribute", value: "default" },
-    { label: "Candidate", value: "cand" },
-    { label: "ATV qualified", value: "atv" },
-    { label: "Tracker", value: "track" },
-    { label: "Technical ropes", value: "rope" },
-    { label: "Swiftwater", value: "water" },
-    { label: "SMIBE", value: "burn" },
-    { label: "HAZMAT", value: "hazmat" }
-];
-
-const AddPersonModal = ({ incidentInfo, person, isVisible, onClose, agencyList }) => {
-    const initialFormState = {
-        name: '',
-        idNumber: '',
-        agency: '',
-        role: 'ground',
-        type: 'default',
-        medCert: 'default',
-        additionalAttrs: [],
-        phone: '',
-        email: '',
-        trackingURL: '',
-        notes: ''
-    };
-
-    const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles();
+const AssignTeamAssignmentModal = ({ fileId, notifyFileUpdated, assignment, onClose, teams = [], incidents }) => {
     const textStyle = textStyles();
-    const { width } = useWindowDimensions();
-    const [formData, setFormData] = useState(initialFormState);
-    const [errorMessage, setErrorMessage] = useState("");
-    const { createPerson } = useContext(RxDBContext)
 
-    useEffect(() => {
-        setFormData(person ? person.toJSON() : initialFormState);
-    }, [person]);
+    const { createCommsQueueMessage } = useContext(RxDBContext);
 
-    const updateField = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
-    const handleClose = () => {
-        onClose();
-        setFormData(initialFormState);
-        setErrorMessage("");
-    }
-
-    const handleSave = () => {
-        if (formData.name !== "") {
-            if (person) {
-                // update person
-                person.incrementalPatch(formData);
-                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-            } else {
-                // create person
-                createPerson(incidentInfo.id, formData);
-                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-            }
-            handleClose();
-        } else {
-            setErrorMessage("Name is required");
-        }
-    }
-
-    const addAttribute = (attribute) => {
-        if (attribute !== "default" && !formData.additionalAttrs.includes(attribute)) {
-            setFormData(prev => ({
-                ...prev,
-                additionalAttrs: [...prev.additionalAttrs, attribute]
-            }));
-        }
-    }
-
-    return (<RiskModal
-        overrideWidth={700}
-        isVisible={isVisible}
-        title={person ? "Edit person" : "Add a person"}
-        onClose={handleClose}>
-        <View style={{ paddingHorizontal: 20, gap: 8, rowGap: 12 }}>
-            <>{errorMessage && <Text style={[textStyle.text, { color: colorTheme.error }]}>{errorMessage}</Text>}</>
-            <View style={{ gap: 12, flexDirection: "row", flex: 1 }}>
-                <TextBox autoFocus keyboardType="default" height={34} value={formData.name} placeholder="Name" onChangeText={(value) => {
-                    if (value !== "" && errorMessage !== "") setErrorMessage("");
-                    updateField('name', value);
-                }} onConfirm={() => handleSave()} containerStyle={{ flex: 3 }} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }, errorMessage && { outlineColor: colorTheme.error }]} limit={50} />
-                <TextBox keyboardType="number-pad" height={34} value={formData.idNumber} placeholder="ID" onChangeText={(value) => updateField('idNumber', value)} onConfirm={() => handleSave()} textStyle={[textStyle.text, { flex: 1, paddingHorizontal: 12 }]} limit={20} />
-            </View>
-            <TextBox autofill={agencyList} keyboardType="default" value={formData.agency} placeholder="Agency" onChangeText={(value) => updateField('agency', value)} onConfirm={() => handleSave()} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }]} limit={20} />
-            <Text style={[textStyle.sectionTitleText]}>Attributes</Text>
-            <View style={{ gap: 12, flexDirection: "row", flex: 1 }}>
-                <Picker
-                    style={[styles.picker, { flex: 2 }]}
-                    selectedValue={formData.role}
-                    onValueChange={(itemValue) => updateField('role', itemValue)}>
-                    {ROLE_OPTIONS.map((option) => (
-                        <Picker.Item
-                            key={option.value}
-                            label={option.label}
-                            value={option.value}
-                        />
-                    ))}
-                </Picker>
-                <Picker
-                    style={[styles.picker, { flex: 1 }]}
-                    selectedValue={formData.type}
-                    onValueChange={(itemValue) => updateField('type', itemValue)}>
-                    {TYPE_OPTIONS.map((option) => (
-                        <Picker.Item
-                            key={option.value}
-                            label={option.label}
-                            value={option.value}
-                        />
-                    ))}
-                </Picker>
-                <Picker
-                    style={[styles.picker, { flex: 2 }]}
-                    selectedValue={formData.medCert}
-                    onValueChange={(itemValue) => updateField('medCert', itemValue)}>
-                    {MED_CERT_OPTIONS.map((option) => (
-                        <Picker.Item
-                            key={option.value}
-                            label={option.label}
-                            value={option.value}
-                        />
-                    ))}
-                </Picker>
-            </View>
-            {formData.additionalAttrs.length !== ADDITIONAL_ATTRS_OPTIONS.length - 1 && <Picker
-                style={[styles.picker]}
-                selectedValue={0}
-                onValueChange={(itemValue, itemIndex) =>
-                    addAttribute(itemValue)
-                }>
-                {ADDITIONAL_ATTRS_OPTIONS.map((option) => {
-                    if (!formData.additionalAttrs.includes(option.value))
-                        return <Picker.Item
-                            key={option.value}
-                            label={option.label}
-                            value={option.value}
-                        />
-                })}
-            </Picker>}
-            {formData.additionalAttrs.length > 0 && <View style={{ gap: 8, flexDirection: "row", flex: 1, flexWrap: "wrap" }}>
-                <>{formData.additionalAttrs.map((attr, index) => <Chip key={index} title={getLabelFromValue(ADDITIONAL_ATTRS_OPTIONS, attr)} color={attr === "cand" ? colorTheme.secondaryContainer : colorTheme.surfaceContainerLow} onCancel={() => {
-                    setFormData(prev => ({
-                        ...prev,
-                        additionalAttrs: prev.additionalAttrs.filter(item => item !== attr)
-                    }));
-                }} />)}</>
-            </View>}
-            <Text style={[textStyle.sectionTitleText]}>Contact</Text>
-            <View style={{ gap: 12, flexDirection: "row", flex: 1 }}>
-                <TextBox keyboardType="phone-pad" height={34} value={formData.phone} placeholder="Phone" onChangeText={(itemValue) => updateField('phone', itemValue)} onConfirm={() => handleSave()} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }]} limit={20} />
-                <TextBox keyboardType="email-address" height={34} value={formData.email} placeholder="Email" onChangeText={(itemValue) => updateField('email', itemValue)} onConfirm={() => handleSave()} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }]} limit={50} />
-            </View>
-            <TextBox keyboardType="url" height={34} value={formData.trackingURL} placeholder="Tracking URL" onChangeText={(itemValue) => updateField('trackingURL', itemValue)} onConfirm={() => handleSave()} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }]} limit={150} />
-            <Text style={[textStyle.sectionTitleText]}>Notes</Text>
-            <TextBox keyboardType="default" height={34} value={formData.notes} placeholder="" onChangeText={(itemValue) => updateField('notes', itemValue)} onConfirm={() => handleSave()} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }]} limit={200} />
-        </View>
-        <View style={{ padding: 20, gap: 12 }}>
-            <View style={{ flexDirection: 'row', gap: 12, justifyContent: "flex-end", alignItems: "center" }}>
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <FilledButton primary text={"Save person"} onPress={() => { handleSave() }} />
-                </View>
-            </View>
-        </View>
-    </RiskModal >);
-}
-
-const AddEquipmentModal = ({ incidentInfo, equipment, isVisible, onClose, agencyList, teams }) => {
-    const initialFormState = {
-        name: '',
-        quantity: 0,
-        agency: '',
-        notes: ''
-    };
-
-    const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles();
-    const textStyle = textStyles();
-    const { width } = useWindowDimensions();
-    const [formData, setFormData] = useState(initialFormState);
-    const [errorMessage, setErrorMessage] = useState("");
-    const { createEquipment } = useContext(RxDBContext)
-
+    const [assignmentTiming, setAssignmentTiming] = useState(0);
     const [selectedTeams, setSelectedTeams] = useState([]);
+    const [initialTeams, setInitialTeams] = useState([]);
 
+    const assignmentTimings = ["Now", "Add to queue"];
+
+    // Set the selected teams to the teams that are currently assigned to the assignment
     useEffect(() => {
-        setFormData(equipment ? equipment.toJSON() : initialFormState);
-        if (equipment?.teamId) setSelectedTeams(equipment?.teamId);
-    }, [equipment]);
-
-    const updateField = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
+        if (assignment) {
+            if (assignment.teamId && assignment.teamId.length > 0) {
+                setSelectedTeams(assignment.teamId);
+                setInitialTeams(assignment.teamId);
+                setAssignmentTiming(1);
+            }
+        }
+    }, [assignment]);
 
     const handleClose = () => {
-        onClose();
-        setFormData(initialFormState);
-        setErrorMessage("");
         setSelectedTeams([]);
+        setInitialTeams([]);
+        setAssignmentTiming(0);
+        onClose();
     }
 
     const handleSave = () => {
-        let errors = [];
-        if (formData.name === "") errors.push("name is required");
-        if (!formData.quantity) {
-            errors.push("equipment quantity must be greater than 0");
-        } else if (formData.quantity < selectedTeams.length)
-            errors.push("the number of assigned teams is greater than the quantity available. Increase equipment quantity or unassign units from teams.");
-        if (errors.length === 0) {
-            if (equipment) {
-                // update equipment
-                equipment.incrementalPatch({ ...formData, ...{ teamId: selectedTeams } });
-                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-            } else {
-                // create equipment
-                createEquipment(incidentInfo.id, { ...formData, ...{ teamId: selectedTeams } });
-                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
+        if (selectedTeams.length !== 0 || initialTeams.length !== 0) {
+            if (assignmentTiming === 0) {
+                selectedTeams.forEach(teamId => {
+                    teams.find(t => t.id === teamId).incrementalPatch({ assignment: assignment.id });
+                });
             }
+
+            assignment.incrementalPatch({ teamId: selectedTeams });
+            notifyFileUpdated();
             handleClose();
-        } else {
-            let errorString = errors.map(e => e).join(", ");
-            setErrorMessage(errorString.charAt(0).toUpperCase() + errorString.slice(1));
-
         }
     }
 
-    let selectedTeamButtons = [];
-    let remaining = formData.quantity - selectedTeams.length;
-    teams.forEach(t => {
-        if (t.name !== "") {
-            selectedTeamButtons.push(<FilledButton small selected={selectedTeams.includes(t.id) && formData.quantity} disabled={!selectedTeams.includes(t.id) && remaining === 0 || !formData.quantity} key={t?.id} text={t.name} onPress={() => {
-                if (selectedTeams.includes(t.id)) {
-                    setSelectedTeams(prev => prev.filter(item => item !== t.id))
-                } else {
-                    setSelectedTeams(prev => [...prev, t.id])
-                }
-            }} />);
+    const handleSendRequest = () => {
+        if (selectedTeams.length !== 0) {
+            // Send message to radio operator
+            selectedTeams.forEach(teamId => {
+                createCommsQueueMessage(fileId, {
+                    type: 'Task',
+                    toOpsTeam: "comms",
+                    toFieldTeamId: teamId,
+                    subtype: `Assign`,
+                    relatedId: assignment.id
+                })
+            });
+            assignment.incrementalPatch({ teamId: selectedTeams });
+            notifyFileUpdated();
+            handleClose();
         }
-    });
+    }
 
-    return (<RiskModal
-        overrideWidth={700}
-        isVisible={isVisible}
-        title={equipment ? "Edit equipment" : "Add equipment"}
-        onClose={handleClose}>
-        <View style={{ paddingHorizontal: 20, gap: 8, rowGap: 12 }}>
-            <>{errorMessage && <Text style={[textStyle.text, { color: colorTheme.error }]}>{errorMessage}</Text>}</>
-            <View style={{ gap: 12, flexDirection: "row", flex: 1 }}>
-                <TextBox autoFocus keyboardType="default" height={34} value={formData.name} placeholder="Item" onChangeText={(value) => {
-                    if (value !== "" && errorMessage !== "") setErrorMessage("");
-                    updateField('name', value);
-                }} onConfirm={() => handleSave()} containerStyle={{ flex: 3 }} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }]} limit={50} />
-                <TextBox keyboardType="number-pad" height={34} value={formData.quantity} placeholder="Quantity" onChangeText={(value) => {
-                    if (value !== "" && errorMessage !== "") setErrorMessage("");
-                    updateField('quantity', Number(value))
-                }} onConfirm={() => handleSave()} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }]} limit={20} />
-            </View>
-            <TextBox autofill={agencyList} keyboardType="default" value={formData.agency} placeholder="Provided by" onChangeText={(value) => updateField('agency', value)} onConfirm={() => handleSave()} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }]} limit={20} maxHeight={84} />
-            <Text style={[textStyle.sectionTitleText]}>Notes</Text>
-            <TextBox keyboardType="default" height={34} value={formData.notes} placeholder="" onChangeText={(itemValue) => updateField('notes', itemValue)} onConfirm={() => handleSave()} textStyle={[textStyle.text, { height: 34, paddingHorizontal: 12 }]} limit={200} />
-            <Text style={[textStyle.text, { paddingTop: 8 }]}>{!formData.quantity ? "Enter the the quantity of equipment available to assign to teams" : remaining > 0 ? `Select team to assign/unassign. ${remaining} ${remaining > 1 ? "units" : "unit"} left.` : remaining < 0 ? `Too many units assigned. Select team to unassign.` : `All units assigned. Select team to unassign.`}</Text>
-            <View style={{ flexDirection: 'row', gap: 12, flexWrap: "wrap-reverse" }}>
-                <>{selectedTeamButtons}</>
-            </View>
-        </View>
-        <View style={{ padding: 20, gap: 12 }}>
-            <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'space-between', alignItems: "flex-end" }}>
-                <Text style={[textStyle.secondaryText, { alignSelf: "flex-start" }]}>Unnamed teams not shown. Equipment can't be deleted while units are assigned to a team.</Text>
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <FilledButton primary text={"Save equipment"} onPress={() => { handleSave() }} />
-                </View>
-            </View>
-        </View>
-    </RiskModal >);
-}
-
-const AssignTeamPersonModal = ({ incidentInfo, person, onClose, teams }) => {
-    const styles = pageStyles();
-    const textStyle = textStyles();
-
-    const handleClose = () => {
-        onClose();
+    let actionText = "Save";
+    let footerMessage = "";
+    if (selectedTeams.length === 0) {
+        actionText = "Save";
+        if (initialTeams.length > selectedTeams.length) {
+            footerMessage = "This task will be unassigned from the teams";
+        }
+    } else if (assignmentTiming === 0) {
+        actionText = "Assign";
+        footerMessage = `Tap "Notify operator" to ask the radio operator to inform the team${selectedTeams.length > 1 ? "s" : ""} of the task change. ${assignment?.name || `unnamed ${incidents ? "incident" : "assignment"}`} will be placed in the team's queue, in the meantime\nTap "Assign" to change the team's In progress task to ${assignment?.name || `unnamed ${incidents ? "incident" : "assignment"}`}`;
+    } else {
+        footerMessage = `${assignment?.name || `Unnamed ${incidents ? "incident" : "assignment"}`} will be placed ${selectedTeams.length > 1 ? "each" : "the"} team's queue`;
     }
 
     return (<RiskModal
-        isVisible={person !== null}
-        title={`Assign ${person?.name || ""} to team`}
+        isVisible={assignment !== null}
+        title={`Assign team(s) to ${assignment?.name || `unnamed ${incidents ? "incident" : "assignment"}`}`}
         onClose={handleClose}>
         <View style={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
-            <View style={{ flexDirection: 'row', gap: 12, flexWrap: "wrap-reverse", justifyContent: "center" }}>
-                {teams.map(t => {
-                    if (t.name !== "")
-                        return <FilledButton small key={t?.id} text={t.name} onPress={() => {
-                            person.incrementalPatch({ teamId: t.id });
-                            incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-                            handleClose();
-                        }} />
-                })}
-            </View>
-            <Text style={textStyle.text}>Unnamed teams not shown. People can't be deleted while they're assigned to a team.</Text>
+            {(teams && teams.length > 0) ?
+                <>
+                    <Text style={[textStyle.sectionTitleText]}>Team(s)</Text>
+                    <View style={{ flexDirection: 'row', gap: 12, flexWrap: "wrap-reverse", justifyContent: "center" }}>
+                        {teams.map(t => {
+                            if (t.name !== "")
+                                return <FilledButton small key={t?.id} selected={selectedTeams.includes(t.id)} text={t.name} onPress={() => {
+                                    if (selectedTeams.includes(t.id)) {
+                                        setSelectedTeams(prev => prev.filter(item => item !== t.id))
+                                    } else {
+                                        setSelectedTeams(prev => [...prev, t.id])
+                                    }
+                                }} />
+                        })}
+                    </View>
+                    <Text style={[textStyle.secondaryText]}>Unnamed teams not shown</Text>
+                </>
+                :
+                <Text style={[textStyle.text]}>No teams available</Text>}
+            <>{selectedTeams.length > 0 && <>
+                <Text style={[textStyle.sectionTitleText]}>Timing</Text>
+                <SegmentedButtons small grow items={assignmentTimings} selected={assignmentTiming} onPress={setAssignmentTiming} />
+                <Text style={[textStyle.text, { paddingTop: 8 }]}>{footerMessage}</Text>
+            </>}</>
+            <>{(initialTeams.length !== 0 || selectedTeams.length !== 0) && <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'space-between', alignItems: "flex-end", paddingTop: 8 }}>
+                <Text style={[textStyle.secondaryText, { alignSelf: "center" }]}>{selectedTeams.length === 0 ? footerMessage : ""}</Text>
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                    <FilledButton primary={actionText === "Save" || selectedTeams.length === 0} text={actionText} onPress={handleSave} />
+                    <>{actionText === "Assign" && selectedTeams.length > 0 && <FilledButton primary text={"Notify operator"} disabled={selectedTeams.length === 0} onPress={handleSendRequest} />}</>
+                </View>
+            </View>}</>
         </View>
     </RiskModal >);
 }
 
-const TemplateModal = ({ incidentInfo, people, isVisible, onClose }) => {
+const TemplateModal = ({ fileId, notifyFileUpdated, people, isVisible, onClose }) => {
     const { colorTheme } = useContext(ThemeContext);
     const styles = pageStyles();
     const textStyle = textStyles();
@@ -673,7 +411,6 @@ const TemplateModal = ({ incidentInfo, people, isVisible, onClose }) => {
 
 const pageStyles = () => {
     const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
 
     return StyleSheet.create({
         standaloneCard: {

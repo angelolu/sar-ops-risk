@@ -1,12 +1,11 @@
 import { FilledButton, ThemeContext } from 'calsar-ui';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { PrinterContext } from './PrinterContext';
 import { textStyles } from 'calsar-ui/lib/styles';
 
 export const PrinterTab = ({ incidentInfo }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
     const styles = pageStyles();
     const textStyle = textStyles();
     const { isPrinterSupported,
@@ -21,6 +20,8 @@ export const PrinterTab = ({ incidentInfo }) => {
         setRightAlign,
         setCenterAlign,
         setLeftAlign } = useContext(PrinterContext);
+
+    const [notificationPermission, setNotificationPermission] = useState(Notification.permission);
 
     const handleFeed = async () => { feedLines(5) };
 
@@ -63,16 +64,39 @@ export const PrinterTab = ({ incidentInfo }) => {
         isPrinterConnected ? disconnectPrinter() : connectPrinter();
     }
 
+    const handleGrantNotification = () => {
+        Notification.requestPermission().then((result) => {
+            setNotificationPermission(result);
+        });
+    }
+
+    let notificationStatus = "";
+    let notificationText = "";
+    let notificationColor = "";
+    switch (notificationPermission) {
+        case "granted":
+            notificationStatus = "Enabled";
+            notificationColor = colorTheme.garGreenLight;
+            notificationText = "You'll be notified of important changes in this file while it's open";
+            break;
+        case "denied":
+            notificationStatus = "Permission denied";
+            notificationColor = colorTheme.garRedLight;
+            notificationText = "Grant notification permissions in your browser settings to be notified when changes are made to this file";
+            break;
+        case "default":
+            notificationStatus = "Disabled";
+            notificationColor = colorTheme.outlineVariant;
+            notificationText = "Grant notification permissions be notified when changes are made to this file";
+            break;
+    }
     return (
         <>
             {isPrinterSupported &&
                 <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                        <KeyValue title="Thermal printer">
-                            <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-                                <View style={[styles.circle, { backgroundColor: isPrinterConnected ? colorTheme.garGreenLight : colorTheme.garRedLight }]} />
-                                <Text style={textStyle.rowTitleText}>{isPrinterConnected ? "Connected" : "Not connected"}</Text>
-                            </View>
+                        <KeyValue title="Thermal printer" color={isPrinterConnected ? colorTheme.garGreenLight : colorTheme.garRedLight}>
+                            <Text style={textStyle.rowTitleText}>{isPrinterConnected ? "Connected" : "Not connected"}</Text>
                         </KeyValue>
                         <FilledButton small icon={isPrinterConnected ? "close" : "print-outline"} text={isPrinterConnected ? "Disconnect" : "Connect"} onPress={handleConnectPrinter} primary={!isPrinterConnected} destructive={isPrinterConnected} />
                     </View>
@@ -88,31 +112,46 @@ export const PrinterTab = ({ incidentInfo }) => {
             }
             <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <KeyValue title="File storage">
-                        <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-                            <View style={[styles.circle, { backgroundColor: colorTheme.garGreenLight }]} />
-                            <View style={{ flexDirection: 'column', gap: 4, flex: 1 }}>
-                                <Text style={textStyle.rowTitleText}>{"Changes saved locally"}</Text>
-                                <Text style={[textStyle.secondaryText]}>Download the file to open on another device or as a backup</Text>
-                            </View>
-                        </View>
+                    <KeyValue title="File storage" color={colorTheme.garGreenLight}>
+                        <Text style={textStyle.rowTitleText}>{"Changes saved locally"}</Text>
+                        <Text style={[textStyle.secondaryText]}>Download the file to open on another device or as a backup</Text>
                     </KeyValue>
-                    <FilledButton small icon="download" text={"Download"} onPress={handleConnectPrinter} />
+                    <FilledButton small primary icon="download" text={"Download"} onPress={handleConnectPrinter} />
+                </View>
+            </View>
+            <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <KeyValue title="Notifications" color={notificationColor}>
+                        <Text style={textStyle.rowTitleText}>{notificationStatus}</Text>
+                        <Text style={[textStyle.secondaryText]}>{notificationText}</Text>
+                    </KeyValue>
+                    {Notification.permission === "default" && <FilledButton small primary text={"Grant permissions"} onPress={handleGrantNotification} />}
                 </View>
             </View>
         </>
     );
 }
 
-const KeyValue = ({ title, children }) => {
+const KeyValue = ({ title, children, color }) => {
     const styles = pageStyles();
     const textStyle = textStyles();
 
-    return (<View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
-        <Text style={textStyle.tertiaryText}>{title}</Text>
-        {children}
-    </View>
-    );
+    if (color) {
+        return (<View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
+            <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+                <View style={[styles.circle, { backgroundColor: color }]} />
+                <Text style={textStyle.tertiaryText}>{title}</Text>
+            </View>
+            {children}
+        </View>
+        );
+    } else {
+        return (<View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
+            <Text style={textStyle.tertiaryText}>{title}</Text>
+            {children}
+        </View>
+        );
+    }
 }
 
 const pageStyles = () => {

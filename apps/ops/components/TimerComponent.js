@@ -1,39 +1,47 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FilledButton, IconButton, RiskModal, textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { RxDBContext } from './RxDBContext';
 import { EditableText } from './TextInput';
+import { calculateRemainingTime, getElapsedTimeString, resetTeamTimeout, setTeamTimeoutRunning } from './helperFunctions';
 
-const TIMEOUT_DEFAULT = 3600;
+export const formatTime = (seconds) => {
+    if (seconds <= -36000) return ">-10 hrs"
+    const hours = Math.floor(Math.abs(seconds) / 3600);
+    const minutes = Math.floor((Math.abs(seconds) % 3600) / 60);
+    const remainingSeconds = Math.floor(Math.abs(seconds) % 60);
 
-export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, showLogTrafficModal, expanded, readOnly = false }) => {
+    const formattedHours = String(hours).padStart(hours > 9 ? 2 : 1, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+
+    const minusSign = (seconds < 0) ? "-" : "";
+    if (hours >= 1) {
+        return `${minusSign}${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+    } else {
+        return `${minusSign}${formattedMinutes}:${formattedSeconds}`;
+    }
+};
+
+export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal, expanded, readOnly = false }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const { getLastRadioLog } = useContext(RxDBContext)
+    const { getLastRadioLog, getAssignmentById, createLog } = useContext(RxDBContext)
+
     const styles = pageStyles();
     const textStyle = textStyles();
-    const [time, setTime] = useState(team.lastTimeRemaining);
-    const intervalRef = useRef(null);
-    const { width } = useWindowDimensions();
-    const [deleteModalShowing, setDeleteModalShowing] = useState(false);
-    const [timeoutDefault, setTimeoutDefault] = useState(TIMEOUT_DEFAULT);
-    const [lastLog, setLastLog] = useState(null);
     const lastStartRef = useRef(team.lastStart);
     const lastTimeRemainingRef = useRef(team.lastTimeRemaining);
+    const intervalRef = useRef(null);
+    const { width } = useWindowDimensions();
 
-    const getData = async (key) => {
-        try {
-            const jsonValue = await AsyncStorage.getItem(key);
-            return jsonValue != null ? JSON.parse(jsonValue) : null;
-        } catch (e) {
-            // error reading value
-        }
-    };
+    const [time, setTime] = useState(team.lastTimeRemaining);
+    const [deleteModalShowing, setDeleteModalShowing] = useState(false);
+    const [lastLog, setLastLog] = useState(null);
+    const [assignmentName, setAssignmentName] = useState("");
 
     const editTeam = (fieldToMerge, log = true) => {
         if (team) {
             team.incrementalPatch(fieldToMerge);
-            incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
             if (log) {
                 let changes = "";
                 for (var key in fieldToMerge) {
@@ -46,48 +54,37 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
                     }
                 }
 
-                addLog({
+                createLog(incidentInfo.id, {
                     created: new Date().toISOString(),
                     type: 1, // 1 for Team-related
                     fromTeam: team.id || "",
                     message: changes
                 });
+                incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
+
             }
         }
     };
 
     const handleResetTimeout = () => {
-        if (team.isRunning === true) {
-            team.incrementalPatch({ lastStart: new Date().toISOString(), lastTimeRemaining: timeoutDefault, isRunning: true });
-        } else {
-            team.incrementalPatch({ lastStart: undefined, lastTimeRemaining: timeoutDefault, isRunning: false });
-        }
-
+        resetTeamTimeout(team);
         incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
     }
 
     const removeTeam = () => {
         team.incrementalPatch({ removed: true });
-        incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-        addLog({
+        createLog(incidentInfo.id, {
             created: new Date().toISOString(),
             type: 1, // 1 for Team-related
             fromTeam: team.id || "",
             message: "Removed team"
         });
+        incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
     };
 
     const setIsRuning = (state) => {
-        if (team.isRunning !== state) {
-            if (state) {
-                // Start timer
-                team.incrementalPatch({ lastStart: new Date().toISOString(), isRunning: true });
-            } else {
-                // Stop timer by recording the amount of time left
-                team.incrementalPatch({ lastTimeRemaining: calculateRemainingTime(team.lastStart, team.lastTimeRemaining), isRunning: false });
-            }
-            incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-        }
+        setTeamTimeoutRunning(team, state);
+        incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
     };
 
     const handleToggleFlag = () => {
@@ -96,7 +93,6 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
     }
 
     useEffect(() => {
-        getData("timeout-seconds").then((value) => { value && setTimeoutDefault(value) });
         getLastRadioLog(incidentInfo.id, team.id).then(query => {
             query.$.subscribe(log => {
                 setLastLog(log)
@@ -128,6 +124,25 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
         return () => clearInterval(intervalRef.current); // Cleanup on unmount
     }, [team.isRunning]);
 
+    useEffect(() => {
+        let subscription;
+        if (team.assignment) {
+            getAssignmentById(team.assignment).then(query => {
+                subscription = query.$.subscribe(result => {
+                    setAssignmentName(result?.name || "-");
+                });
+            });
+        } else {
+            setAssignmentName("-");
+        }
+
+        return () => {
+            if (subscription) {
+                subscription.unsubscribe();
+            }
+        };
+    }, [team.assignment, getAssignmentById]);
+
     const startTimer = () => {
         intervalRef.current = setInterval(() => {
             // Functional update to get the latest time
@@ -146,49 +161,6 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
         }
     }
 
-    const calculateElapsedTime = (dateString) => {
-        if (dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffInMs = now - date;
-
-            const seconds = Math.floor(diffInMs / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-
-            if (seconds < 60) {
-                return "just now";
-            } else if (minutes < 60) {
-                return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
-            } else if (hours < 24) {
-                const remainingMinutes = minutes % 60;
-                return `${hours} hr${hours === 1 ? "" : "s"} ${remainingMinutes} min${remainingMinutes === 1 ? "" : "s"} ago`;
-            } else {
-                return ">10 hrs ago";
-            }
-        } else {
-            return "an unknown time ago";
-        }
-    }
-
-    const formatTime = (seconds) => {
-        if (seconds <= -36000) return ">-10 hrs"
-        const hours = Math.floor(Math.abs(seconds) / 3600);
-        const minutes = Math.floor((Math.abs(seconds) % 3600) / 60);
-        const remainingSeconds = Math.abs(seconds) % 60;
-
-        const formattedHours = String(hours).padStart(hours > 9 ? 2 : 1, '0');
-        const formattedMinutes = String(minutes).padStart(2, '0');
-        const formattedSeconds = String(remainingSeconds).padStart(2, '0');
-
-        const minusSign = (seconds < 0) ? "-" : "";
-        if (hours >= 1) {
-            return `${minusSign}${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-        } else {
-            return `${minusSign}${formattedMinutes}:${formattedSeconds}`;
-        }
-    };
-
     const error = time < 0;
 
     if (width > 600) {
@@ -205,7 +177,7 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
                     <SectionContainer width={readOnly ? 60 : 80} maxWidth={150}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", height: "100%" }}>
                             <View style={{ justifyContent: "center", flex: 1 }}>
-                                <EditableText disabled={readOnly} style={textStyle.columnValueTextMain} numberOfLines={1} value={team.name} defaultValue="-" onChangeText={(text) => editTeam({ name: text })} limit={10} />
+                                <EditableText disabled={readOnly || team.type !== "Ad-hoc"} style={textStyle.columnValueTextMain} numberOfLines={1} value={team.name} defaultValue="-" onChangeText={(text) => editTeam({ name: text })} limit={10} />
                                 <Text style={textStyle.secondaryText} numberOfLines={1}>{team.type || "No type"}</Text>
                             </View>
                             {!readOnly && team.type === "Ad-hoc" && <IconButton small ionicons_name="person-remove" text="Delete" onPress={() => setDeleteModalShowing(true)} />}
@@ -213,10 +185,10 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
                     </SectionContainer>
                     <SectionContainer width={72} maxWidth={100}>
                         <View style={styles.sectionTitleContainer}>
-                            <Text style={[textStyle.columnKeyText]} numberOfLines={1} >Assignment</Text>
+                            <Text style={[textStyle.columnKeyText]} numberOfLines={1} >Task</Text>
                             {!readOnly && <IconButton small ionicons_name="" onPress={() => { }} />}
                         </View>
-                        <EditableText disabled={readOnly} style={textStyle.columnValueText} numberOfLines={1} value={team.assignment} defaultValue={"-"} onChangeText={(text) => editTeam({ assignment: text })} limit={25} />
+                        <Text style={textStyle.columnValueText} numberOfLines={1}>{assignmentName || "-"}</Text>
                     </SectionContainer>
                     <SectionContainer width={readOnly ? 205 : 185}>
                         <View style={styles.sectionTitleContainer}>
@@ -225,7 +197,7 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
                         </View>
                         <EditableText disabled={readOnly} style={textStyle.columnValueText} numberOfLines={1} value={team.status} defaultValue={"-"} onChangeText={(text) => editTeam({ status: text })} limit={25} />
                     </SectionContainer>
-                    <SectionContainer noDivider={readOnly} width={110}>
+                    <SectionContainer width={110}>
                         <View style={[styles.sectionTitleContainer, { gap: 4 }]}>
                             <Text style={[textStyle.columnKeyText]} numberOfLines={1} >Contact timeout</Text>
                             {!readOnly && <View style={{ flexDirection: "row", gap: 0 }}>
@@ -236,14 +208,14 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
                         <Text style={textStyle.columnValueText}>{team.status === "Inactive" ? "-" : formatTime(time)}</Text>
                     </SectionContainer>
                     {!readOnly && false && showLogTrafficModal &&
-                        <SectionContainer style={{ flexGrow: 0 }} justifyContent="center" noDivider width={32}>
+                        <SectionContainer style={{ flexGrow: 0 }} justifyContent="center" width={32}>
                             <View style={{ flexDirection: "column", gap: 2 }}>
                                 <IconButton small tonal={true} ionicons_name="create" onPress={() => showLogTrafficModal()} />
                                 <IconButton small ionicons_name="flag" onPress={handleToggleFlag} tonal={team.flagged} />
                             </View>
                         </SectionContainer>}
                     {!readOnly && showLogTrafficModal &&
-                        <SectionContainer style={{ flexGrow: 0 }} justifyContent="center" noDivider width={96}>
+                        <SectionContainer style={{ flexGrow: 0 }} justifyContent="center" width={96}>
                             <View style={{ flexDirection: "column", gap: 8 }}>
                                 <FilledButton small backgroundColor={colorTheme.surfaceContainer} icon="create" text="Traffic" onPress={() => showLogTrafficModal()} />
                                 <FilledButton small backgroundColor={colorTheme.surfaceContainer} icon="flag" text={team.flagged ? "Unflag" : "Flag"} onPress={handleToggleFlag} />
@@ -282,7 +254,7 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
                             {lastLog && <Text style={[textStyle.tertiaryText, { fontWeight: '500', flexShrink: 0 }]} numberOfLines={1}>{lastLog.fromTeam === team.id ? `To ${parseTeamName(lastLog.toTeam)}` : lastLog ? `${parseTeamName(lastLog.fromTeam)} to ${parseTeamName(lastLog.toTeam)}` : ""}</Text>}
                             <Text style={[textStyle.tertiaryText]} numberOfLines={1}>{lastLog ? `${lastLog.message}` : "No previous traffic found"}</Text>
                         </View>
-                        <Text style={[textStyle.tertiaryText, { fontStyle: 'italic', flexShrink: 0 }]} numberOfLines={1}>{lastLog ? `${calculateElapsedTime(lastLog.created)}` : ""}</Text>
+                        <Text style={[textStyle.tertiaryText, { fontStyle: 'italic', flexShrink: 0 }]} numberOfLines={1}>{lastLog ? `${getElapsedTimeString(lastLog.created)}` : ""}</Text>
                     </View>
                 }
             </View>
@@ -308,13 +280,13 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
             <View style={{ flexDirection: "row", gap: 8 }}>
                 <SectionContainer style={{ flexBasis: 0, gap: 2 }}>
                     <View style={styles.sectionTitleContainer}>
-                        <Text style={[styles.text]}>Assignment</Text>
+                        <Text style={[textStyle.text]}>Assignment</Text>
                     </View>
                     <EditableText disabled={readOnly} style={textStyle.columnValueText} numberOfLines={1} value={team.assignment} defaultValue={readOnly ? "-" : "Tap to set"} onChangeText={(text) => editTeam({ assignment: text })} limit={25} />
                 </SectionContainer>
                 <SectionContainer style={{ flexBasis: 0, gap: 2 }}>
                     <View style={styles.sectionTitleContainer}>
-                        <Text style={[styles.text]}>Status</Text>
+                        <Text style={[textStyle.text]}>Status</Text>
                     </View>
                     <EditableText disabled={readOnly} style={textStyle.columnValueText} numberOfLines={1} value={team.status} defaultValue={readOnly ? "-" : "Tap to set"} onChangeText={(text) => editTeam({ status: text })} limit={25} />
                 </SectionContainer>
@@ -322,7 +294,7 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
             <SectionContainer>
                 <View style={styles.sectionTitleContainer}>
                     <View style={{ gap: 2 }}>
-                        <Text style={[styles.text]}>Timeout</Text>
+                        <Text style={[textStyle.text]}>Timeout</Text>
                         <Text style={textStyle.columnValueText}>{formatTime(time)}</Text>
                     </View>
                     {!readOnly && <View style={{ flexDirection: "row", gap: 4 }}>
@@ -346,22 +318,17 @@ export const TimerComponent = ({ incidentInfo, team, teams, addLog = () => { }, 
     }
 };
 
-const SectionContainer = ({ children, maxWidth, width, justifyContent, style, noDivider = false }) => {
+const SectionContainer = ({ children, maxWidth, width, justifyContent, style }) => {
     const styles = pageStyles();
     const maxWidthOverride = maxWidth ? { maxWidth: maxWidth } : {};
     const widthOverride = width ? { width: width } : {};
     const justifyContentOverride = justifyContent ? { justifyContent: justifyContent } : {};
 
     return (
-        <View style={[styles.sectionContainer, !noDivider && false && (useWindowDimensions().width > 600) && styles.sectionContainerDivider, maxWidthOverride, widthOverride, justifyContentOverride, width < 1080 && { flexGrow: 1 }, style]}>
+        <View style={[styles.sectionContainer, maxWidthOverride, widthOverride, justifyContentOverride, width < 1080 && { flexGrow: 1 }, style]}>
             {children}
         </View>
     );
-}
-
-const calculateRemainingTime = (lastStart, lastTimeRemaining) => {
-    const elapsedTime = lastStart ? (Date.now() - new Date(lastStart)) / 1000 : 0;
-    return lastTimeRemaining - Math.floor(elapsedTime);
 }
 
 const pageStyles = () => {
@@ -369,19 +336,6 @@ const pageStyles = () => {
     const { width } = useWindowDimensions();
 
     return StyleSheet.create({
-        background: {
-            backgroundColor: colorTheme.background,
-            height: '100%'
-        },
-        sectionTitle: {
-            color: colorTheme.onBackground,
-            fontSize: 20,
-        },
-        timerSection: {
-            gap: 4,
-            borderRadius: 26,
-            overflow: 'hidden'
-        },
         wideCard: {
             borderRadius: 6,
             backgroundColor: colorTheme.surfaceContainer,
@@ -397,49 +351,16 @@ const pageStyles = () => {
             justifyContent: 'space-between',
             backgroundColor: colorTheme.surfaceContainer
         },
-        standaloneCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-            justifyContent: 'space-between',
-            backgroundColor: colorTheme.surfaceContainer
-        },
         sectionContainer: {
             flexGrow: 1,
             flexDirection: 'column',
             gap: 4
-        },
-        sectionContainerDivider: {
-            paddingRight: 10,
-            borderRightColor: colorTheme.outlineVariant,
-            borderRightWidth: StyleSheet.hairlineWidth,
         },
         sectionTitleContainer: {
             justifyContent: 'space-between',
             alignItems: "center",
             flexDirection: 'row',
             gap: 8
-        },
-        text: {
-            fontSize: width > 600 ? 14 : 12,
-            color: colorTheme.onSurface
-        },
-        sectionBodyText: {
-            fontSize: width > 600 ? 28 : 20,
-            color: colorTheme.onSurface
-        },
-        sectionBodyTextSmall: {
-            fontSize: width > 600 ? 20 : 16,
-            color: colorTheme.onSurface
-        },
-        header: {
-            padding: 14,
-            backgroundColor: colorTheme.brand,
-            color: colorTheme.white,
         },
     });
 }

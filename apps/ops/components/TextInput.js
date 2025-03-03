@@ -1,12 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { ThemeContext } from 'calsar-ui';
+import React, { useContext, useEffect, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export const SearchBox = ({ keyboardType, placeholder, initialValue, onChangeText, onConfirm, textStyle, small, grow = false }) => {
     const { colorTheme } = useContext(ThemeContext);
 
     const [text, setText] = useState(initialValue || "");
-    const { width } = useWindowDimensions();
     const [focused, setFocused] = useState(false)
     const styles = textBoxStyles();
 
@@ -57,14 +56,6 @@ export const TextBox = ({
 
     const styles = textBoxStyles();
 
-    const isValidEmailChar = (char) => {
-        return /^[a-zA-Z0-9.@_-]$/.test(char);
-    };
-
-    const isValidNumberChar = (char) => {
-        return /^[0-9]$/.test(char);
-    };
-
     const handleChangeText = (newText) => {
         let isValid = true;
 
@@ -84,13 +75,16 @@ export const TextBox = ({
     const updateSuggestions = (newText) => {
         // Filter suggestions
         if (autofill && newText) {
-            const filtered = autofill.filter(item =>
+            const filteredAutofill = [...new Set(autofill)];
+            const filtered = filteredAutofill.filter(item =>
                 item.toLowerCase().includes(newText.toLowerCase()) && item.toLowerCase() !== newText.toLowerCase()
             );
             setSuggestions(filtered);
             setSelectedIndex(-1);
         } else if (autofill) {
-            setSuggestions(autofill);
+            // remove duplicates from autofill and set suggestions
+            const filtered = [...new Set(autofill)];
+            setSuggestions(filtered);
         } else {
             setSuggestions([]);
         }
@@ -117,7 +111,7 @@ export const TextBox = ({
 
 
     return (
-        <View style={[{ zIndex: suggestions.length > 0 ? 900 : 0, height: height || "auto" }, containerStyle]}>
+        <View style={[{ zIndex: suggestions.length > 0 ? 900 : 0, height: height || "auto", flex: 1 }, containerStyle]}>
             <TextInput
                 style={[styles.input, textStyle]}
                 onChangeText={handleChangeText}
@@ -130,7 +124,7 @@ export const TextBox = ({
                 onFocus={() => updateSuggestions("")}
                 onBlur={() => {
                     confirmOnBlur ? onConfirm() : () => { };
-                    setTimeout(() => setSuggestions([]), 100); // Delay to allow selection of suggestion
+                    setTimeout(() => setSuggestions([]), 200); // Delay to allow selection of suggestion
                 }}
                 onKeyPress={handleKeyDown}
             />
@@ -156,7 +150,7 @@ export const TextBox = ({
     );
 };
 
-export const EditableText = ({ keyboardType, defaultValue, onChangeText, placeholder, height, autofill, value, style, numberOfLines, suffix = "", limit, disabled = false, onEditing = () => { } }) => {
+export const EditableText = ({ keyboardType, defaultValue, onChangeText, placeholder, height, autofill, value, style, numberOfLines, suffix = "", limit, disabled = false, onEditing = () => { }, containerStyle }) => {
     const { colorTheme, colorScheme, getHoverColor } = useContext(ThemeContext);
     const [editing, setEditing] = React.useState(false);
     const [focused, setFocus] = React.useState(false);
@@ -186,7 +180,7 @@ export const EditableText = ({ keyboardType, defaultValue, onChangeText, placeho
     if (editing) {
         return (
             <>
-                <TextBox keyboardType={keyboardType} initialValue={value} height={height} autofill={autofill} placeholder={placeholder} onChangeText={setText} onConfirm={handleConfirm} textStyle={style} confirmOnBlur={true} limit={limit} autoFocus />
+                <TextBox keyboardType={keyboardType} initialValue={value} height={height} autofill={autofill} placeholder={placeholder} onChangeText={setText} onConfirm={handleConfirm} textStyle={style} confirmOnBlur={true} limit={limit} autoFocus containerStyle={containerStyle} />
             </>
         );
     } else {
@@ -196,7 +190,7 @@ export const EditableText = ({ keyboardType, defaultValue, onChangeText, placeho
                 onHoverOut={() => { disabled ? () => { } : setFocus(false) }}
                 onPress={() => { disabled ? () => { } : handleSetEditing(true) }}
                 android_ripple={{ color: getHoverColor(colorTheme.black, colorScheme === "light" ? 0.1 : 0.8) }}
-                style={[{ backgroundColor: (focused && !disabled) ? getHoverColor(colorTheme.black, colorScheme === "light" ? 0.1 : 0.8) : "transparent", flexDirection: "row", gap: 6, flexShrink: 1 }]}>
+                style={[{ backgroundColor: (focused && !disabled) ? getHoverColor(colorTheme.black, colorScheme === "light" ? 0.1 : 0.8) : "transparent", flexDirection: "row", gap: 6, flexShrink: 1, width: "100%" }, containerStyle]}>
                 <Text style={style} numberOfLines={numberOfLines}>{value || defaultValue}</Text>
                 {suffix !== "" && <Text style={[style, { fontWeight: "normal" }]} numberOfLines={numberOfLines}>{suffix}</Text>}
             </Pressable >

@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ThemeContext } from 'calsar-ui';
 
 export function TabButton({ icon, title, active, onClick }) {
-    const { colorTheme, colorScheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ThemeContext);
     const [focus, setFocus] = useState(false);
 
     let focusColor = active ? colorTheme.secondaryFixed + Math.round(0.8 * 255).toString(16).toUpperCase() : colorTheme.primary + Math.round(0.3 * 255).toString(16).toUpperCase();
@@ -88,10 +88,6 @@ const pageStyles = () => {
             height: '100%'
         },
         mainScroll: {
-            paddingTop: 16,
-            paddingBottom: 16,
-            paddingRight: 16,
-            paddingLeft: 16,
             gap: 20,
         },
         container: {

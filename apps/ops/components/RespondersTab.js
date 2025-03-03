@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { Banner, FilledButton, IconButton, RiskModal, textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { RxDBContext } from './RxDBContext';
 import SwitcherContainer from './SwitcherContainer';
 import { EditableText, TextBox } from './TextInput';
+import { setTeamTimeoutRunning } from './helperFunctions';
 
 export const ResourcesPanel = ({ fileId, notifyFileUpdated, activeTeams }) => {
     const [activeTab, setActiveTab] = useState("People");
@@ -23,7 +24,7 @@ export const ResourcesPanel = ({ fileId, notifyFileUpdated, activeTeams }) => {
             content: <>
                 <EquipmentPanel fileId={fileId} notifyFileUpdated={notifyFileUpdated} teams={activeTeams} />
             </>
-        },
+        }
     ];
 
     return <SwitcherContainer tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />;
@@ -46,7 +47,6 @@ const PeoplePanel = ({ fileId, notifyFileUpdated, teams }) => {
     const [selectedPerson, setSelectedPerson] = useState(null);
 
     useEffect(() => {
-        // Load saved settings
         getPeopleByFileId(fileId).then(query => {
             query.$.subscribe(result => {
                 setPeople(result);
@@ -91,16 +91,16 @@ const PeoplePanel = ({ fileId, notifyFileUpdated, teams }) => {
                     {item.medCert && item.medCert !== "default" && <Chip title={getLabelFromValue(MED_CERT_OPTIONS, item.medCert)} color={colorTheme.surfaceContainerHigh} />}
                     {item.additionalAttrs && item.additionalAttrs.map(attr => <Chip key={attr} title={getLabelFromValue(ADDITIONAL_ATTRS_OPTIONS, attr)} color={attr === "cand" ? colorTheme.secondaryContainer : colorTheme.surfaceContainerHigh} />)}
                     <>{(item.phone || item.email) && <IconChip icon={"call-outline"} />}</>
-                    <>{(item.trackingURL) && <IconChip icon={"location-outline"} />}</>
+                    <>{(item.trackingURL) && <IconChip icon={"link-outline"} onPress={() => { Linking.openURL(item.trackingURL) }} />}</>
                 </View>
                 {item.notes ?
                     <><View style={{ flexDirection: "column", gap: 8, flex: 2, flexWrap: "wrap", minWidth: 300 }}>
-                        <>{item.notes && <Text style={[textStyle.text]}>{item.notes}</Text>}</>
+                        <>{item.notes && <Text style={[textStyle.secondaryText]}>{item.notes}</Text>}</>
                     </View>
                     </> : <></>}
                 <View style={{ flexDirection: "row", gap: 8, justifyContent: "flex-start", alignItems: "center" }}>
                     {item.teamId ?
-                        <Chip title={"Team " + teams.find(team => team.id === item.teamId).name} color={colorTheme.tertiaryContainer} onCancel={() => item.incrementalPatch({ teamId: "" }).then(() => notifyFileUpdated())} />
+                        <Chip title={"Team " + teams.find(team => team.id === item.teamId)?.name} color={colorTheme.tertiaryContainer} onCancel={() => item.incrementalPatch({ teamId: "" }).then(() => notifyFileUpdated())} />
                         :
                         <IconButton
                             small
@@ -162,13 +162,13 @@ const PeoplePanel = ({ fileId, notifyFileUpdated, teams }) => {
             person={assignTeamPerson} />
         <RiskModal
             isVisible={deletePerson !== null}
-            title={"Delete person?"}
+            title={`Delete ${deletePerson && deletePerson.name}?`}
             onClose={() => { setDeletePerson(null) }}>
             <View style={{
                 padding: 20, paddingTop: 0, gap: 20
             }}>
-                <Text style={{ color: colorTheme.onSurface }}>{deletePerson && deletePerson.name} will be removed, but any radio logs won't be affected</Text>
-                <FilledButton rightAlign destructive text={"Delete person"} onPress={removePerson} />
+                <Text style={{ color: colorTheme.onSurface }}>{deletePerson && deletePerson.name} will be removed</Text>
+                <FilledButton rightAlign destructive text={"Delete"} onPress={removePerson} />
             </View>
         </RiskModal>
     </View>;
@@ -210,7 +210,7 @@ const EquipmentPanel = ({ fileId, notifyFileUpdated, teams }) => {
     let tempList = [];
     let currentAgency = "";
 
-    equipment.map(item => {
+    equipment.forEach(item => {
         if (item.agency !== currentAgency) {
             if (tempList.length > 0) {
                 equipmentList.push(<View key={Date.now() + item.agency + "_cont"} style={styles.cardContainer}>{tempList}</View>);
@@ -229,7 +229,7 @@ const EquipmentPanel = ({ fileId, notifyFileUpdated, teams }) => {
                     setAddEquipmentModalShowing(true);
                 }}
                 onLongPress={() => { }}
-                style={[styles.card, { flexDirection: "row", gap: 16, justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }, { backgroundColor: colorTheme.surfaceContainer }]}>
+                style={[styles.card, { flexDirection: "row", gap: 16, justifyContent: "space-between", flexWrap: "wrap", alignItems: "center", backgroundColor: colorTheme.surfaceContainer }]}>
                 <View style={{ flexDirection: "row", gap: 8, minWidth: 250, flex: 2, flexWrap: "wrap" }}>
                     <Text style={[textStyle.rowTitleText, { paddingRight: 8 }]} numberOfLines={1}>{item.name}{item.idNumber ? `, #${item.idNumber}` : ""}</Text>
                 </View>
@@ -299,113 +299,25 @@ const EquipmentPanel = ({ fileId, notifyFileUpdated, teams }) => {
     </View>;
 }
 
-const KeyChild = ({ icon, children }) => {
-    const { colorTheme } = useContext(ThemeContext);
-    if (!children) return null;
-
-    return (<View style={{ flexDirection: "row", gap: 2, alignItems: "center", gap: 8 }}>
-        <Ionicons name={icon} size={16} color={colorTheme.onSurface} />
-        {children}
-    </View>
-    );
-}
-
-const AssignedPeopleText = ({ teamId }) => {
-    const { getPeopleByTeamId } = useContext(RxDBContext);
-
-    const [assignedPeople, setAssignedPeople] = useState([]);
-    const [loaded, setLoaded] = useState(false);
-
-    const textStyle = textStyles();
-
-    // Return a string of people who are assigned to this team, separated by commas
-    useEffect(() => {
-        let subscription;
-        if (teamId) {
-            getPeopleByTeamId(teamId).then(query => {
-                subscription = query.$.subscribe(result => {
-                    setAssignedPeople(result);
-                    setLoaded(true);
-                });
-            });
-        }
-
-        return () => {
-            if (subscription) {
-                subscription.unsubscribe();
-            }
-        };
-    }, [teamId, getPeopleByTeamId]);
-
-    return <Text style={textStyle.tertiaryText}>
-        {loaded ?
-            assignedPeople.length === 0 ? "-" :
-                assignedPeople.map((person, index) => {
-                    if (index === assignedPeople.length - 1) {
-                        return person.name;
-                    } else {
-                        return person.name + ", ";
-                    }
-                })
-            :
-            "Loading..."
-        }
-    </Text>
-}
-
-const AssignedEquipmentText = ({ teamId }) => {
-    const { getEquipmentByTeamId } = useContext(RxDBContext);
-
-    const [assignedPeople, setAssignedPeople] = useState([]);
-    const [loaded, setLoaded] = useState(false);
-
-    const textStyle = textStyles();
-
-    // Return a string of people who are assigned to this team, separated by commas
-    useEffect(() => {
-        if (teamId) {
-            getEquipmentByTeamId(teamId).then(query => {
-                query.$.subscribe(result => {
-                    setAssignedPeople(result);
-                    setLoaded(true);
-                });
-                return () => { query.$.unsubscribe() };
-            });
-        }
-    }, [teamId]);
-
-    return <Text style={textStyle.tertiaryText}>
-        {loaded ?
-            assignedPeople.length === 0 ? "-" :
-                assignedPeople.map((person, index) => {
-                    if (index === assignedPeople.length - 1) {
-                        return person.name;
-                    } else {
-                        return person.name + ", ";
-                    }
-                })
-            :
-            "Loading..."
-        }
-    </Text>
-}
-
-export const TeamsPanel = ({ fileId, notifyFileUpdated, activeTeams, editTeam }) => {
+export const TeamsPanel = ({ fileId, notifyFileUpdated, activeTeams, editTeam, infoFunction, hideActions = false }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width, height } = useWindowDimensions();
-    const { createTeam } = useContext(RxDBContext);
+    const { createTeam, removeTeam } = useContext(RxDBContext);
     const [deleteTeam, setDeleteTeam] = useState(null);
     const styles = pageStyles();
     const textStyle = textStyles();
 
-    const removeTeam = () => {
-        deleteTeam.incrementalPatch({ removed: true });
+    const handleRemoveTeam = () => {
+        removeTeam(deleteTeam);
         notifyFileUpdated();
         setDeleteTeam(null);
     }
 
     const setAvailable = (team, state) => {
         team.incrementalPatch({ status: state ? "Available" : "Inactive" });
+        if (state === false) {
+            setTeamTimeoutRunning(team, false);
+        }
         notifyFileUpdated();
     }
 
@@ -453,13 +365,13 @@ export const TeamsPanel = ({ fileId, notifyFileUpdated, activeTeams, editTeam })
                                 defaultValue={item.status || "No status"}
                                 onChangeText={(text) => editTeam(item, { status: text })}
                                 limit={50} />
-                            <KeyChild icon="people-outline"><AssignedPeopleText teamId={item.id} /></KeyChild>
-                            <KeyChild icon="bag-handle-outline"><AssignedEquipmentText teamId={item.id} /></KeyChild>
+                            {infoFunction(item.id, item)}
                         </View>
-                        <View style={{ flexDirection: "column", gap: 8 }}>
+                        <>{!hideActions && <View style={{ flexDirection: "column", gap: 8 }}>
                             <>{item.type !== "Ad-hoc" && <IconButton small tonal={(item.status === "Inactive")} ionicons_name={(item.status === "Inactive") ? "log-in-outline" : "log-out-outline"} onPress={() => setAvailable(item, (item.status !== "Inactive") ? false : true)} />}</>
                             <>{(item.status === "Inactive" || item.type === "Ad-hoc" || item.type) && <IconButton small ionicons_name="trash" onPress={() => setDeleteTeam(item)} />}</>
                         </View>
+                        }</>
                     </View>
                 })}
             </View>
@@ -472,9 +384,9 @@ export const TeamsPanel = ({ fileId, notifyFileUpdated, activeTeams, editTeam })
                 padding: 20, paddingTop: 0, gap: 20
             }}>
                 <View style={{ flexDirection: "column", gap: 8 }}>
-                    <Text style={{ color: colorTheme.onSurface }}>{deleteTeam && deleteTeam.name ? deleteTeam.name : "This team"} will be removed, but any radio logs won't be affected.</Text>
+                    <Text style={{ color: colorTheme.onSurface }}>{deleteTeam && deleteTeam.name ? deleteTeam.name : "This team"} will be removed, but any radio logs won't be affected. Equipment, people, and tasks will be unassigned.</Text>
                 </View>
-                <FilledButton rightAlign destructive text={"Delete team"} onPress={removeTeam} />
+                <FilledButton rightAlign destructive text={"Delete team"} onPress={handleRemoveTeam} />
             </View>
         </RiskModal >
     </ScrollView>;
@@ -490,12 +402,24 @@ const Chip = ({ title, onCancel, color }) => {
     </View>
 }
 
-const IconChip = ({ icon, onCancel, color }) => {
+const IconChip = ({ icon, onCancel, color, onPress }) => {
     const { colorTheme } = useContext(ThemeContext);
-    return <View style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainerHighest, paddingHorizontal: 8, borderRadius: 8 }}>
+
+    const content = (<>
         <Ionicons name={icon} size={18} color={colorTheme.onSurface} />
         {onCancel !== undefined && <Ionicons name="close" size={18} color={colorTheme.onSurface} onPress={onCancel} />}
-    </View>
+    </>);
+    if (onPress) {
+        return <Pressable
+            onPress={onPress}
+            style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainerHighest, paddingHorizontal: 8, borderRadius: 8 }}>
+            {content}
+        </Pressable>
+    } else {
+        return <View style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainerHighest, paddingHorizontal: 8, borderRadius: 8 }}>
+            {content}
+        </View>
+    }
 }
 
 const getLabelFromValue = (options, value) => {
@@ -847,42 +771,9 @@ const AssignTeamPersonModal = ({ fileId, notifyFileUpdated, person, onClose, tea
     </RiskModal >);
 }
 
-const TemplateModal = ({ fileId, notifyFileUpdated, people, isVisible, onClose }) => {
-    const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles();
-    const textStyle = textStyles();
-    const { width } = useWindowDimensions();
-    const [name, setName] = useState("");
-
-    const handleClose = () => {
-        onClose();
-    }
-
-    const handleSave = () => {
-        handleClose();
-    }
-
-    return (<RiskModal
-        overrideWidth={700}
-        isVisible={isVisible}
-        title={"Add a person"}
-        onClose={handleClose}>
-        <View style={{ paddingHorizontal: 20, gap: 8 }}>
-            <TextBox keyboardType="default" value={name} placeholder="Name" onChangeText={setName} onConfirm={() => { }} textStyle={textStyle.text} limit={20} />
-        </View>
-        <View style={{ padding: 20, gap: 12 }}>
-            <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'flex-end', alignItems: "flex-end" }}>
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <FilledButton primary text={"Save log"} onPress={() => { handleSave() }} />
-                </View>
-            </View>
-        </View>
-    </RiskModal >);
-}
 
 const pageStyles = () => {
     const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
 
     return StyleSheet.create({
         standaloneCard: {

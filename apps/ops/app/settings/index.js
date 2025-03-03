@@ -1,34 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BackHeader, Banner, textStyles, ThemeContext } from 'calsar-ui';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useEffect, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
-
-const saveData = async (key, value) => {
-    try {
-        const jsonValue = JSON.stringify(value);
-        await AsyncStorage.setItem(key, jsonValue);
-    } catch (e) {
-        // saving error
-    }
-};
-
-const getData = async (key) => {
-    try {
-        const jsonValue = await AsyncStorage.getItem(key);
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-        // error reading value
-    }
-};
+import { Platform, ScrollView, StyleSheet, Text, useColorScheme, useWindowDimensions, View } from 'react-native';
+import { getAsyncStorageData, saveAsyncStorageData } from '../../components/helperFunctions';
 
 export default function Settings() {
     const { colorTheme, changeColorScheme, colorScheme } = useContext(ThemeContext);
 
     const styles = pageStyles();
     const textStyle = textStyles();
-    const riskStyles = riskInputStyles();
 
     const [appearanceState, setAppearanceState] = useState(1);
 
@@ -37,12 +18,12 @@ export default function Settings() {
 
     const saveAppearance = (value) => {
         setAppearanceState(value);
-        saveData("appearance", value);
+        saveAsyncStorageData("appearance", value);
     };
 
     useEffect(() => {
         // Load saved settings
-        getData("appearance").then((value) => { value && setAppearanceState(value) });
+        getAsyncStorageData("appearance").then((value) => { value && setAppearanceState(value) });
     }, []);
 
     const { height, width } = useWindowDimensions();
