@@ -1,0 +1,3 @@
+div.opaque { background-color: #121318; }
+
+.site-nav ul li a { background-image: linear-gradient(-90deg, #0b0c0f 0%, rgba(11, 12, 15, 0.8) 80%, rgba(11, 12, 15, 0) 100%); }

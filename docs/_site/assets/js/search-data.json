@@ -1,0 +1,44 @@
+{"0": {
+    "doc": "Getting Started",
+    "title": "Getting Started",
+    "content": "?? . ",
+    "url": "/guide/getting_started.html",
+    
+    "relUrl": "/guide/getting_started.html"
+  },"1": {
+    "doc": "User Guide",
+    "title": "User Guide",
+    "content": " ",
+    "url": "/guide/",
+    
+    "relUrl": "/guide/"
+  },"2": {
+    "doc": "Home",
+    "title": "Keep overhead on the same page",
+    "content": "Operation Management Tools gives your search managment staff a single place to coordinate resources, tasks, clues, and radio logs. Get started Learn more . ",
+    "url": "/#keep-overhead-on-the-same-page",
+    
+    "relUrl": "/#keep-overhead-on-the-same-page"
+  },"3": {
+    "doc": "Home",
+    "title": "Minimize chaos at your ICP",
+    "content": "Keep track of the people on teams, the equipment assigned to them, the tasks they are working on, the clues found, and more. This browser-based app syncs in real time, so all search management staff can be kept up to date. ",
+    "url": "/#minimize-chaos-at-your-icp",
+    
+    "relUrl": "/#minimize-chaos-at-your-icp"
+  },"4": {
+    "doc": "Home",
+    "title": "Features",
+    "content": "Resource management . Task managment . Clue tracking . Radio logging . Safeguard against outages . Connect a thermal printer to the app to print radio logs, and clue and personnel info as they come in so you have a continuous backup in case of an outage. Tech can fail, especially in the conditions we work in. It’s your responsibility to keep backups and develop contingency plans in case of software, hardware, or infrastructure failure. ",
+    "url": "/#features",
+    
+    "relUrl": "/#features"
+  },"5": {
+    "doc": "Home",
+    "title": "Home",
+    "content": " ",
+    "url": "/",
+    
+    "relUrl": "/"
+  }
+}

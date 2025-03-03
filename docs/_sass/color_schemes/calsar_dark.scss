@@ -1,0 +1,29 @@
+@import "./color_schemes/dark";
+
+$body-background-color: #121318;
+$sidebar-color: #121318;
+
+$body-background-color: #121318;
+$body-heading-color: $grey-lt-000;
+$body-text-color: $grey-lt-300;
+$link-color: #B0C6FF;
+$nav-child-link-color: $grey-dk-000;
+$sidebar-color: #121318;
+$base-button-color: #1E1F25;
+$btn-primary-color: #B0C6FF;
+$code-background-color: #31343f; // OneDarkJekyll default for syntax-one-dark-vivid
+$code-linenumber-color: #dee2f7; // OneDarkJekyll .nf for syntax-one-dark-vivid
+$feedback-color: darken($sidebar-color, 3%);
+$table-background-color: $grey-dk-250;
+$search-background-color: $grey-dk-250;
+$search-result-preview-color: $grey-dk-000;
+$border-color: $grey-dk-200;
+
+.btn-primary {
+    color: #152E60 !important;
+    background-image: none !important;
+}
+
+.btn {
+    border-radius: 1em !important;
+}
