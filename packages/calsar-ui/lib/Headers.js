@@ -11,6 +11,8 @@ var _react = require("react");
 var _reactNative = require("react-native");
 var _reactNativeSafeAreaContext = require("react-native-safe-area-context");
 var _ThemeContext = require("./ThemeContext");
+var _IconButton = require("./IconButton");
+var _styles = require("./styles");
 var _jsxRuntime = require("react/jsx-runtime");
 function Header(_ref) {
   var children = _ref.children,
@@ -41,6 +43,7 @@ function BackHeader(_ref2) {
   var _useWindowDimensions = (0, _reactNative.useWindowDimensions)(),
     width = _useWindowDimensions.width,
     height = _useWindowDimensions.height;
+  var textStyle = (0, _styles.textStyles)();
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(Header, {
     style: {
       backgroundColor: backgroundColor ? backgroundColor : colorTheme.primaryContainer,
@@ -58,22 +61,15 @@ function BackHeader(_ref2) {
           style: styles.leftContainer,
           children: [hideBack ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {}) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
             style: styles.backButtonContainer,
-            children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Pressable, {
-              style: styles.circleButton,
-              android_ripple: {
-                color: colorTheme.surfaceContainerHighest
-              },
+            children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_IconButton.IconButton, {
+              ionicons_name: _reactNative.Platform.OS === 'android' ? "arrow-back" : "chevron-back",
+              color: color ? color : colorTheme.onPrimaryContainer,
               onPress: function onPress() {
                 href ? _expoRouter.router.navigate(href) : _expoRouter.router.back();
-              },
-              children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_vectorIcons.Ionicons, {
-                name: _reactNative.Platform.OS === 'android' ? "arrow-back" : "chevron-back",
-                size: 24,
-                color: color ? color : colorTheme.onPrimaryContainer
-              })
+              }
             })
           }), customTitle ? customTitle : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-            style: [styles.title, {
+            style: [textStyle.headerText, {
               color: color ? color : colorTheme.onPrimaryContainer
             }],
             adjustsFontSizeToFit: true,
@@ -81,24 +77,22 @@ function BackHeader(_ref2) {
             children: title
           })]
         }) : /*#__PURE__*/(0, _jsxRuntime.jsxs)(_jsxRuntime.Fragment, {
-          children: [hideBack ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {}) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
+          children: [hideBack ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
+            style: {
+              flexGrow: 1,
+              flexBasis: 1
+            }
+          }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
             style: styles.backButtonContainer,
-            children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Pressable, {
-              style: styles.circleButton,
-              android_ripple: {
-                color: colorTheme.surfaceContainerHighest
-              },
+            children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_IconButton.IconButton, {
+              ionicons_name: _reactNative.Platform.OS === 'android' ? "arrow-back" : "chevron-back",
+              color: color ? color : colorTheme.onPrimaryContainer,
               onPress: function onPress() {
                 href ? _expoRouter.router.navigate(href) : _expoRouter.router.back();
-              },
-              children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_vectorIcons.Ionicons, {
-                name: _reactNative.Platform.OS === 'android' ? "arrow-back" : "chevron-back",
-                size: 24,
-                color: color ? color : colorTheme.onPrimaryContainer
-              })
+              }
             })
           }), customTitle ? customTitle : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-            style: [styles.title, {
+            style: [textStyle.headerText, {
               color: color ? color : colorTheme.onPrimaryContainer
             }],
             adjustsFontSizeToFit: true,
@@ -106,9 +100,18 @@ function BackHeader(_ref2) {
             children: title
           })]
         }), menuButton ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
-          style: [styles.menuContainer],
+          style: [styles.menuContainer, {
+            flexGrow: 1,
+            flexBasis: 1,
+            alignItems: "flex-end"
+          }],
           children: menuButton
-        }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {})]
+        }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
+          style: {
+            flexGrow: 1,
+            flexBasis: 1
+          }
+        })]
       }), children, subtitle && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
         style: [styles.subtitleContainer, {
           backgroundColor: backgroundColor ? backgroundColor : colorTheme.tertiaryContainer
@@ -164,7 +167,11 @@ var styles = _reactNative.StyleSheet.create({
     height: "100%",
     minHeight: 40,
     borderRadius: 20,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    flexGrow: 1,
+    flexBasis: 1,
+    alignItems: "flex-start",
+    justifyContent: "center"
   },
   menuContainer: {},
   circleButton: {

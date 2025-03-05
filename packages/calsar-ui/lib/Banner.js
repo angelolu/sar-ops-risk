@@ -7,6 +7,7 @@ exports.Banner = void 0;
 var _react = require("react");
 var _reactNative = require("react-native");
 var _ThemeContext = require("./ThemeContext");
+var _styles = require("./styles");
 var _jsxRuntime = require("react/jsx-runtime");
 var Banner = exports.Banner = function Banner(_ref) {
   var title = _ref.title,
@@ -18,9 +19,11 @@ var Banner = exports.Banner = function Banner(_ref) {
     _ref$noRadius = _ref.noRadius,
     noRadius = _ref$noRadius === void 0 ? false : _ref$noRadius,
     onPress = _ref.onPress,
-    children = _ref.children;
+    children = _ref.children,
+    selected = _ref.selected;
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext.colorTheme;
+  var textStyle = (0, _styles.textStyles)();
   if (typeof backgroundColor === 'undefined') backgroundColor = colorTheme.surfaceVariant;
   if (typeof color === 'undefined') color = colorTheme.onSurfaceVariant;
   if (onPress === undefined) return /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
@@ -38,9 +41,11 @@ var Banner = exports.Banner = function Banner(_ref) {
         flexShrink: 1
       },
       children: [title && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-        style: {
+        style: [textStyle.text, {
           color: color
-        },
+        }, selected && {
+          fontWeight: "bold"
+        }],
         children: title
       }), children]
     })]
@@ -65,10 +70,12 @@ var Banner = exports.Banner = function Banner(_ref) {
       children: /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
         style: [styles.cardContainer],
         children: [icon, title && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-          style: {
+          style: [textStyle.text, {
             color: color,
             flex: 1
-          },
+          }, selected && {
+            fontWeight: "bold"
+          }],
           children: title
         })]
       })

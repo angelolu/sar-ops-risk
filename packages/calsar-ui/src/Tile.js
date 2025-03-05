@@ -3,10 +3,12 @@ import { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ThemeContext } from './ThemeContext';
+import { textStyles } from './styles';
 
 export const Tile = ({ title, subtitle, children, href = "", icon, width = "auto", onPress }) => {
     const { colorTheme } = useContext(ThemeContext);
     const styles = tileStyles();
+    const textStyle = textStyles();
 
     return (
         <View style={[styles.card, { width: width }]}>
@@ -17,8 +19,8 @@ export const Tile = ({ title, subtitle, children, href = "", icon, width = "auto
                 <View style={{ flexDirection: "row", gap: 14, alignItems: "center", flexShrink: 1 }}>
                     {icon}
                     <View style={{ flexShrink: 1, gap: 2 }}>
-                        {title && <Text style={styles.title} numberOfLines={1}>{title}</Text>}
-                        {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>}
+                        {title && <Text style={textStyle.rowTitleTextPrimary} numberOfLines={1}>{title}</Text>}
+                        {subtitle && <Text style={textStyle.tertiaryText} numberOfLines={1}>{subtitle}</Text>}
                     </View>
                 </View>
                 {children}
@@ -35,13 +37,6 @@ const tileStyles = () => {
             backgroundColor: colorTheme.surfaceContainer,
             borderRadius: 6, // Rounded corners
             overflow: 'hidden',
-        },
-        title: {
-            fontSize: 18,
-            color: colorTheme.primary,
-        },
-        subtitle: {
-            color: colorTheme.onSurface,
         },
     });
 }

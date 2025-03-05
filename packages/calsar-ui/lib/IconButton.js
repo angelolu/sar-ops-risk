@@ -28,6 +28,8 @@ var IconButton = exports.IconButton = function IconButton(_ref) {
     primary = _ref$primary === void 0 ? false : _ref$primary,
     _ref$tonal = _ref.tonal,
     tonal = _ref$tonal === void 0 ? false : _ref$tonal,
+    _ref$outline = _ref.outline,
+    outline = _ref$outline === void 0 ? false : _ref$outline,
     color = _ref.color,
     size = _ref.size;
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
@@ -51,7 +53,11 @@ var IconButton = exports.IconButton = function IconButton(_ref) {
   } : {};
   if (ionicons_name) {
     return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
-      style: [styles.baseContainer, small && styles.smallBaseContainer, disabled && styles.disabled, primary && styles.primary, tonal && styles.tonal],
+      style: [styles.baseContainer, small && styles.smallBaseContainer, disabled && styles.disabled, primary && styles.primary, tonal && styles.tonal, outline && {
+        outlineStyle: "solid",
+        outlineWidth: 2,
+        outlineColor: colorTheme.secondary
+      }],
       children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Pressable, {
         onHoverIn: function onHoverIn() {
           setFocus(true);
@@ -66,8 +72,8 @@ var IconButton = exports.IconButton = function IconButton(_ref) {
         style: [styles.pressable, focusTheme],
         children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_vectorIcons.Ionicons, {
           name: ionicons_name,
-          size: small ? 16 : size || 24,
-          color: color || disabled && textColors.disabled || destructive && textColors.destructive || primary && textColors.primary || tonal && textColors.tonal || textColors.basic
+          size: small ? 16 : size || outline ? 20 : 24,
+          color: color || disabled && textColors.disabled || destructive && textColors.destructive || primary && textColors.primary || tonal && textColors.tonal || outline && colorTheme.secondary || textColors.basic
         })
       })
     });

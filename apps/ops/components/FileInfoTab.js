@@ -1,57 +1,51 @@
-import { FilledButton, ThemeContext } from 'calsar-ui';
+import { FilledButton, textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { EditableText } from './TextInput';
 
-export const InfoTab = ({ incidentInfo, userInfo, editIncident, editUser }) => {
+export const InfoTab = ({ incidentInfo, editIncident }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
     const styles = pageStyles();
+    const textStyle = textStyles();
 
     return (
-        <>
-            <View style={[styles.standaloneCard, { backgroundColor: colorTheme.surfaceContainer, alignSelf: "center", flexDirection: "column", flexGrow: 1, justifyContent: "space-between", gap: 8, maxWidth: 600 }]}>
-                <View style={{ flexDirection: width > 600 ? "row" : "column", justifyContent: "space-between", alignItems: "center", gap: 20 }}>
-                    <Text style={[styles.text, { fontStyle: "italic" }]}>Changes auto-saved locally. Download the file to open on another device and for record keeping.</Text>
-                    <FilledButton primary small={width <= 600} icon="download" text="Download file" onPress={() => { }} />
-                </View>
+        <View style={{
+            flexDirection: "column",
+            gap: 8,
+        }}>
+            <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 1, justifyContent: "flex-start", gap: 8 }]}>
+                <KeyValue title="Incident name" value={incidentInfo?.incidentName || "-"} >
+                    <EditableText style={textStyle.rowTitleText} value={incidentInfo.incidentName} defaultValue="Tap to set" onChangeText={(text) => editIncident({ incidentName: text })} limit={50} />
+                </KeyValue>
+                <KeyValue title="Incident number">
+                    <EditableText style={textStyle.rowTitleText} value={incidentInfo.incidentNumber} defaultValue="Tap to set" onChangeText={(text) => editIncident({ incidentNumber: text })} limit={50} />
+                </KeyValue>
+                <KeyValue title="Operational period" >
+                    <EditableText style={textStyle.rowTitleText} value={incidentInfo.opPeriod} defaultValue="Tap to set" onChangeText={(text) => editIncident({ opPeriod: text })} limit={12} />
+                </KeyValue>
             </View>
-            <View style={{
-                flexDirection: width > 600 ? "row" : "column",
-                gap: 16,
-            }}>
-                <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 1, justifyContent: "flex-start", gap: 8 }]}>
-                    <KeyValue title="Incident name" value={incidentInfo?.incidentName || "-"} >
-                        <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.incidentName} defaultValue="Tap to set" onChangeText={(text) => editIncident({ incidentName: text })} limit={50} />
-                    </KeyValue>
-                    <KeyValue title="Incident number">
-                        <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.number} placeholder="LAW-20..." defaultValue="Tap to set" onChangeText={(text) => editIncident({ number: text })} limit={50} />
-                    </KeyValue>
-                    <KeyValue title="Operational period" >
-                        <EditableText style={styles.sectionBodyTextSmall} value={incidentInfo.opPeriod} defaultValue="Tap to set" onChangeText={(text) => editIncident({ opPeriod: text })} limit={12} />
-                    </KeyValue>
-                </View>
-                <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
-                    <KeyValue title="Operator/log keeper">
-                        <EditableText style={styles.sectionBodyTextSmall} value={userInfo.name} defaultValue="Tap to set" onChangeText={(text) => editUser({ name: text })} />
-                    </KeyValue>
-                    <KeyValue title="Operator callsign" >
-                        <EditableText style={styles.sectionBodyTextSmall} value={userInfo.callsign} defaultValue="Tap to set" onChangeText={(text) => editUser({ callsign: text })} limit={12} />
-                    </KeyValue>
-                    <KeyValue title="Frequency/channel" >
-                        <EditableText style={styles.sectionBodyTextSmall} value={userInfo.frequency} defaultValue="Tap to set" onChangeText={(text) => editUser({ frequency: text })} limit={50} />
-                    </KeyValue>
-                </View>
-            </View >
-        </>
+            <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
+                <KeyValue title="Operator/log keeper">
+                    <EditableText style={textStyle.rowTitleText} value={incidentInfo.commsName} defaultValue="Tap to set" onChangeText={(text) => editIncident({ commsName: text })} />
+                </KeyValue>
+                <KeyValue title="Operator callsign" >
+                    <EditableText style={textStyle.rowTitleText} value={incidentInfo.commsCallsign} defaultValue="Tap to set" onChangeText={(text) => editIncident({ commsCallsign: text })} limit={12} />
+                </KeyValue>
+                <KeyValue title="Frequency/channel" >
+                    <EditableText style={textStyle.rowTitleText} value={incidentInfo.commsFrequency} defaultValue="Tap to set" onChangeText={(text) => editIncident({ commsFrequency: text })} limit={50} />
+                </KeyValue>
+            </View>
+        </View >
     );
 }
 
 const KeyValue = ({ title, children }) => {
     const styles = pageStyles();
+    const textStyle = textStyles();
 
-    return (<View style={{ flexDirection: "column", gap: 2 }}>
-        <Text style={styles.text}>{title}</Text>
+    return (<View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
+        <Text style={textStyle.tertiaryText}>{title}</Text>
         {children}
     </View>
     );
@@ -68,6 +62,7 @@ const pageStyles = () => {
         },
         standaloneCard: {
             borderRadius: 26,
+            minWidth: 450,
             overflow: 'hidden',
             paddingHorizontal: 18,
             paddingVertical: 16,
