@@ -113,10 +113,9 @@ export const PrinterTab = ({ incidentInfo }) => {
             <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                     <KeyValue title="File storage" color={colorTheme.garGreenLight}>
-                        <Text style={textStyle.rowTitleText}>{"Changes saved locally"}</Text>
-                        <Text style={[textStyle.secondaryText]}>Download the file to open on another device or as a backup</Text>
+                        <Text style={textStyle.rowTitleText}>{"Changes saved"}</Text>
                     </KeyValue>
-                    <FilledButton small primary icon="download" text={"Download"} onPress={handleConnectPrinter} />
+                    {false && <FilledButton small primary icon="download" text={"Download"} onPress={handleConnectPrinter} />}
                 </View>
             </View>
             <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>

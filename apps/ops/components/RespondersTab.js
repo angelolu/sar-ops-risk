@@ -120,7 +120,7 @@ const PeoplePanel = ({ fileId, notifyFileUpdated, teams }) => {
 
     return <View style={{ gap: 14 }}>
         <View style={{ flexDirection: "row", gap: 14, flexWrap: "wrap", flex: 1, alignSelf: "flex-end" }}>
-            <FilledButton small={width <= 600 || height < 500} backgroundColor={colorTheme.background} icon={"people"} text={"Quick assign"} onPress={() => { }} />
+            {false && <FilledButton small={width <= 600 || height < 500} backgroundColor={colorTheme.background} icon={"people"} text={"Quick assign"} onPress={() => { }} />}
             <FilledButton small={width <= 600 || height < 500} primary icon="person-add" text={"Person"} onPress={() => setAddPersonModalShowing(true)} />
             <IconButton outline small={width <= 600 || height < 500} backgroundColor={colorTheme.background} ionicons_name={"share-outline"} text={"Export"} onPress={() => { }} />
         </View>

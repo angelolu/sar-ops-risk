@@ -53,15 +53,22 @@ export default function OperationPage() {
         getFileByID(localParams.file).then(query => {
             query.$.subscribe(file => {
                 if (file) {
-                    setIncidentInfo(file);
-                    getAsyncStorageData("lasttab-" + file.id).then((value) => {
-                        if (value) {
-                            setActiveTab(prev => prev !== "" ? prev : value);
+                    getAsyncStorageData("syncedFiles").then((value) => {
+                        if (value && value.includes(file.id)) {
+                            setIncidentInfo(file);
+                            getAsyncStorageData("lasttab-" + file.id).then((value) => {
+                                if (value) {
+                                    setActiveTab(prev => prev !== "" ? prev : value);
+                                } else {
+                                    setActiveTab("Overview");
+                                }
+                            });
+                            setFileLoaded(1);
                         } else {
-                            setActiveTab("Overview");
+                            console.log("File not synced");
+                            setFileLoaded(-1);
                         }
                     });
-                    setFileLoaded(1);
                 } else {
                     setFileLoaded(-1);
                 }

@@ -14,7 +14,7 @@ const calsar = require('../assets/calsar_150.png');
 var bannerAnimationTimeout;
 var bannerHoverTimeout;
 
-export function BrandingBar({ textColor, title, menuButton }) {
+export function BrandingBar({ textColor, title, menuButton, noLogo = false }) {
     const wordmarkOpacity = useSharedValue(1); // Shared value for opacity
     const titleOpacity = useSharedValue(0);
     const workmarkDisplay = useSharedValue('flex');
@@ -55,7 +55,8 @@ export function BrandingBar({ textColor, title, menuButton }) {
 
     // Animation on load
     useEffect(() => {
-        animateBanner();
+        if (!noLogo)
+            animateBanner();
         return () => {
             wordmarkOpacity.value = 0;
             titleDisplay.value = "flex";
@@ -68,16 +69,20 @@ export function BrandingBar({ textColor, title, menuButton }) {
     if (windowWidth > 600) {
         return (
             <View style={styles.brandingBanner}>
-                <View style={styles.webWorkmarkContainer}>
-                    <Image
-                        source={calsar}
-                        style={{ width: 35, height: 35, zIndex: 999 }}
-                    />
-                    <View style={styles.wordmarkStack}>
-                        <Text style={styles.wordmarkLine1}>CALIFORNIA</Text>
-                        <Text style={styles.wordmarkLine2}>SEARCH & RESCUE</Text>
+                {noLogo ?
+                    <View style={{ flex: 1 }} />
+                    :
+                    <View style={styles.webWorkmarkContainer}>
+                        <Image
+                            source={calsar}
+                            style={{ width: 35, height: 35, zIndex: 999 }}
+                        />
+                        <View style={styles.wordmarkStack}>
+                            <Text style={styles.wordmarkLine1}>CALIFORNIA</Text>
+                            <Text style={styles.wordmarkLine2}>SEARCH & RESCUE</Text>
+                        </View>
                     </View>
-                </View>
+                }
                 <Text style={[styles.title, { color: textColor, flex: 1, textAlign: (windowWidth > 1000 ? "center" : "right") }]}>{title}</Text>
                 {windowWidth > 1000 && (menuButton ?
                     <View style={[styles.menuContainer]}>
@@ -102,15 +107,21 @@ export function BrandingBar({ textColor, title, menuButton }) {
         }
         return (
             <View style={styles.brandingBanner} onTouchEnd={animateBanner} onPointerEnter={onBannerEnter} onPointerLeave={onBannerExit} onPointerUp={animateBanner}>
-                <Animated.Image
-                    source={calsar}
-                    style={{ width: 35, height: 35, zIndex: 999 }}
-                />
-                <Animated.View style={[wordmarkAnimatedStyle, styles.wordmarkStack]}>
-                    <Text style={styles.wordmarkLine1}>CALIFORNIA</Text>
-                    <Text style={styles.wordmarkLine2}>SEARCH & RESCUE</Text>
-                </Animated.View>
-                <Animated.Text style={[styles.title, titleAnimatedStyle, { color: textColor }]}>{title}</Animated.Text>
+                {noLogo ?
+                    <Text style={[styles.title, titleAnimatedStyle, { color: textColor }]}>{title}</Text>
+                    :
+                    <>
+                        <Animated.Image
+                            source={calsar}
+                            style={{ width: 35, height: 35, zIndex: 999 }}
+                        />
+                        <Animated.View style={[wordmarkAnimatedStyle, styles.wordmarkStack]}>
+                            <Text style={styles.wordmarkLine1}>CALIFORNIA</Text>
+                            <Text style={styles.wordmarkLine2}>SEARCH & RESCUE</Text>
+                        </Animated.View>
+                        <Animated.Text style={[styles.title, titleAnimatedStyle, { color: textColor }]}>{title}</Animated.Text>
+                    </>
+                }
             </View>
         );
     }

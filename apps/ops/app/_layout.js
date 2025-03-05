@@ -4,6 +4,7 @@ import 'expo-dev-client';
 import { ThemeProvider } from 'calsar-ui';
 import { PrinterProvider } from '../components/PrinterContext';
 import { RxDBProvider } from '../components/RxDBContext';
+import { FirebaseProvider } from '../components/FirebaseContext';
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -19,24 +20,26 @@ export default function RootLayout() {
     return (
         <PrinterProvider>
             <ThemeProvider>
-                <RxDBProvider>
-                    <SafeAreaProvider>
-                        <Stack
-                            screenOptions={{
-                                // Hide the header for all other routes.
-                                headerShown: false,
-                            }}
-                        >
-                            <Stack.Screen
-                                name="index"
-                                options={{
-                                    // Hide the header for this route
+                <FirebaseProvider>
+                    <RxDBProvider>
+                        <SafeAreaProvider>
+                            <Stack
+                                screenOptions={{
+                                    // Hide the header for all other routes.
                                     headerShown: false,
                                 }}
-                            />
-                        </Stack>
-                    </SafeAreaProvider>
-                </RxDBProvider>
+                            >
+                                <Stack.Screen
+                                    name="index"
+                                    options={{
+                                        // Hide the header for this route
+                                        headerShown: false,
+                                    }}
+                                />
+                            </Stack>
+                        </SafeAreaProvider>
+                    </RxDBProvider>
+                </FirebaseProvider>
             </ThemeProvider>
         </PrinterProvider>
     );

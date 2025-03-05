@@ -2115,9 +2115,9 @@
   integrity sha512-Es6WcD0nO5l+2BOQS4uLfNPYQaNDfbot3X1XUoloz+x0mPDS3eeORZJl06HXjwBG1fOGwCRnzK88LMdxKRrd6Q==
 
 "@mongodb-js/saslprep@^1.1.9":
-  version "1.1.9"
-  resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.1.9.tgz#e974bab8eca9faa88677d4ea4da8d09a52069004"
-  integrity sha512-tVkljjeEaAhCqTzajSdgbQ6gE6f3oneVwa3iXR6csiEwXXOFsiC6Uh9iAjAhXPtqa/XMDHWjjeNH/77m/Yq2dw==
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.2.0.tgz#4373d7a87660ea44a0a7a461ff6d8bc832733a4b"
+  integrity sha512-+ywrb0AqkfaYuhHs6LxKWgqbh3I72EpEgESCw37o+9qPx9WTCkgDm2B+eMrwehGtHBWHFU4GXvnSCNiFhhausg==
   dependencies:
     sparse-bitfield "^3.0.3"
 
@@ -2808,9 +2808,9 @@
     "@types/node" "*"
 
 "@types/express-serve-static-core@^5.0.0":
-  version "5.0.5"
-  resolved "https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-5.0.5.tgz#f6a851c7fd512e5da087f6f20d29f44b162a6a95"
-  integrity sha512-GLZPrd9ckqEBFMcVM/qRFAP0Hg3qiVEojgEFsx/N/zKXsBzbGF6z5FBDpZ0+Xhp1xr+qRZYjfGr1cWHB9oFHSA==
+  version "5.0.6"
+  resolved "https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-5.0.6.tgz#41fec4ea20e9c7b22f024ab88a95c6bb288f51b8"
+  integrity sha512-3xhRnjJPkULekpSzgtoNYYcTWgEZkp4myc+Saevii5JPnHNvHMRlBSHDbs7Bh1iPPoVTERHEZXyhyLbMEsExsA==
   dependencies:
     "@types/node" "*"
     "@types/qs" "*"
@@ -3524,9 +3524,9 @@ bser@2.1.1:
     node-int64 "^0.4.0"
 
 bson@^6.10.1:
-  version "6.10.1"
-  resolved "https://registry.yarnpkg.com/bson/-/bson-6.10.1.tgz#dcd04703178f5ecf5b25de04edd2a95ec79385d3"
-  integrity sha512-P92xmHDQjSKPLHqFxefqMxASNq/aWJMEZugpCjf+AF/pgcUpMMQCg7t7+ewko0/u8AapvF3luf/FoehddEK+sA==
+  version "6.10.3"
+  resolved "https://registry.yarnpkg.com/bson/-/bson-6.10.3.tgz#5f9a463af6b83e264bedd08b236d1356a30eda47"
+  integrity sha512-MTxGsqgYTwfshYWTRdmZRC+M7FnG1b4y7RO7p2k3X24Wq0yv1m77Wsj0BzlPzd/IowgESfsruQCUToa7vbOpPQ==
 
 buffer-alloc-unsafe@^1.1.0:
   version "1.1.0"
@@ -7930,7 +7930,7 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
-rxdb@^16.3.0:
+rxdb@16.3.0:
   version "16.3.0"
   resolved "https://registry.yarnpkg.com/rxdb/-/rxdb-16.3.0.tgz#f3384a2f1416f23664ec888949408d6a2f3f3afc"
   integrity sha512-jAXAg+22MHpIr/EeMSY0w4ddASqPj4HAZY5xoqeeKO+4kzikBJVUvF7Kfqgf92HlwjPLR+xbFaBOrqsyrLpq6w==
@@ -9192,9 +9192,9 @@ whatwg-url-without-unicode@8.0.0-3:
     webidl-conversions "^5.0.0"
 
 "whatwg-url@^14.1.0 || ^13.0.0":
-  version "14.1.0"
-  resolved "https://registry.yarnpkg.com/whatwg-url/-/whatwg-url-14.1.0.tgz#fffebec86cc8e6c2a657e50dc606207b870f0ab3"
-  integrity sha512-jlf/foYIKywAt3x/XWKZ/3rz8OSJPiWktjmk891alJUEjiVxKX9LEO92qH3hv4aJ0mN3MWPvGMCy8jQi95xK4w==
+  version "14.1.1"
+  resolved "https://registry.yarnpkg.com/whatwg-url/-/whatwg-url-14.1.1.tgz#ce71e240c61541315833b5cdafd139a479e47058"
+  integrity sha512-mDGf9diDad/giZ/Sm9Xi2YcyzaFpbdLpJPr+E9fSkyQ7KpQD4SdFcugkRQYzhmfI4KeV4Qpnn2sKPdo+kmsgRQ==
   dependencies:
     tr46 "^5.0.0"
     webidl-conversions "^7.0.0"
