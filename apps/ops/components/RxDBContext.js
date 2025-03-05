@@ -8,6 +8,11 @@ import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
 import { v4 as uuidv4 } from 'uuid';
 import { getTimeoutDefault } from './helperFunctions';
+import { replicateFirestore } from 'rxdb/plugins/replication-firestore';
+import { useFirebase } from './FirebaseContext';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, collection } from 'firebase/firestore';
+
 addRxPlugin(RxDBMigrationSchemaPlugin);
 
 if (__DEV__) {
@@ -381,11 +386,15 @@ const commsQueueSchema = {
   required: ['id', 'fileId', 'created', 'type']
 };
 
+const projectId = 'opsrisk-1b86f';
+
 export const RxDBContext = createContext();
 
 export const RxDBProvider = ({ children }) => {
   const filesDBRef = useRef(null);
   const dbReady = useRef(false);
+
+  const { waitForFirebaseReady } = useFirebase();
 
   useEffect(() => {
     const initialize = async () => {
@@ -497,6 +506,174 @@ export const RxDBProvider = ({ children }) => {
     };
 
     initialize();
+  }, []);
+
+  useEffect(() => {
+    Promise.all([waitForInit, waitForFirebaseReady]).then((values) => {
+      console.log("all ready!");
+      var filesReplicationState;
+      var teamsReplicationState;
+      var logsReplicationState;
+      var peopleReplicationState;
+      var equipmentReplicationState;
+      var tasksReplicationState;
+      var cluesReplicationState;
+      var commsQueueReplicationState;
+      const unsubscribe = onAuthStateChanged(getAuth(), (user) => {
+        console.log("User state changed.");
+        // TODO: Stop using this for authentication
+        if (user && user.email.endsWith('@ca-sar.org')) {
+          console.log("User is signed in.");
+          const firestoreDatabase = getFirestore();
+
+          const firestoreFilesCollection = collection(firestoreDatabase, 'rx-files');
+          filesReplicationState = replicateFirestore(
+            {
+              replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+              collection: filesDBRef.current.files,
+              firestore: {
+                projectId,
+                database: firestoreDatabase,
+                collection: firestoreFilesCollection
+              },
+              pull: {},
+              push: {},
+              live: true,
+              serverTimestampField: 'serverTimestamp'
+            }
+          );
+
+          const firestoreTeamsCollection = collection(firestoreDatabase, 'rx-teams');
+          teamsReplicationState = replicateFirestore(
+            {
+              replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+              collection: filesDBRef.current.teams,
+              firestore: {
+                projectId,
+                database: firestoreDatabase,
+                collection: firestoreTeamsCollection
+              },
+              pull: {},
+              push: {},
+              live: true,
+              serverTimestampField: 'serverTimestamp'
+            }
+          );
+
+          const firestoreLogsCollection = collection(firestoreDatabase, 'rx-logs');
+          logsReplicationState = replicateFirestore(
+            {
+              replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+              collection: filesDBRef.current.logs,
+              firestore: {
+                projectId,
+                database: firestoreDatabase,
+                collection: firestoreLogsCollection
+              },
+              pull: {},
+              push: {},
+              live: true,
+              serverTimestampField: 'serverTimestamp'
+            }
+          );
+
+          const firestorePeopleCollection = collection(firestoreDatabase, 'rx-people');
+          peopleReplicationState = replicateFirestore(
+            {
+              replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+              collection: filesDBRef.current.people,
+              firestore: {
+                projectId,
+                database: firestoreDatabase,
+                collection: firestorePeopleCollection
+              },
+              pull: {},
+              push: {},
+              live: true,
+              serverTimestampField: 'serverTimestamp'
+            }
+          );
+
+          const firestoreEquipmentCollection = collection(firestoreDatabase, 'rx-equipment');
+          equipmentReplicationState = replicateFirestore(
+            {
+              replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+              collection: filesDBRef.current.equipment,
+              firestore: {
+                projectId,
+                database: firestoreDatabase,
+                collection: firestoreEquipmentCollection
+              },
+              pull: {},
+              push: {},
+              live: true,
+              serverTimestampField: 'serverTimestamp'
+            }
+          );
+
+          const firestoreTasksCollection = collection(firestoreDatabase, 'rx-tasks');
+          tasksReplicationState = replicateFirestore(
+            {
+              replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+              collection: filesDBRef.current.tasks,
+              firestore: {
+                projectId,
+                database: firestoreDatabase,
+                collection: firestoreTasksCollection
+              },
+              pull: {},
+              push: {},
+              live: true,
+              serverTimestampField: 'serverTimestamp'
+            }
+          );
+
+          const firestoreCluesCollection = collection(firestoreDatabase, 'rx-clues');
+          cluesReplicationState = replicateFirestore(
+            {
+              replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+              collection: filesDBRef.current.clues,
+              firestore: {
+                projectId,
+                database: firestoreDatabase,
+                collection: firestoreCluesCollection
+              },
+              pull: {},
+              push: {},
+              live: true,
+              serverTimestampField: 'serverTimestamp'
+            }
+          );
+
+          const firestoreCommsQueueCollection = collection(firestoreDatabase, 'rx-commsQueue');
+          commsQueueReplicationState = replicateFirestore(
+            {
+              replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+              collection: filesDBRef.current.commsQueue,
+              firestore: {
+                projectId,
+                database: firestoreDatabase,
+                collection: firestoreCommsQueueCollection
+              },
+              pull: {},
+              push: {},
+              live: true,
+              serverTimestampField: 'serverTimestamp'
+            }
+          );
+        } else {
+          if (filesReplicationState) filesReplicationState.remove();
+          if (teamsReplicationState) teamsReplicationState.remove();
+          if (logsReplicationState) logsReplicationState.remove();
+          if (peopleReplicationState) peopleReplicationState.remove();
+          if (equipmentReplicationState) equipmentReplicationState.remove();
+          if (tasksReplicationState) tasksReplicationState.remove();
+          if (cluesReplicationState) cluesReplicationState.remove();
+          if (commsQueueReplicationState) commsQueueReplicationState.remove();
+        }
+      });
+      return () => unsubscribe();
+    });
   }, []);
 
   const waitForInit = () => {

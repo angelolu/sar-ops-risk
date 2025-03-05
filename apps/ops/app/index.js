@@ -6,18 +6,20 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { RxDBContext } from '../components/RxDBContext';
 import { getElapsedTimeString, getSimpleDateString } from '../components/helperFunctions';
+import { useFirebase } from '../components/FirebaseContext';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default function App() {
     const styles = pageStyles();
     const textStyle = textStyles();
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
     const { width } = useWindowDimensions();
+    const { createFile, getFiles, deleteFile } = useContext(RxDBContext)
+
+    setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
 
     const [files, setFiles] = useState([]);
     const [modalDocument, setModalDocument] = useState(false);
-
-    const { createFile, getFiles, deleteFile } = useContext(RxDBContext)
 
     useEffect(() => {
         getFiles().then(query => {
@@ -44,6 +46,7 @@ export default function App() {
         <View style={styles.background}>
             <Header style={styles.header}>
                 <BrandingBar
+                    noLogo
                     textColor={styles.header.color}
                     title="Operation Management Tools"
                     menuButton={<IconButton
@@ -55,16 +58,19 @@ export default function App() {
             </Header>
             <ScrollView
                 contentContainerStyle={[styles.mainScroll, { width: (width > 1200 ? 1200 : width) }]}>
+                <Banner
+                    backgroundColor={colorTheme.secondaryContainer}
+                    color={colorTheme.onSecondaryContainer}
+                    icon={<Ionicons name="document-lock" size={24} color={colorTheme.onSecondaryContainer} />}
+                    title="This app is a work in progress. Please only use it at training events and don't input sensitive data. There is a risk of data loss."
+                />
                 <View style={{ flexDirection: "row", gap: 8, justifyContent: "space-between", alignItems: "center" }}>
                     <Text style={textStyle.pageNameText}>Files</Text>
                     <View style={{ flexDirection: "row", gap: 16 }}>
-                        {width > 600 ?
-                            <FilledButton small={width <= 600} icon="folder-open" text="Open" onPress={() => { }} /> :
-                            <IconButton small tonal ionicons_name="folder-open" onPress={() => { }} />}
-
                         <FilledButton primary small={width <= 600} icon="add" text="New file" onPress={() => handleNewFile()} />
                     </View>
                 </View>
+                <SignInComponent />
                 <View style={{ gap: 20 }}>
                     {files.length === 0 ?
                         <View style={{ flexDirection: (width > 600 ? "row" : "column"), gap: 12, flexWrap: (width > 600 ? "wrap" : "no-wrap") }}>
@@ -72,7 +78,7 @@ export default function App() {
                                 backgroundColor={colorTheme.surfaceContainer}
                                 color={colorTheme.onSurface}
                                 icon={<Ionicons name="flame-outline" size={24} color={colorTheme.onSurface} />}
-                                title={"Create your first file or import a file with the buttons above"} />
+                                title={"Create your first file with the button above"} />
                             <Banner
                                 backgroundColor={colorTheme.surfaceContainer}
                                 color={colorTheme.onSurface}
@@ -82,7 +88,7 @@ export default function App() {
                                 backgroundColor={colorTheme.surfaceContainer}
                                 color={colorTheme.onSurface}
                                 icon={<Ionicons name="hourglass-outline" size={24} color={colorTheme.onSurface} />}
-                                title={"Adjust app settings, such as the contact timeout, by tapping the cog icon in the header"} />
+                                title={"Adjust app settings, such as the theme, by tapping the cog icon in the header"} />
                         </View>
                         :
                         <View style={[styles.filesSection, { flexDirection: "column-reverse" }]}>
@@ -129,6 +135,49 @@ export default function App() {
     );
 }
 
+const SignInComponent = () => {
+    const textStyle = textStyles();
+    const styles = pageStyles();
+
+    const { signInWithGoogle, waitForFirebaseReady } = useFirebase();
+    const [user, setUser] = useState(null);
+
+    // Start tracking firebase auth state
+    useEffect(() => {
+        waitForFirebaseReady().then(() => {
+            const unsubscribe = onAuthStateChanged(getAuth(), (user) => {
+                setUser(user);
+            });
+            return () => unsubscribe();
+        });
+    }, []);
+
+    return <View style={styles.card}>
+        <View style={{ flexDirection: "row", gap: 12, justifyContent: "space-between", alignItems: "center" }}>
+            <>{user ?
+                <>
+                    <View style={{ flexDirection: "column", gap: 4 }}>
+                        <Text style={textStyle.cardTitleText}>Hey {user.displayName}!</Text>
+                        <Text style={textStyle.text}>{`Your files are being synced in real-time, when possible.`}</Text>
+                    </View>
+                    <FilledButton onPress={() => getAuth().signOut()} text="Sign Out" />
+                </>
+                :
+                <>
+                    <View style={{ flexDirection: "column", gap: 4 }}>
+                        <Text style={textStyle.cardTitleText}>Not signed in</Text>
+                        <Text style={textStyle.text}>Files will only be saved in this browser.</Text>
+                        <Text style={textStyle.secondaryText}>Have a @ca-sar.org email? Sign in to collaborate with your team. Your existing files will be uploaded. This can't be undone.</Text>
+                    </View>
+                    <FilledButton primary icon="log-in-outline" text="Sign in with Google" onPress={() => signInWithGoogle()} />
+                </>
+            }</>
+        </View>
+
+    </View>;
+}
+
+
 const pageStyles = () => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
@@ -162,13 +211,10 @@ const pageStyles = () => {
             overflow: 'hidden'
         },
         card: {
-            borderRadius: 6,
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: width > 600 ? 12 : 8,
-            justifyContent: 'space-between',
+            padding: 24,
+            gap: 8,
+            borderRadius: 26,
+            overflow: 'hidden',
             backgroundColor: colorTheme.surfaceContainer
         },
         text: {
