@@ -3,10 +3,12 @@ import { useContext } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Modal from "react-native-modal";
 import { ThemeContext } from './ThemeContext';
+import { textStyles } from './styles';
 
 export function RiskModal({ isVisible, children, onClose, height = 0, title, overrideWidth }) {
     const { colorTheme } = useContext(ThemeContext);
     const styles = modalStyles();
+    const textStyle = textStyles();
 
     return (
         <Modal
@@ -20,7 +22,7 @@ export function RiskModal({ isVisible, children, onClose, height = 0, title, ove
             propagateSwipe>
             <View style={[styles.modalContent, overrideWidth && { maxWidth: overrideWidth }, height > 0 && { height: height }, { backgroundColor: colorTheme.surfaceContainerHigh }]}>
                 <View style={styles.titleContainer}>
-                    <Text style={styles.title}>{title}</Text>
+                    <Text style={textStyle.pageNameText}>{title}</Text>
                     <View style={styles.backButtonContainer}>
                         <Pressable
                             style={styles.circleButton}

@@ -9,6 +9,7 @@ var _react = require("react");
 var _reactNative = require("react-native");
 var _reactNativeModal = _interopRequireDefault(require("react-native-modal"));
 var _ThemeContext = require("./ThemeContext");
+var _styles = require("./styles");
 var _jsxRuntime = require("react/jsx-runtime");
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
 function RiskModal(_ref) {
@@ -22,6 +23,7 @@ function RiskModal(_ref) {
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext.colorTheme;
   var styles = modalStyles();
+  var textStyle = (0, _styles.textStyles)();
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNativeModal["default"], {
     isVisible: isVisible,
     onBackdropPress: onClose,
@@ -45,7 +47,7 @@ function RiskModal(_ref) {
       children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
         style: styles.titleContainer,
         children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-          style: styles.title,
+          style: textStyle.pageNameText,
           children: title
         }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
           style: styles.backButtonContainer,

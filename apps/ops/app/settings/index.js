@@ -1,45 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BackHeader, Banner, ThemeContext } from 'calsar-ui';
+import { BackHeader, Banner, textStyles, ThemeContext } from 'calsar-ui';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useEffect, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
-
-const saveData = async (key, value) => {
-    try {
-        const jsonValue = JSON.stringify(value);
-        await AsyncStorage.setItem(key, jsonValue);
-    } catch (e) {
-        // saving error
-    }
-};
-
-const getData = async (key) => {
-    try {
-        const jsonValue = await AsyncStorage.getItem(key);
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-        // error reading value
-    }
-};
+import { Platform, ScrollView, StyleSheet, Text, useColorScheme, useWindowDimensions, View } from 'react-native';
+import { getAsyncStorageData, saveAsyncStorageData } from '../../components/helperFunctions';
 
 export default function Settings() {
-    const styles = pageStyles();
-    const riskStyles = riskInputStyles();
     const { colorTheme, changeColorScheme, colorScheme } = useContext(ThemeContext);
-    setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
 
-    const disabledColor = colorTheme.onSurfaceVariant;
+    const styles = pageStyles();
+    const textStyle = textStyles();
 
     const [appearanceState, setAppearanceState] = useState(1);
+
+    setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
+    const disabledColor = colorTheme.onSurfaceVariant;
+
     const saveAppearance = (value) => {
         setAppearanceState(value);
-        saveData("appearance", value);
+        saveAsyncStorageData("appearance", value);
     };
 
     useEffect(() => {
         // Load saved settings
-        getData("appearance").then((value) => { value && setAppearanceState(value) });
+        getAsyncStorageData("appearance").then((value) => { value && setAppearanceState(value) });
     }, []);
 
     const { height, width } = useWindowDimensions();
@@ -59,37 +43,40 @@ export default function Settings() {
                 ]}
                 contentContainerStyle={styles.mainScroll}>
                 <View>
-                    <Text style={styles.headings}>Appearance</Text>
+                    <Text style={textStyle.sectionTitleText}>Appearance</Text>
                     <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
                         <Banner
                             backgroundColor={appearanceState === 1 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={appearanceState === 1 ? colorTheme.secondary : disabledColor}
                             icon={<Ionicons name={appearanceState === 1 ? "star-half" : "star-half-outline"} size={24} color={appearanceState === 1 ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={appearanceState === 1 && riskStyles.boldText}>Device Default</Text> ({baseColorScheme})</>}
+                            title={<>Device Default ({baseColorScheme})</>}
                             onPress={() => {
                                 saveAppearance(1);
                                 changeColorScheme(baseColorScheme);
                             }}
+                            selected={appearanceState === 1}
                             noRadius />
                         <Banner
                             backgroundColor={appearanceState === 2 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={appearanceState === 2 ? colorTheme.secondary : disabledColor}
                             icon={<Ionicons name={appearanceState === 2 ? "sunny" : "sunny-outline"} size={24} color={appearanceState === 2 ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={appearanceState === 2 && riskStyles.boldText}>Light</Text></>}
+                            title={<>Light</>}
                             onPress={() => {
                                 saveAppearance(2);
                                 changeColorScheme('light');
                             }}
+                            selected={appearanceState === 2}
                             noRadius />
                         <Banner
                             backgroundColor={appearanceState === 3 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={appearanceState === 3 ? colorTheme.secondary : disabledColor}
                             icon={<Ionicons name={appearanceState === 3 ? "moon" : "moon-outline"} size={24} color={appearanceState === 3 ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={appearanceState === 3 && riskStyles.boldText}>Dark</Text></>}
+                            title={<>Dark</>}
                             onPress={() => {
                                 saveAppearance(3);
                                 changeColorScheme('dark');
                             }}
+                            selected={appearanceState === 3}
                             noRadius />
 
                     </View>
@@ -119,9 +106,6 @@ const pageStyles = () => {
             alignSelf: 'center'
         },
         listContainer: {
-        },
-        boldText: {
-            fontWeight: 'bold',
         },
         mainScroll: {
             paddingTop: 20,
@@ -154,9 +138,6 @@ const riskInputStyles = () => {
         description: {
             flex: -1,
             flexShrink: 1
-        },
-        boldText: {
-            fontWeight: 'bold',
         },
     });
 }

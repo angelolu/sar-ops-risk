@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ThemeContext } from 'calsar-ui';
 
 export function TabButton({ icon, title, active, onClick }) {
-    const { colorTheme, colorScheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ThemeContext);
     const [focus, setFocus] = useState(false);
 
     let focusColor = active ? colorTheme.secondaryFixed + Math.round(0.8 * 255).toString(16).toUpperCase() : colorTheme.primary + Math.round(0.3 * 255).toString(16).toUpperCase();
@@ -56,13 +56,20 @@ export default function TabContainer({ tabs, activeTab, setActiveTab, readOnly =
     const styles = pageStyles();
     const { colorTheme } = useContext(ThemeContext);
     const activeTabContent = tabs.find(tab => tab.name === activeTab)?.content;
+    const noContainer = tabs.find(tab => tab.name === activeTab)?.noContainer || false;
 
     return (
         <View style={{ flexGrow: 1, flexShrink: 1 }}>
-            <ScrollView
-                contentContainerStyle={[styles.mainScroll]}>
-                {activeTabContent}
-            </ScrollView>
+            {noContainer ?
+                <>
+                    {activeTabContent}
+                </>
+                :
+                <ScrollView
+                    contentContainerStyle={[styles.mainScroll]}>
+                    {activeTabContent}
+                </ScrollView>
+            }
             {!readOnly && <View style={{ flexDirection: "row", height: 80, backgroundColor: colorTheme.surfaceContainerLow }}>
                 {tabs.filter(item => !item.bottom).map(item => (
                     <TabButton key={item.name} title={item.name} icon={item.icon} active={item.name === activeTab} onClick={() => { setActiveTab(item.name) }} />
@@ -81,10 +88,6 @@ const pageStyles = () => {
             height: '100%'
         },
         mainScroll: {
-            paddingTop: 16,
-            paddingBottom: 16,
-            paddingRight: 16,
-            paddingLeft: 16,
             gap: 20,
         },
         container: {

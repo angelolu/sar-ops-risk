@@ -1,118 +1,153 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router, useFocusEffect } from 'expo-router';
+import { Banner, BrandingBar, FilledButton, Header, IconButton, MaterialCard, RiskModal, textStyles, ThemeContext, Tile } from 'calsar-ui';
+import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import React, { useCallback, useContext, useState } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { FilledButton, IconButton, BrandingBar, Header, Tile, RiskModal, ThemeContext, MaterialCard, Banner } from 'calsar-ui';
+import { useFirebase } from '../components/FirebaseContext';
+import { RxDBContext } from '../components/RxDBContext';
+import { getAsyncStorageData, getElapsedTimeString, getSimpleDateString, saveAsyncStorageData } from '../components/helperFunctions';
 
 export default function App() {
     const styles = pageStyles();
+    const textStyle = textStyles();
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
     const { width } = useWindowDimensions();
+    const { createFile, getFiles, deleteFile, restartSync } = useContext(RxDBContext)
+    const { waitForFirebaseReady } = useFirebase();
+
+    setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
 
     const [files, setFiles] = useState([]);
-    const [modalShowing, setModalShowing] = useState(false);
+    const [syncedFiles, setSyncedFiles] = useState([]);
+    const [modalDocument, setModalDocument] = useState(false);
+    const [user, setUser] = useState(null);
 
-    useFocusEffect(
-        // Callback should be wrapped in `React.useCallback` to avoid running the effect too often.
-        useCallback(() => {
-            // Invoked whenever the route is focused.
-            reloadData();
-        }, [])
-    );
-
-    const reloadData = () => {
-        getData("localFiles").then((value) => {
-            if (value) {
-                let fileLoadingPromises = value.map(fileUUID => getData(fileUUID + "-incidentInfo"));
-                Promise.allSettled(fileLoadingPromises).then((results) => {
-                    let newFiles = [];
-                    results.forEach((result) => result.value && newFiles.push(result.value))
-                    setFiles(newFiles);
+    useEffect(() => {
+        getFiles().then(query => {
+            query.$.subscribe(files => {
+                let newFiles = [];
+                files.forEach((result) => newFiles.push(result));
+                setFiles(newFiles);
+                getAsyncStorageData("readyFiles").then(syncedFiles => {
+                    setSyncedFiles(syncedFiles || []);
                 });
-            }
+            });
+            return () => { query.$.unsubscribe() };
+        });
+        waitForFirebaseReady().then(() => {
+            onAuthStateChanged(getAuth(), (user) => {
+                setUser(user);
+            });
+        });
+    }, []);
+
+    const handleDeleteFile = (file) => {
+        deleteFile(file);
+    }
+
+    const handleNewFile = () => {
+        createFile().then(id => {
+            getAsyncStorageData("readyFiles").then(syncedFiles => {
+                saveAsyncStorageData("readyFiles", syncedFiles ? [...syncedFiles, id] : [id]);
+            });
+            getAsyncStorageData("syncedFiles").then(syncedFiles => {
+                setSyncedFiles(syncedFiles ? [...syncedFiles, id] : [id]);
+            });
+            router.navigate(id);
         });
     }
 
-    const deleteFileWithUUID = (UUID) => {
-        getData("localFiles").then((value) => {
-            if (value) {
-                const index = value.indexOf(UUID);
-                if (index > -1) {
-                    value.splice(index, 1);
-                }
-                saveData("localFiles", value)
+    const handleClickToOpen = (fileId) => {
+        // Start syncing file
+        if (user) {
+            if (!syncedFiles.includes(fileId)) {
+                const newSyncedFiles = [...syncedFiles, fileId];
+                setSyncedFiles(newSyncedFiles);
+                saveAsyncStorageData("syncedFiles", newSyncedFiles).then(() => {
+                    restartSync();
+                    // poll "readyFiles" until it includes fileId
+                    const interval = setInterval(() => {
+                        getAsyncStorageData("readyFiles").then(readyFiles => {
+                            if (readyFiles && readyFiles.includes(fileId)) {
+                                clearInterval(interval);
+                                console.log("File is ready to open");
+                                router.navigate(fileId);
+                            }
+                        });
+                    }, 1000);
+                });
+            } else {
+                router.navigate(fileId);
             }
-        })
-        removeItem(UUID + "-incidentInfo");
-        removeItem(UUID + "-userInfo");
-        removeItem(UUID + "-teamsInfo");
-        removeItem(UUID + "-auditInfo");
+        } else {
+            router.navigate(fileId);
+        }
     }
 
     return (
         <View style={styles.background}>
             <Header style={styles.header}>
                 <BrandingBar
+                    noLogo
                     textColor={styles.header.color}
                     title="Operation Management Tools"
                     menuButton={<IconButton
                         ionicons_name={"settings-outline"}
                         onPress={() => { router.navigate("settings") }}
-                        color={colorTheme.onPrimaryContainer}
+                        color={styles.header.color}
                         size={24} />}
                 />
             </Header>
             <ScrollView
                 contentContainerStyle={[styles.mainScroll, { width: (width > 1200 ? 1200 : width) }]}>
+                <Banner
+                    backgroundColor={colorTheme.secondaryContainer}
+                    color={colorTheme.onSecondaryContainer}
+                    icon={<Ionicons name="document-lock" size={24} color={colorTheme.onSecondaryContainer} />}
+                    title="This app is a work in progress. Please only use it at training events and don't input sensitive data. There is a risk of data loss."
+                />
                 <View style={{ flexDirection: "row", gap: 8, justifyContent: "space-between", alignItems: "center" }}>
-                    <Text style={styles.headerText}>Files</Text>
+                    <Text style={textStyle.pageNameText}>Files</Text>
                     <View style={{ flexDirection: "row", gap: 16 }}>
-                        {width > 600 ?
-                            <FilledButton small={width <= 600} icon="folder-open" text="Open" onPress={() => { }} /> :
-                            <IconButton small tonal ionicons_name="folder-open" onPress={() => { }} />}
-
-                        <FilledButton primary small={width <= 600} icon="add" text="New file" onPress={() => router.navigate("/new")} />
+                        <FilledButton primary small={width <= 600} icon="add" text="New file" onPress={() => handleNewFile()} />
                     </View>
                 </View>
+                <SignInComponent />
                 <View style={{ gap: 20 }}>
                     {files.length === 0 ?
-                        <MaterialCard
-                            noMargin
-                            title="Let's get started!">
-
-                            <View style={{ flexDirection: (width > 600 ? "row" : "column"), gap: 12, marginTop: 14, flexWrap: (width > 600 ? "wrap" : "no-wrap") }}>
-                                <Banner
-                                    backgroundColor={colorTheme.surfaceContainerHigh}
-                                    color={colorTheme.onSurface}
-                                    icon={<Ionicons name="planet" size={24} color={colorTheme.onSurface} />}
-                                    title={"Create your first file or open a file using the buttons above"} />
-                                <Banner
-                                    backgroundColor={colorTheme.surfaceContainerHigh}
-                                    color={colorTheme.onSurface}
-                                    icon={<Ionicons name="trail-sign" size={24} color={colorTheme.onSurface} />}
-                                    title={"Making one file per operational period is recommended"} />
-                                <Banner
-                                    backgroundColor={colorTheme.surfaceContainerHigh}
-                                    color={colorTheme.onSurface}
-                                    icon={<Ionicons name="hourglass" size={24} color={colorTheme.onSurface} />}
-                                    title={"Adjust app settings, such as the contact timeout, by tapping the cog icon in the header"} />
-                            </View>
-                        </ MaterialCard>
-
+                        <View style={{ flexDirection: (width > 600 ? "row" : "column"), gap: 12, flexWrap: (width > 600 ? "wrap" : "no-wrap") }}>
+                            <Banner
+                                backgroundColor={colorTheme.surfaceContainer}
+                                color={colorTheme.onSurface}
+                                icon={<Ionicons name="flame-outline" size={24} color={colorTheme.onSurface} />}
+                                title={"Create your first file with the button above"} />
+                            <Banner
+                                backgroundColor={colorTheme.surfaceContainer}
+                                color={colorTheme.onSurface}
+                                icon={<Ionicons name="documents-outline" size={24} color={colorTheme.onSurface} />}
+                                title={"Making one file per operational period is recommended"} />
+                            <Banner
+                                backgroundColor={colorTheme.surfaceContainer}
+                                color={colorTheme.onSurface}
+                                icon={<Ionicons name="hourglass-outline" size={24} color={colorTheme.onSurface} />}
+                                title={"Adjust app settings, such as the theme, by tapping the cog icon in the header"} />
+                        </View>
                         :
-                        <View style={[styles.timerSection, { flexDirection: "column-reverse" }]}>
+                        <View style={[styles.filesSection, { flexDirection: "column-reverse" }]}>
                             {files.map(item => (
                                 <Tile
-                                    key={item.uuid}
-                                    href={"/" + item.uuid}
+                                    key={item.id}
+                                    onPress={() => handleClickToOpen(item.id)}
                                     icon={<Ionicons name="document" size={20} color={colorTheme.primary} />}
-                                    title={item.name || "Untitled file"}
-                                    subtitle={("Created " + new Date(item.created).toLocaleString('en-US', { hour12: false }))}
+                                    title={item.fileName || "Untitled file"}
+                                    subtitle={(`Updated ${getElapsedTimeString(item.updated)}. Created ${getSimpleDateString(item.created)}.`)}
                                 >
-                                    <IconButton small ionicons_name="trash" onPress={() => { setModalShowing(item) }} />
+                                    <View style={{ flexDirection: "row", gap: 8 }}>
+                                        <IconButton small ionicons_name={syncedFiles.includes(item.id) ? "cloud-done-outline" : "cloud-outline"} />
+                                        <IconButton small ionicons_name="trash" onPress={() => { setModalDocument(item) }} />
+                                    </View>
                                 </Tile>
                             ))}
 
@@ -121,26 +156,25 @@ export default function App() {
                     <MaterialCard
                         noMargin
                         title="Disclaimer">
-                        <Text style={[styles.text]}>{`The app is provided "as is" without any warranties, express or implied. The author of the app shall not be liable for any errors or omissions in the app, including but not limited to bugs or malfunctions. You understand that using any software, including this app, involves the risk of data loss. It is your responsibility to maintain regular backups of all critical data and to have adequate fallback mechanisms. You assume all risks associated with the use of the app, including but not limited to any potential harm or injury resulting from reliance on the app's data or functionality.`}</Text>
+                        <Text style={[textStyle.secondaryText]}>{`The app is provided "as is" without any warranties, express or implied. The author of the app shall not be liable for any errors or omissions in the app, including but not limited to bugs or malfunctions. You understand that using any software, including this app, involves the risk of data loss. It is your responsibility to maintain regular backups of all critical data and to have adequate fallback mechanisms. You assume all risks associated with the use of the app, including but not limited to any potential harm or injury resulting from reliance on the app's data or functionality.`}</Text>
                     </MaterialCard>
                 </View>
             </ScrollView>
             <RiskModal
-                isVisible={modalShowing ? true : false}
+                isVisible={modalDocument ? true : false}
                 title={"Delete file?"}
-                onClose={() => { setModalShowing(false) }}>
+                onClose={() => { setModalDocument(false) }}>
                 <View style={{
                     padding: 20, paddingTop: 0, gap: 20
                 }}>
-                    <Text style={{ color: colorTheme.onSurface }}>{modalShowing.name || "This untitled file"} will be permanently deleted. Download the file before deleting if needed for record keeping.</Text>
+                    <Text style={textStyle.text}>{modalDocument.name || "This untitled file"} will be permanently deleted. Download the file before deleting if needed for record keeping.</Text>
                     <FilledButton
                         rightAlign
                         destructive
                         text={"Delete file"}
                         onPress={() => {
-                            deleteFileWithUUID(modalShowing.uuid);
-                            setModalShowing(false);
-                            reloadData();
+                            handleDeleteFile(modalDocument);
+                            setModalDocument(false);
                         }} />
                 </View>
             </RiskModal>
@@ -148,31 +182,48 @@ export default function App() {
     );
 }
 
-const removeItem = async (key) => {
-    try {
-        await AsyncStorage.removeItem(key);
-    } catch (e) {
-        // saving error
-    }
-};
+const SignInComponent = () => {
+    const textStyle = textStyles();
+    const styles = pageStyles();
 
-const saveData = async (key, value) => {
-    try {
-        const jsonValue = JSON.stringify(value);
-        await AsyncStorage.setItem(key, jsonValue);
-    } catch (e) {
-        // saving error
-    }
-};
+    const { signInWithGoogle, waitForFirebaseReady } = useFirebase();
+    const [user, setUser] = useState(null);
 
-const getData = async (key) => {
-    try {
-        const jsonValue = await AsyncStorage.getItem(key);
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-        // error reading value
-    }
-};
+    // Start tracking firebase auth state
+    useEffect(() => {
+        waitForFirebaseReady().then(() => {
+            const unsubscribe = onAuthStateChanged(getAuth(), (user) => {
+                setUser(user);
+            });
+            return () => unsubscribe();
+        });
+    }, []);
+
+    return <View style={styles.card}>
+        <View style={{ flexDirection: "row", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <>{user ?
+                <>
+                    <View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
+                        <Text style={textStyle.cardTitleText}>Hey {user.displayName}!</Text>
+                        <Text style={textStyle.text}>{`Your files are being synced in real-time, when possible.`}</Text>
+                    </View>
+                    <FilledButton onPress={() => getAuth().signOut()} text="Sign Out" />
+                </>
+                :
+                <>
+                    <View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
+                        <Text style={textStyle.cardTitleText}>Not signed in</Text>
+                        <Text style={textStyle.text}>Files will only be saved in this browser.</Text>
+                        <Text style={textStyle.secondaryText}>Have a @ca-sar.org email? Sign in to collaborate with your team. Your existing files will be uploaded. This can't be undone.</Text>
+                    </View>
+                    <FilledButton primary icon="log-in-outline" text="Sign in with Google" onPress={() => signInWithGoogle()} />
+                </>
+            }</>
+        </View>
+
+    </View>;
+}
+
 
 const pageStyles = () => {
     const { colorTheme } = useContext(ThemeContext);
@@ -201,52 +252,17 @@ const pageStyles = () => {
             gap: 20,
             alignSelf: 'center',
         },
-        sectionTitle: {
-            color: colorTheme.onBackground,
-            fontSize: 20,
-        },
-        timerSection: {
+        filesSection: {
             gap: 4,
             borderRadius: 26,
             overflow: 'hidden'
         },
-        standaloneCard: {
+        card: {
+            padding: 24,
+            gap: 8,
             borderRadius: 26,
             overflow: 'hidden',
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-            justifyContent: 'space-between',
             backgroundColor: colorTheme.surfaceContainer
-        },
-        card: {
-            borderRadius: 6,
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: width > 600 ? 12 : 8,
-            justifyContent: 'space-between',
-            backgroundColor: colorTheme.surfaceContainer
-        },
-        sectionContainer: {
-            flexGrow: 1,
-            justifyContent: 'space-between',
-            flexDirection: 'column',
-        },
-        buttonContainer: {
-            marginTop: 12,
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            gap: 8
-        },
-        sectionTitleContainer: {
-            justifyContent: 'space-between',
-            alignItems: "center",
-            flexDirection: 'row',
-            gap: 8
         },
         text: {
             fontSize: width > 600 ? 14 : 12,
@@ -255,14 +271,6 @@ const pageStyles = () => {
         headerText: {
             fontSize: width > 600 ? 24 : 20,
             color: colorTheme.onBackground
-        },
-        sectionBodyText: {
-            fontSize: width > 600 ? 28 : 20,
-            color: colorTheme.onSurface
-        },
-        sectionBodyTextSmall: {
-            fontSize: width > 600 ? 20 : 16,
-            color: colorTheme.onSurface
         },
         header: {
             padding: 14,

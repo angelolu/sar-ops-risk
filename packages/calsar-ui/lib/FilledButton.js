@@ -8,6 +8,7 @@ var _react = require("react");
 var _reactNative = require("react-native");
 var _vectorIcons = require("@expo/vector-icons");
 var _ThemeContext = require("./ThemeContext");
+var _styles = require("./styles");
 var _jsxRuntime = require("react/jsx-runtime");
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -30,7 +31,9 @@ var FilledButton = exports.FilledButton = function FilledButton(_ref) {
     primary = _ref$primary === void 0 ? false : _ref$primary,
     _ref$rightAlign = _ref.rightAlign,
     rightAlign = _ref$rightAlign === void 0 ? false : _ref$rightAlign,
-    backgroundColor = _ref.backgroundColor;
+    backgroundColor = _ref.backgroundColor,
+    _ref$selected = _ref.selected,
+    selected = _ref$selected === void 0 ? false : _ref$selected;
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext.colorTheme,
     getHoverColor = _useContext.getHoverColor;
@@ -38,28 +41,31 @@ var FilledButton = exports.FilledButton = function FilledButton(_ref) {
     _useState2 = _slicedToArray(_useState, 2),
     focus = _useState2[0],
     setFocus = _useState2[1];
+  var textStyle = (0, _styles.textStyles)();
   var buttonStyle = buttonStyles();
   var disabledFun = function disabledFun() {};
   var buttonColors = {
     disabled: getHoverColor(colorTheme.onSurface, 0.3),
     "default": focus ? getHoverColor(colorTheme.surfaceContainerHigh) : "transparent",
     primary: focus ? getHoverColor(colorTheme.primary) : colorTheme.primary,
+    selected: focus ? getHoverColor(colorTheme.secondary) : colorTheme.secondary,
     destructive: focus ? getHoverColor(colorTheme.error, 0.1) : "transparent"
   };
   var textColors = {
     disabled: getHoverColor(colorTheme.surface),
     "default": colorTheme.secondary,
     primary: colorTheme.onPrimary,
+    selected: colorTheme.onSecondary,
     destructive: colorTheme.error
   };
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
     style: [buttonStyle.baseContainer, small && buttonStyle.smallBaseContainer, rightAlign && {
       alignSelf: 'flex-end'
     }, {
-      backgroundColor: disabled ? buttonColors.disabled : primary ? buttonColors.primary : destructive ? buttonColors.destructive : buttonColors["default"],
+      backgroundColor: selected ? buttonColors.selected : disabled ? buttonColors.disabled : primary ? buttonColors.primary : destructive ? buttonColors.destructive : buttonColors["default"],
       outlineStyle: "solid",
-      outlineWidth: disabled || primary ? 0 : 2,
-      outlineColor: destructive ? textColors.destructive : textColors["default"]
+      outlineWidth: 2,
+      outlineColor: destructive ? textColors.destructive : disabled ? buttonColors.disabled : primary ? buttonColors.primary : textColors["default"]
     }, backgroundColor && {
       backgroundColor: backgroundColor
     }],
@@ -86,8 +92,8 @@ var FilledButton = exports.FilledButton = function FilledButton(_ref) {
           size: small ? 16 : 20,
           color: disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors["default"]
         }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-          style: [buttonStyle.text, {
-            color: disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors["default"]
+          style: [textStyle.buttonText, {
+            color: selected ? textColors.selected : disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors["default"]
           }],
           children: text
         })]
@@ -119,6 +125,7 @@ var SegmentedButtons = exports.SegmentedButtons = function SegmentedButtons(_ref
     focusArray = _useState4[0],
     setFocusArray = _useState4[1];
   var buttonStyle = buttonStyles();
+  var textStyle = (0, _styles.textStyles)();
   var getButtonBGTheme = function getButtonBGTheme(focus, colorTheme) {
     var buttonColors = {
       disabled: getHoverColor(colorTheme.onSurface, 0.3),
@@ -189,7 +196,7 @@ var SegmentedButtons = exports.SegmentedButtons = function SegmentedButtons(_ref
             size: small ? 16 : 20,
             color: disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors["default"]
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-            style: [buttonStyle.text, {
+            style: [textStyle.buttonText, {
               color: disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors["default"]
             }],
             children: item
@@ -221,11 +228,6 @@ var buttonStyles = function buttonStyles() {
     smallPressable: {
       height: 34,
       paddingHorizontal: 16
-    },
-    text: {
-      userSelect: 'none',
-      color: colorTheme.secondary,
-      fontWeight: '500'
     }
   });
 };

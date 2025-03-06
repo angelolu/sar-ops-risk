@@ -18,7 +18,9 @@ var bannerHoverTimeout;
 function BrandingBar(_ref) {
   var textColor = _ref.textColor,
     title = _ref.title,
-    menuButton = _ref.menuButton;
+    menuButton = _ref.menuButton,
+    _ref$noLogo = _ref.noLogo,
+    noLogo = _ref$noLogo === void 0 ? false : _ref$noLogo;
   var wordmarkOpacity = (0, _reactNativeReanimated.useSharedValue)(1); // Shared value for opacity
   var titleOpacity = (0, _reactNativeReanimated.useSharedValue)(0);
   var workmarkDisplay = (0, _reactNativeReanimated.useSharedValue)('flex');
@@ -60,7 +62,7 @@ function BrandingBar(_ref) {
 
   // Animation on load
   (0, _react.useEffect)(function () {
-    animateBanner();
+    if (!noLogo) animateBanner();
     return function () {
       wordmarkOpacity.value = 0;
       titleDisplay.value = "flex";
@@ -72,7 +74,11 @@ function BrandingBar(_ref) {
   if (windowWidth > 600) {
     return /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
       style: styles.brandingBanner,
-      children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
+      children: [noLogo ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
+        style: {
+          flex: 1
+        }
+      }) : /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
         style: styles.webWorkmarkContainer,
         children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Image, {
           source: calsar,
@@ -118,34 +124,41 @@ function BrandingBar(_ref) {
     var onBannerExit = function onBannerExit() {
       clearInterval(bannerHoverTimeout);
     };
-    return /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
+    return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
       style: styles.brandingBanner,
       onTouchEnd: animateBanner,
       onPointerEnter: onBannerEnter,
       onPointerLeave: onBannerExit,
       onPointerUp: animateBanner,
-      children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNativeReanimated["default"].Image, {
-        source: calsar,
-        style: {
-          width: 35,
-          height: 35,
-          zIndex: 999
-        }
-      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNativeReanimated["default"].View, {
-        style: [wordmarkAnimatedStyle, styles.wordmarkStack],
-        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-          style: styles.wordmarkLine1,
-          children: "CALIFORNIA"
-        }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-          style: styles.wordmarkLine2,
-          children: "SEARCH & RESCUE"
-        })]
-      }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNativeReanimated["default"].Text, {
+      children: noLogo ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
         style: [styles.title, titleAnimatedStyle, {
           color: textColor
         }],
         children: title
-      })]
+      }) : /*#__PURE__*/(0, _jsxRuntime.jsxs)(_jsxRuntime.Fragment, {
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNativeReanimated["default"].Image, {
+          source: calsar,
+          style: {
+            width: 35,
+            height: 35,
+            zIndex: 999
+          }
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNativeReanimated["default"].View, {
+          style: [wordmarkAnimatedStyle, styles.wordmarkStack],
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
+            style: styles.wordmarkLine1,
+            children: "CALIFORNIA"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
+            style: styles.wordmarkLine2,
+            children: "SEARCH & RESCUE"
+          })]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNativeReanimated["default"].Text, {
+          style: [styles.title, titleAnimatedStyle, {
+            color: textColor
+          }],
+          children: title
+        })]
+      })
     });
   }
 }
