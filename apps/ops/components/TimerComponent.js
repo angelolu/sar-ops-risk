@@ -61,7 +61,6 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
                     message: changes
                 });
                 incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
-
             }
         }
     };

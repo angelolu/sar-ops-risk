@@ -1,26 +1,29 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useEffect, useRef } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { collection, getFirestore, where } from 'firebase/firestore';
+import React, { createContext, useEffect, useRef, useState } from 'react';
 import { addRxPlugin, createRxDatabase } from 'rxdb';
+import { RxDBCleanupPlugin } from 'rxdb/plugins/cleanup';
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 import { wrappedKeyCompressionStorage } from 'rxdb/plugins/key-compression';
+import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
 import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
+import { replicateFirestore } from 'rxdb/plugins/replication-firestore';
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
 import { v4 as uuidv4 } from 'uuid';
-import { getAsyncStorageData, getTimeoutDefault, saveAsyncStorageData } from './helperFunctions';
-import { replicateFirestore } from 'rxdb/plugins/replication-firestore';
 import { useFirebase } from './FirebaseContext';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, where } from 'firebase/firestore';
+import { getAsyncStorageData, getTimeoutDefault, saveAsyncStorageData } from './helperFunctions';
 
 addRxPlugin(RxDBMigrationSchemaPlugin);
+addRxPlugin(RxDBLeaderElectionPlugin);
+addRxPlugin(RxDBCleanupPlugin);
 
 if (__DEV__) {
   addRxPlugin(RxDBDevModePlugin);
 }
 
 const fileSchema = {
-  version: 1,
+  version: 2,
   keyCompression: true,
   primaryKey: 'id',
   type: 'object',
@@ -56,8 +59,12 @@ const fileSchema = {
     commsFrequency: {
       type: 'string',
     },
+    type: {
+      type: 'string',
+      enum: ['local', 'cloud']
+    },
   },
-  required: ['id', 'created']
+  required: ['id', 'created', 'type']
 }
 
 const teamSchema = {
@@ -398,12 +405,17 @@ var equipmentReplicationState;
 var tasksReplicationState;
 var cluesReplicationState;
 var commsQueueReplicationState;
+var firebaseAuthObserver;
 
 export const RxDBProvider = ({ children }) => {
   const filesDBRef = useRef(null);
   const dbReady = useRef(false);
+  const fileSyncWatchdogInterval = useRef(false);
 
   const { waitForFirebaseReady } = useFirebase();
+
+  const [isLeader, setIsLeader] = useState(false);
+  const [replicationStatus, setReplicationStatus] = useState({ started: false, status: false });
 
   useEffect(() => {
     const initialize = async () => {
@@ -433,6 +445,12 @@ export const RxDBProvider = ({ children }) => {
             migrationStrategies: {
               1: function (oldDoc) {
                 // Added commsCallsign, commsName and commsFrequency
+                return oldDoc;
+              },
+              2: function (oldDoc) {
+                // Added type
+                // Default to cloud
+                oldDoc.type = 'cloud';
                 return oldDoc;
               }
             }
@@ -508,6 +526,13 @@ export const RxDBProvider = ({ children }) => {
 
         filesDBRef.current = myDB;
         dbReady.current = true;
+
+        myDB.waitForLeadership()
+          .then(() => {
+            // console.log(`I'm the leader!`);
+            setIsLeader(true);
+          });
+
       } catch (error) {
         console.error('Initialization error:', error);
         // Handle initialization errors (e.g., display an error message)
@@ -517,14 +542,45 @@ export const RxDBProvider = ({ children }) => {
     initialize();
   }, []);
 
+  const resetWatchdog = () => {
+    if (fileSyncWatchdogInterval.current) clearTimeout(fileSyncWatchdogInterval.current);
+    fileSyncWatchdogInterval.current = setTimeout(() => {
+      setReplicationStatus({ started: true, status: false });
+    }, 1000);
+  };
+
+  const startWatchdog = () => {
+    Promise.allSettled([
+      filesReplicationState ? filesReplicationState.awaitInSync() : false,
+      teamsReplicationState ? teamsReplicationState.awaitInSync() : false,
+      logsReplicationState ? logsReplicationState.awaitInSync() : false,
+      peopleReplicationState ? peopleReplicationState.awaitInSync() : false,
+      equipmentReplicationState ? equipmentReplicationState.awaitInSync() : false,
+      tasksReplicationState ? tasksReplicationState.awaitInSync() : false,
+      cluesReplicationState ? cluesReplicationState.awaitInSync() : false,
+      commsQueueReplicationState ? commsQueueReplicationState.awaitInSync() : false
+    ]).then(() => {
+      resetWatchdog();
+      setReplicationStatus({ started: true, status: true });
+      // Wait for 500ms before checking again
+      setTimeout(() => {
+        startWatchdog();
+      }, 250);
+    })
+  };
+
+  const stopWatchdog = () => {
+    if (fileSyncWatchdogInterval.current) clearTimeout(fileSyncWatchdogInterval.current);
+    setReplicationStatus({ started: false, status: false });
+  };
+
   const restartSync = () => {
-    console.log("Restarting sync.");
-    Promise.all([waitForInit, waitForFirebaseReady]).then((values) => {
-      onAuthStateChanged(getAuth(), (user) => {
-        console.log("User state changed.");
+    console.log("Restarting sync service");
+    if (firebaseAuthObserver) firebaseAuthObserver();
+    Promise.all([waitForInit(), waitForFirebaseReady()]).then((values) => {
+      firebaseAuthObserver = onAuthStateChanged(getAuth(), (user) => {
         // TODO: Stop using this for authentication
         if (user && user.email.endsWith('@ca-sar.org')) {
-          console.log("User is signed in.");
           const firestoreDatabase = getFirestore();
 
           // Sync all file attributes
@@ -540,7 +596,9 @@ export const RxDBProvider = ({ children }) => {
                   collection: firestoreFilesCollection
                 },
                 pull: {},
-                push: {},
+                push: {
+                  filter: (item) => item.type === 'cloud'
+                },
                 live: true,
                 serverTimestampField: 'serverTimestamp'
               }
@@ -551,228 +609,303 @@ export const RxDBProvider = ({ children }) => {
           getAsyncStorageData("syncedFiles").then((syncedFiles) => {
             const files_to_sync = syncedFiles ? syncedFiles : [];
 
-            console.log("Syncing files:", files_to_sync);
-            if (files_to_sync.length > 0) {
-              const firestoreTeamsCollection = collection(firestoreDatabase, 'rx-teams');
-              teamsReplicationState = replicateFirestore(
-                {
-                  replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
-                  collection: filesDBRef.current.teams,
-                  firestore: {
-                    projectId,
-                    database: firestoreDatabase,
-                    collection: firestoreTeamsCollection
-                  },
-                  pull: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  live: true,
-                  serverTimestampField: 'serverTimestamp'
-                }
-              );
-              teamsReplicationState.error$.subscribe(err => {
-                console.error("Teams error:", err);
-              });
+            Promise.allSettled([
+              teamsReplicationState ? teamsReplicationState.cancel() : false,
+              logsReplicationState ? logsReplicationState.cancel() : false,
+              peopleReplicationState ? peopleReplicationState.cancel() : false,
+              equipmentReplicationState ? equipmentReplicationState.cancel() : false,
+              tasksReplicationState ? tasksReplicationState.cancel() : false,
+              cluesReplicationState ? cluesReplicationState.cancel() : false,
+              commsQueueReplicationState ? commsQueueReplicationState.cancel() : false
+            ]).then((ret) => {
+              // console.log("Replications stopped.");
+              teamsReplicationState = null;
+              logsReplicationState = null;
+              peopleReplicationState = null;
+              equipmentReplicationState = null;
+              tasksReplicationState = null;
+              cluesReplicationState = null;
+              commsQueueReplicationState = null;
+              stopWatchdog();
+              if (files_to_sync.length > 0) {
+                const firestoreTeamsCollection = collection(firestoreDatabase, 'rx-teams');
+                teamsReplicationState = replicateFirestore(
+                  {
+                    replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+                    collection: filesDBRef.current.teams,
+                    firestore: {
+                      projectId,
+                      database: firestoreDatabase,
+                      collection: firestoreTeamsCollection
+                    },
+                    pull: {
+                      filter: [
+                        where('fileId', 'in', files_to_sync)
+                      ]
+                    },
+                    push: {
+                      filter: (item) => files_to_sync.includes(item.fileId)
+                    },
+                    live: true,
+                    serverTimestampField: 'serverTimestamp'
+                  }
+                );
+                teamsReplicationState.error$.subscribe(err => {
+                  console.error("Teams error:", err);
+                });
 
-              const firestoreLogsCollection = collection(firestoreDatabase, 'rx-logs');
-              logsReplicationState = replicateFirestore(
-                {
-                  replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
-                  collection: filesDBRef.current.logs,
-                  firestore: {
-                    projectId,
-                    database: firestoreDatabase,
-                    collection: firestoreLogsCollection
-                  },
-                  pull: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  live: true,
-                  serverTimestampField: 'serverTimestamp'
-                }
-              );
-              logsReplicationState.error$.subscribe(err => {
-                console.error("Logs error:", err);
-              });
+                const firestoreLogsCollection = collection(firestoreDatabase, 'rx-logs');
+                logsReplicationState = replicateFirestore(
+                  {
+                    replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+                    collection: filesDBRef.current.logs,
+                    firestore: {
+                      projectId,
+                      database: firestoreDatabase,
+                      collection: firestoreLogsCollection
+                    },
+                    pull: {
+                      filter: [
+                        where('fileId', 'in', files_to_sync)
+                      ]
+                    },
+                    push: {
+                      filter: (item) => files_to_sync.includes(item.fileId)
+                    },
+                    live: true,
+                    serverTimestampField: 'serverTimestamp'
+                  }
+                );
+                logsReplicationState.error$.subscribe(err => {
+                  console.error("Logs error:", err);
+                });
 
-              const firestorePeopleCollection = collection(firestoreDatabase, 'rx-people');
-              peopleReplicationState = replicateFirestore(
-                {
-                  replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
-                  collection: filesDBRef.current.people,
-                  firestore: {
-                    projectId,
-                    database: firestoreDatabase,
-                    collection: firestorePeopleCollection
-                  },
-                  pull: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  live: true,
-                  serverTimestampField: 'serverTimestamp'
-                }
-              );
-              peopleReplicationState.error$.subscribe(err => {
-                console.error("People error:", err);
-              });
+                const firestorePeopleCollection = collection(firestoreDatabase, 'rx-people');
+                peopleReplicationState = replicateFirestore(
+                  {
+                    replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+                    collection: filesDBRef.current.people,
+                    firestore: {
+                      projectId,
+                      database: firestoreDatabase,
+                      collection: firestorePeopleCollection
+                    },
+                    pull: {
+                      filter: [
+                        where('fileId', 'in', files_to_sync)
+                      ]
+                    },
+                    push: {
+                      filter: (item) => files_to_sync.includes(item.fileId)
+                    },
+                    live: true,
+                    serverTimestampField: 'serverTimestamp'
+                  }
+                );
+                peopleReplicationState.error$.subscribe(err => {
+                  console.error("People error:", err);
+                });
 
-              const firestoreEquipmentCollection = collection(firestoreDatabase, 'rx-equipment');
-              equipmentReplicationState = replicateFirestore(
-                {
-                  replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
-                  collection: filesDBRef.current.equipment,
-                  firestore: {
-                    projectId,
-                    database: firestoreDatabase,
-                    collection: firestoreEquipmentCollection
-                  },
-                  pull: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  live: true,
-                  serverTimestampField: 'serverTimestamp'
-                }
-              );
-              equipmentReplicationState.error$.subscribe(err => {
-                console.error("Equipment error:", err);
-              });
+                const firestoreEquipmentCollection = collection(firestoreDatabase, 'rx-equipment');
+                equipmentReplicationState = replicateFirestore(
+                  {
+                    replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+                    collection: filesDBRef.current.equipment,
+                    firestore: {
+                      projectId,
+                      database: firestoreDatabase,
+                      collection: firestoreEquipmentCollection
+                    },
+                    pull: {
+                      filter: [
+                        where('fileId', 'in', files_to_sync)
+                      ]
+                    },
+                    push: {
+                      filter: (item) => files_to_sync.includes(item.fileId)
+                    },
+                    live: true,
+                    serverTimestampField: 'serverTimestamp'
+                  }
+                );
+                equipmentReplicationState.error$.subscribe(err => {
+                  console.error("Equipment error:", err);
+                });
 
-              const firestoreTasksCollection = collection(firestoreDatabase, 'rx-tasks');
-              tasksReplicationState = replicateFirestore(
-                {
-                  replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
-                  collection: filesDBRef.current.tasks,
-                  firestore: {
-                    projectId,
-                    database: firestoreDatabase,
-                    collection: firestoreTasksCollection
-                  },
-                  pull: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  live: true,
-                  serverTimestampField: 'serverTimestamp'
-                }
-              );
-              tasksReplicationState.error$.subscribe(err => {
-                console.error("Tasks error:", err);
-              });
+                const firestoreTasksCollection = collection(firestoreDatabase, 'rx-tasks');
+                tasksReplicationState = replicateFirestore(
+                  {
+                    replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+                    collection: filesDBRef.current.tasks,
+                    firestore: {
+                      projectId,
+                      database: firestoreDatabase,
+                      collection: firestoreTasksCollection
+                    },
+                    pull: {
+                      filter: [
+                        where('fileId', 'in', files_to_sync)
+                      ]
+                    },
+                    push: {
+                      filter: (item) => files_to_sync.includes(item.fileId)
+                    },
+                    live: true,
+                    serverTimestampField: 'serverTimestamp'
+                  }
+                );
+                tasksReplicationState.error$.subscribe(err => {
+                  console.error("Tasks error:", err);
+                });
 
-              const firestoreCluesCollection = collection(firestoreDatabase, 'rx-clues');
-              cluesReplicationState = replicateFirestore(
-                {
-                  replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
-                  collection: filesDBRef.current.clues,
-                  firestore: {
-                    projectId,
-                    database: firestoreDatabase,
-                    collection: firestoreCluesCollection
-                  },
-                  pull: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  live: true,
-                  serverTimestampField: 'serverTimestamp'
-                }
-              );
-              cluesReplicationState.error$.subscribe(err => {
-                console.error("Clues error:", err);
-              });
+                const firestoreCluesCollection = collection(firestoreDatabase, 'rx-clues');
+                cluesReplicationState = replicateFirestore(
+                  {
+                    replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+                    collection: filesDBRef.current.clues,
+                    firestore: {
+                      projectId,
+                      database: firestoreDatabase,
+                      collection: firestoreCluesCollection
+                    },
+                    pull: {
+                      filter: [
+                        where('fileId', 'in', files_to_sync)
+                      ]
+                    },
+                    push: {
+                      filter: (item) => files_to_sync.includes(item.fileId)
+                    },
+                    live: true,
+                    serverTimestampField: 'serverTimestamp'
+                  }
+                );
+                cluesReplicationState.error$.subscribe(err => {
+                  console.error("Clues error:", err);
+                });
 
-              const firestoreCommsQueueCollection = collection(firestoreDatabase, 'rx-commsQueue');
-              commsQueueReplicationState = replicateFirestore(
-                {
-                  replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
-                  collection: filesDBRef.current.commsQueue,
-                  firestore: {
-                    projectId,
-                    database: firestoreDatabase,
-                    collection: firestoreCommsQueueCollection
-                  },
-                  pull: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
-                  },
-                  live: true,
-                  serverTimestampField: 'serverTimestamp'
-                }
-              );
-              commsQueueReplicationState.error$.subscribe(err => {
-                console.error("CommsQueue error:", err);
-              });
+                const firestoreCommsQueueCollection = collection(firestoreDatabase, 'rx-commsQueue');
+                commsQueueReplicationState = replicateFirestore(
+                  {
+                    replicationIdentifier: `https://firestore.googleapis.com/${projectId}`,
+                    collection: filesDBRef.current.commsQueue,
+                    firestore: {
+                      projectId,
+                      database: firestoreDatabase,
+                      collection: firestoreCommsQueueCollection
+                    },
+                    pull: {
+                      filter: [
+                        where('fileId', 'in', files_to_sync)
+                      ]
+                    },
+                    push: {
+                      filter: (item) => files_to_sync.includes(item.fileId)
+                    },
+                    live: true,
+                    serverTimestampField: 'serverTimestamp'
+                  }
+                );
+                commsQueueReplicationState.error$.subscribe(err => {
+                  console.error("CommsQueue error:", err);
+                });
 
-              Promise.all([teamsReplicationState.awaitInSync(), logsReplicationState.awaitInSync(), peopleReplicationState.awaitInSync(), equipmentReplicationState.awaitInSync(), tasksReplicationState.awaitInSync(), cluesReplicationState.awaitInSync(), commsQueueReplicationState.awaitInSync()]).then((ret) => {
-                console.log("Sync complete.");
-                console.log(ret)
-                saveAsyncStorageData("readyFiles", files_to_sync);
-              });
-            }
+                startWatchdog();
+
+                Promise.all([teamsReplicationState.awaitInSync(), logsReplicationState.awaitInSync(), peopleReplicationState.awaitInSync(), equipmentReplicationState.awaitInSync(), tasksReplicationState.awaitInSync(), cluesReplicationState.awaitInSync(), commsQueueReplicationState.awaitInSync()]).then((ret) => {
+                  console.log("Sync complete.", ret);
+                  saveAsyncStorageData("readyFiles", files_to_sync);
+                });
+              }
+            });
           });
         } else {
-          if (filesReplicationState) filesReplicationState.remove();
-          if (teamsReplicationState) teamsReplicationState.remove();
-          if (logsReplicationState) logsReplicationState.remove();
-          if (peopleReplicationState) peopleReplicationState.remove();
-          if (equipmentReplicationState) equipmentReplicationState.remove();
-          if (tasksReplicationState) tasksReplicationState.remove();
-          if (cluesReplicationState) cluesReplicationState.remove();
-          if (commsQueueReplicationState) commsQueueReplicationState.remove();
+          stopWatchdog();
+          // Stop all replications
+          if (filesReplicationState || teamsReplicationState || logsReplicationState || peopleReplicationState || equipmentReplicationState || tasksReplicationState || cluesReplicationState || commsQueueReplicationState) {
+            Promise.allSettled([
+              filesReplicationState ? filesReplicationState.remove() : false,
+              teamsReplicationState ? teamsReplicationState.remove() : false,
+              logsReplicationState ? logsReplicationState.remove() : false,
+              peopleReplicationState ? peopleReplicationState.remove() : false,
+              equipmentReplicationState ? equipmentReplicationState.remove() : false,
+              tasksReplicationState ? tasksReplicationState.remove() : false,
+              cluesReplicationState ? cluesReplicationState.remove() : false,
+              commsQueueReplicationState ? commsQueueReplicationState.remove() : false
+            ]).then((ret) => {
+              // console.log("Replications stopped.", ret);
+              // Delete all the files where file.type === 'cloud'
+              let deletedFileIds = [];
+              filesDBRef.current.files.find().exec().then((files) => {
+                for (const file of files) {
+                  if (file.type === 'cloud') {
+                    deletedFileIds.push(file.id);
+                    file.incrementalRemove();
+                  }
+                }
+                // Remove all the teams, logs, people, equipment, tasks, clues, and commsQueue entries associated with the file
+                Promise.allSettled([
+                  filesDBRef.current.teams.find({
+                    selector: { fileId: { $in: deletedFileIds } }
+                  }).incrementalRemove(),
+
+                  filesDBRef.current.logs.find({
+                    selector: { fileId: { $in: deletedFileIds } }
+                  }).incrementalRemove(),
+
+                  filesDBRef.current.people.find({
+                    selector: { fileId: { $in: deletedFileIds } }
+                  }).incrementalRemove(),
+
+                  filesDBRef.current.equipment.find({
+                    selector: { fileId: { $in: deletedFileIds } }
+                  }).incrementalRemove(),
+
+                  filesDBRef.current.tasks.find({
+                    selector: { fileId: { $in: deletedFileIds } }
+                  }).incrementalRemove(),
+
+                  filesDBRef.current.clues.find({
+                    selector: { fileId: { $in: deletedFileIds } }
+                  }).incrementalRemove(),
+
+                  filesDBRef.current.commsQueue.find({
+                    selector: { fileId: { $in: deletedFileIds } }
+                  }).incrementalRemove()
+                ]).then(() => {
+                  // Run cleanup so the files are actually deleted and don't get deleted on the remote if the user signs in again
+                  Promise.allSettled([
+                    filesDBRef.current.files.cleanup(0),
+                    filesDBRef.current.teams.cleanup(0),
+                    filesDBRef.current.logs.cleanup(0),
+                    filesDBRef.current.people.cleanup(0),
+                    filesDBRef.current.equipment.cleanup(0),
+                    filesDBRef.current.tasks.cleanup(0),
+                    filesDBRef.current.clues.cleanup(0),
+                    filesDBRef.current.commsQueue.cleanup(0),
+                    saveAsyncStorageData("readyFiles", []),
+                    saveAsyncStorageData("syncedFiles", [])
+                  ]).then(() => {
+                    filesReplicationState = null;
+                    teamsReplicationState = null;
+                    logsReplicationState = null;
+                    peopleReplicationState = null;
+                    equipmentReplicationState = null;
+                    tasksReplicationState = null;
+                    cluesReplicationState = null;
+                    commsQueueReplicationState = null;
+                  });
+                });
+              });
+            });
+          }
         }
       });
     });
   }
 
   useEffect(() => {
-    const unsubscribe = restartSync();
-    // return () => { if (unsubscribe) unsubscribe() };
+    restartSync();
   }, []);
 
   const waitForInit = () => {
@@ -786,14 +919,15 @@ export const RxDBProvider = ({ children }) => {
     });
   }
 
-  const createFile = async () => {
+  const createFile = async (cloud = false) => {
     await waitForInit();
     return new Promise(async (resolve) => {
       const newFileUUID = uuidv4();
       const myDocument = await filesDBRef.current.files.insert({
         id: newFileUUID,
         created: new Date().toISOString(),
-        updated: new Date().toISOString()
+        updated: new Date().toISOString(),
+        type: cloud ? 'cloud' : 'local'
       });
       resolve(newFileUUID);
     });
@@ -802,6 +936,36 @@ export const RxDBProvider = ({ children }) => {
   const deleteFile = async (document) => {
     // todo: also delete all related rows in other tables
     await waitForInit();
+    await Promise.allSettled([
+      filesDBRef.current.teams.find({
+        selector: { fileId: document.id }
+      }).remove(),
+
+      filesDBRef.current.logs.find({
+        selector: { fileId: document.id }
+      }).remove(),
+
+      filesDBRef.current.people.find({
+        selector: { fileId: document.id }
+      }).remove(),
+
+      filesDBRef.current.equipment.find({
+        selector: { fileId: document.id }
+      }).remove(),
+
+      filesDBRef.current.tasks.find({
+        selector: { fileId: document.id }
+      }).remove(),
+
+      filesDBRef.current.clues.find({
+        selector: { fileId: document.id }
+      }).remove(),
+
+      filesDBRef.current.commsQueue.find({
+        selector: { fileId: document.id }
+      }).remove()
+    ]);
+    console.log(`Removed all data related to ${document.id}`);
     await document.remove();
   }
 
@@ -809,7 +973,7 @@ export const RxDBProvider = ({ children }) => {
     await waitForInit();
     return await filesDBRef.current.files.find({
       selector: {},
-      sort: [{ updated: 'asc' }]
+      sort: [{ updated: 'desc' }]
     });
   }
 
@@ -826,16 +990,6 @@ export const RxDBProvider = ({ children }) => {
     }
   }
 
-  const getData = async (key) => {
-    try {
-      const jsonValue = await AsyncStorage.getItem(key);
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-      // error reading value
-      return null;
-    }
-  };
-
   const createTeam = async (fileId, type = "", status = "") => {
     await waitForInit();
     return new Promise(async (resolve) => {
@@ -847,7 +1001,6 @@ export const RxDBProvider = ({ children }) => {
         type: type,
         status: status,
         flagged: false,
-        lastStart: ``,
         lastTimeRemaining: await getTimeoutDefault(),
         isRunning: false,
         created: new Date().toISOString(),
@@ -1147,6 +1300,7 @@ export const RxDBProvider = ({ children }) => {
 
   return (
     <RxDBContext.Provider value={{
+      isLeader,
       restartSync,
       createFile,
       getFiles,
@@ -1173,7 +1327,8 @@ export const RxDBProvider = ({ children }) => {
       createClue,
       getClueById,
       getCommsQueueMessagesByFileId,
-      createCommsQueueMessage
+      createCommsQueueMessage,
+      replicationStatus
     }}>
       {children}
     </RxDBContext.Provider>

@@ -312,7 +312,7 @@ export default function RailContainer({ file, tabs, activeTab, setActiveTab, rea
                             </>}
                         </PanelGroup >
                     </Panel>
-                    {<>
+                    {activeTab !== "Loading" && <>
                         <PanelResizeHandle
                             style={{ height: 3, backgroundColor: draggingBottomPanel ? colorTheme.outline : colorTheme.primaryContainer }}
                             onDragging={setDraggingBottomPanel} />

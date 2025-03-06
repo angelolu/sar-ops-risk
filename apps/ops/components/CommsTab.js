@@ -467,7 +467,7 @@ export const LogPanel = ({ incidentInfo, teams }) => {
 export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMarker }) => {
     const styles = pageStyles();
     const { width, height } = useWindowDimensions();
-    const { colorTheme } = useContext(ThemeContext);
+    const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const { createTeam } = useContext(RxDBContext)
 
     const [logTrafficTeam, setLogTrafficTeam] = useState();
@@ -508,7 +508,7 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
                 <Text style={styles.sectionTitle}></Text>
                 <View style={{ flexDirection: "row", gap: 14 }}>
                     {false && width > 600 && <FilledButton small={height < 500} backgroundColor={colorTheme.background} disabled={teams.length === 0} icon={expanded ? "chevron-up-outline" : "chevron-down-outline"} text={expanded ? "Hide last" : "Show last"} onPress={() => setExpanded(!expanded)} />}
-                    <FilledButton small={width <= 600 || height < 500} backgroundColor={colorTheme.background} disabled={activeTeams.length === 0} icon={areTimersRunning ? "pause" : "play"} text={areTimersRunning ? "Pause all" : "Resume all"} onPress={() => setAllIsRunning(!areTimersRunning)} />
+                    <FilledButton small={width <= 600 || height < 500} backgroundColor={activeTeams.length === 0 ? getHoverColor(colorTheme.onSurface, 0.3) : colorTheme.background} disabled={activeTeams.length === 0} icon={areTimersRunning ? "pause" : "play"} text={areTimersRunning ? "Pause all" : "Resume all"} onPress={() => setAllIsRunning(!areTimersRunning)} />
                     <FilledButton small={width <= 600 || height < 500} primary icon="add" text={width > 600 ? "Ad-hoc team" : "Ad-hoc"} onPress={addAdHocTeam} />
                 </View>
             </View>
@@ -854,7 +854,7 @@ const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, updateStatus,
                         name: clueNameTextBoxText,
                         foundByTeamId: team?.id,
                         location: clueLocationTextBoxText,
-                        assignmentId: team?.assignment,
+                        assignmentId: team?.assignment || "",
                         notes: customTextBoxText,
                         state: "New"
                     };
@@ -905,7 +905,6 @@ const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, updateStatus,
                 }
             }
         } else if (currentMessageCategories[messageType - 1] === "Request") {
-            console.log(requestTextBoxText);
             if (requestTextBoxText) {
                 note = "Requesting " + requestTextBoxText;
                 setFlag(true);

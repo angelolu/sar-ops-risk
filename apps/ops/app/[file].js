@@ -2,14 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { BackHeader, IconButton, textStyles, ThemeContext } from 'calsar-ui';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
+import { getAuth } from 'firebase/auth';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, { useSharedValue, withTiming } from 'react-native-reanimated';
 import { CluePanel } from '../components/CluesTab';
 import { CommsPanel, LogPanel } from '../components/CommsTab';
 import { InfoTab } from '../components/FileInfoTab';
+import { useFirebase } from '../components/FirebaseContext';
 import { getAsyncStorageData, saveAsyncStorageData } from '../components/helperFunctions';
 import { validateLocationString } from '../components/MapPanel';
-import { OptionsTab } from '../components/OptionsTab';
 import { OverviewTab } from '../components/OverviewTab';
 import { PlanningPanel } from '../components/PlanningTab';
 import { PrinterContext } from '../components/PrinterContext';
@@ -26,10 +28,24 @@ const calculateRemainingTime = (lastStart, lastTimeRemaining) => {
     return lastTimeRemaining - Math.floor(elapsedTime);
 }
 
+const pollUntilFileReady = (fileId) => {
+    return new Promise((resolve, reject) => {
+        const interval = setInterval(() => {
+            getAsyncStorageData("readyFiles").then(readyFiles => {
+                if (readyFiles && readyFiles.includes(fileId)) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            });
+        }, 500);
+    });
+}
+
 export default function OperationPage() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
     const { isPrinterSupported } = useContext(PrinterContext);
-    const { getFileByID, getTeamsByFileId, createLog, getAssignmentById, getAssignmentsByFileId, getClueById, getCluesByFileId } = useContext(RxDBContext)
+    const { getFileByID, getTeamsByFileId, createLog, getAssignmentById, getAssignmentsByFileId, getClueById, getCluesByFileId, restartSync } = useContext(RxDBContext)
+    const { waitForFirebaseReady } = useFirebase();
 
     setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
     const { width } = useWindowDimensions();
@@ -48,41 +64,85 @@ export default function OperationPage() {
     const [markers, setMarkers] = useState([]);
     const watchedItems = useRef({ clues: [], incidents: [] });
 
-
     useEffect(() => {
         getFileByID(localParams.file).then(query => {
             query.$.subscribe(file => {
-                if (file) {
-                    getAsyncStorageData("syncedFiles").then((value) => {
-                        if (value && value.includes(file.id)) {
-                            setIncidentInfo(file);
-                            getAsyncStorageData("lasttab-" + file.id).then((value) => {
-                                if (value) {
-                                    setActiveTab(prev => prev !== "" ? prev : value);
+                if (file && file.type === "cloud") {
+                    waitForFirebaseReady().then(() => {
+                        if (getAuth().currentUser) {
+                            Promise.all([getAsyncStorageData("syncedFiles"), getAsyncStorageData("readyFiles")]).then(([syncedFiles, readyFiles]) => {
+                                if (readyFiles && readyFiles.includes(file.id)) {
+                                    setIncidentInfo(file);
+                                    getAsyncStorageData("lasttab-" + file.id).then((value) => {
+                                        if (value) {
+                                            setActiveTab(prev => prev !== "" ? prev : value);
+                                        } else {
+                                            setActiveTab("Overview");
+                                        }
+                                    });
+                                    setFileLoaded(1);
+                                } else if (syncedFiles && syncedFiles.includes(file.id)) {
+                                    pollUntilFileReady(file.id).then(() => {
+                                        setIncidentInfo(file);
+                                        getAsyncStorageData("lasttab-" + file.id).then((value) => {
+                                            if (value) {
+                                                setActiveTab(prev => prev !== "" ? prev : value);
+                                            } else {
+                                                setActiveTab("Overview");
+                                            }
+                                        });
+                                        setFileLoaded(1);
+                                    });
                                 } else {
-                                    setActiveTab("Overview");
+                                    saveAsyncStorageData("syncedFiles", syncedFiles ? [...syncedFiles, file.id] : [file.id]).then(() => {
+                                        restartSync();
+                                        pollUntilFileReady(file.id).then(() => {
+                                            setIncidentInfo(file);
+                                            getAsyncStorageData("lasttab-" + file.id).then((value) => {
+                                                if (value) {
+                                                    setActiveTab(prev => prev !== "" ? prev : value);
+                                                } else {
+                                                    setActiveTab("Overview");
+                                                }
+                                            });
+                                            setFileLoaded(1);
+                                        });
+                                    });
                                 }
                             });
-                            setFileLoaded(1);
                         } else {
-                            console.log("File not synced");
-                            setFileLoaded(-1);
+                            router.navigate("/?error=notauthenticated");
                         }
                     });
+                } else if (file && file.type === "local") {
+                    setIncidentInfo(file);
+                    getAsyncStorageData("lasttab-" + file.id).then((value) => {
+                        if (value) {
+                            setActiveTab(prev => prev !== "" ? prev : value);
+                        } else {
+                            setActiveTab("Overview");
+                        }
+                    });
+                    setFileLoaded(1);
                 } else {
                     setFileLoaded(-1);
                 }
+                return () => query.$.unsubscribe();
             });
         });
-
-        getTeamsByFileId(localParams.file).then(query => {
-            query.$.subscribe(teams => {
-                setTeams(teams);
-                setActiveTeams(teams.filter(team => !team.removed));
-            });
-        });
-
     }, []);
+
+    useEffect(() => {
+        if (fileLoaded === 1) {
+            getTeamsByFileId(localParams.file).then(query => {
+                query.$.subscribe(teams => {
+                    setTeams(teams);
+                    setActiveTeams(teams.filter(team => !team.removed));
+                });
+                return () => query.$.unsubscribe();
+            });
+        }
+    }, [fileLoaded]);
 
     useEffect(() => {
         handleSetReadOnly(readOnly);
@@ -270,7 +330,7 @@ export default function OperationPage() {
             {
                 name: "Overview",
                 icon: "earth",
-                content: <AnimatedBG warn={areTeamsFlagged} error={areTeamsError} image={(activeTeams.length === 0 ? 0.1 : 0.8)}><OverviewTab incidentInfo={incidentInfo} teams={teams} activeTeams={activeTeams} mapShowing={markers && markers.length > 0} /></AnimatedBG>,
+                content: <AnimatedBG warn={areTeamsFlagged} error={areTeamsError} image={width > 600 ? (activeTeams.length === 0 ? 0.1 : 0.8) : 1}><OverviewTab incidentInfo={incidentInfo} teams={teams} activeTeams={activeTeams} mapShowing={markers && markers.length > 0} /></AnimatedBG>,
             },
             {
                 name: "Resources",
@@ -287,22 +347,20 @@ export default function OperationPage() {
             {
                 name: "Clues",
                 icon: "telescope",
-                content: <>
-                    <CluePanel fileId={incidentInfo.id} notifyFileUpdated={notifyFileUpdated} teams={teams} markers={markers} addMarker={handleAddMarker} removeMarker={handleRemoveMarker} />,
-                </>,
+                content: <CluePanel fileId={incidentInfo.id} notifyFileUpdated={notifyFileUpdated} teams={teams} markers={markers} addMarker={handleAddMarker} removeMarker={handleRemoveMarker} />,
             },
             {
                 name: "Comms",
                 icon: "chatbubbles",
-                content: <AnimatedBG warn={areTeamsFlagged} error={areTeamsError} image={(activeTeams.filter(team => team.status !== "Inactive").length === 0 ? 0.1 : 0.8)}><CommsPanel incidentInfo={incidentInfo} teams={teams} editTeam={editTeam} activeTeams={activeTeams} addMarker={handleAddMarker} /></AnimatedBG>,
+                content: <AnimatedBG warn={areTeamsFlagged} error={areTeamsError} image={width > 600 ? (activeTeams.filter(team => team.status !== "Inactive").length === 0 ? 0.1 : 0.8) : 1}><CommsPanel incidentInfo={incidentInfo} teams={teams} editTeam={editTeam} activeTeams={activeTeams} addMarker={handleAddMarker} /></AnimatedBG>,
                 rightPanel: <LogPanel incidentInfo={incidentInfo} teams={activeTeams} editTeam={editTeam} />,
             },
-            {
-                name: "Options",
-                icon: "ellipsis-horizontal",
-                content: <OptionsTab setReadOnly={setReadOnly} incidentInfo={incidentInfo} />,
-                bottom: true
-            },
+            // {
+            //     name: "Options",
+            //     icon: "ellipsis-horizontal",
+            //     content: <OptionsTab setReadOnly={setReadOnly} incidentInfo={incidentInfo} />,
+            //     bottom: true
+            // },
             {
                 name: "Close file",
                 icon: "exit",
@@ -331,7 +389,7 @@ export default function OperationPage() {
                                     <PrinterTabIcon
                                         ionicons_name={selectedHeaderItem === 2 ? "caret-up-circle-outline" : "print-outline"}
                                         onPress={() => { setSelectedHeaderItem(selectedHeaderItem === 2 ? 0 : 2) }}
-                                        color={selectedHeaderItem === 2 ? colorTheme.onSurface : colorTheme.onPrimaryContainer}
+                                        saveLocation={incidentInfo.type}
                                         selected={selectedHeaderItem === 2}
                                         size={24} />
                                 </View>
@@ -380,6 +438,17 @@ export default function OperationPage() {
     } else {
         const loadingTab = [
             {
+                name: "Loading",
+                icon: "cloud-download",
+                content: <View style={{ justifyContent: "center", alignItems: "center", flex: 1, height: "100%" }}>
+                    <View style={{ gap: 12, maxWidth: 500, alignItems: "center", backgroundColor: colorTheme.surfaceContainer, padding: 18, borderRadius: 26 }}>
+                        <IconFader iconNames={["people", "pizza", "map", "id-card", "chatbubbles", "thunderstorm", "radio", "sparkles", "paw"]} />
+                        <Text style={textStyle.cardTitleText}>Getting your file ready</Text>
+                        <Text style={[textStyle.text, { textAlign: "center" }]}>If it's the first time you're opening this file it might take a little longer as we get it ready. Next time it'll be lightning fast!</Text>
+                    </View>
+                </View>
+            },
+            {
                 name: "Cancel",
                 icon: "exit",
                 content: <></>,
@@ -387,7 +456,7 @@ export default function OperationPage() {
                 function: () => router.navigate("/")
             }];
         return <View style={styles.background}>
-            <BackHeader title="Opening file..." hideBack={true} />
+            <BackHeader title="" hideBack={true} />
             {width > 600 ?
                 <RailContainer tabs={loadingTab} activeTab={"Loading"} setActiveTab={() => { }} />
                 :
@@ -407,6 +476,43 @@ function isEmpty(obj) {
 
     return true;
 }
+
+const IconFader = ({ iconNames, size = 50, duration = 1000 }) => {
+    const { colorTheme } = useContext(ThemeContext);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const fadeAnim = useSharedValue(1);
+
+    useEffect(() => {
+        if (!iconNames || iconNames.length <= 1) return;
+
+        const intervalId = setInterval(() => {
+            // Start fade out
+            fadeAnim.value = withTiming(0, { duration: duration / 2 }, () => {
+                // Change icon when fully faded out
+                setCurrentIndex((prevIndex) => (prevIndex + 1) % iconNames.length);
+
+                // Start fade in with new icon
+                fadeAnim.value = withTiming(1, { duration: duration / 2 });
+            });
+        }, duration);
+
+        return () => clearInterval(intervalId);
+    }, [iconNames, duration]);
+
+    if (!iconNames || iconNames.length === 0) {
+        return null;
+    }
+
+    return (
+        <Animated.View style={{ opacity: fadeAnim }}>
+            <Ionicons
+                name={iconNames[currentIndex]}
+                size={size}
+                color={colorTheme.primary}
+            />
+        </Animated.View>
+    );
+};
 
 const teamResourcesInfo = (teamId) => {
     return <>

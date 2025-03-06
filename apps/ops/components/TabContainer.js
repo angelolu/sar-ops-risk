@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useContext, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ThemeContext } from 'calsar-ui';
+import React, { useContext, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 export function TabButton({ icon, title, active, onClick }) {
     const { colorTheme } = useContext(ThemeContext);
@@ -26,9 +26,7 @@ export function TabButton({ icon, title, active, onClick }) {
                 justifyContent: 'center',
                 gap: 4,
                 paddingVertical: 12
-            },
-
-            ]}>
+            }]}>
             {active ?
                 <View style={[{ backgroundColor: colorTheme.secondaryFixed, height: 28, justifyContent: "center", alignItems: "center", width: 50, borderRadius: 14 }, focusTheme]}>
                     <Ionicons name={icon} size={20} color={colorTheme.onSecondaryFixed} />
@@ -48,28 +46,16 @@ export function TabButton({ icon, title, active, onClick }) {
                 borderTopRightRadius: 3
             }} />}
         </Pressable>
-
     );
 }
 
 export default function TabContainer({ tabs, activeTab, setActiveTab, readOnly = false }) {
-    const styles = pageStyles();
     const { colorTheme } = useContext(ThemeContext);
     const activeTabContent = tabs.find(tab => tab.name === activeTab)?.content;
-    const noContainer = tabs.find(tab => tab.name === activeTab)?.noContainer || false;
 
     return (
         <View style={{ flexGrow: 1, flexShrink: 1 }}>
-            {noContainer ?
-                <>
-                    {activeTabContent}
-                </>
-                :
-                <ScrollView
-                    contentContainerStyle={[styles.mainScroll]}>
-                    {activeTabContent}
-                </ScrollView>
-            }
+            {activeTabContent}
             {!readOnly && <View style={{ flexDirection: "row", height: 80, backgroundColor: colorTheme.surfaceContainerLow }}>
                 {tabs.filter(item => !item.bottom).map(item => (
                     <TabButton key={item.name} title={item.name} icon={item.icon} active={item.name === activeTab} onClick={() => { setActiveTab(item.name) }} />
@@ -77,38 +63,4 @@ export default function TabContainer({ tabs, activeTab, setActiveTab, readOnly =
             </View>}
         </View>
     );
-}
-
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-
-    return StyleSheet.create({
-        background: {
-            backgroundColor: colorTheme.background,
-            height: '100%'
-        },
-        mainScroll: {
-            gap: 20,
-        },
-        container: {
-            flex: 1,
-            backgroundColor: colorTheme.background,
-            height: '100%',
-            alignSelf: 'center',
-            paddingHorizontal: 20,
-        },
-        text: {
-            color: colorTheme.onBackground
-        },
-        sectionTitle: {
-            color: colorTheme.onBackground,
-            fontSize: 20,
-            //fontWeight: '500',
-        },
-        timerSection: {
-            gap: 4,
-            borderRadius: 26,
-            overflow: 'hidden',
-        },
-    });
 }

@@ -1,11 +1,13 @@
 import { FilledButton, ThemeContext } from 'calsar-ui';
+import { textStyles } from 'calsar-ui/lib/styles';
 import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { PrinterContext } from './PrinterContext';
-import { textStyles } from 'calsar-ui/lib/styles';
+import { RxDBContext } from './RxDBContext';
 
 export const PrinterTab = ({ incidentInfo }) => {
     const { colorTheme } = useContext(ThemeContext);
+    const { replicationStatus } = useContext(RxDBContext);
     const styles = pageStyles();
     const textStyle = textStyles();
     const { isPrinterSupported,
@@ -22,6 +24,29 @@ export const PrinterTab = ({ incidentInfo }) => {
         setLeftAlign } = useContext(PrinterContext);
 
     const [notificationPermission, setNotificationPermission] = useState(Notification.permission);
+    const [saveText, setSaveText] = useState(false);
+    const [saveColor, setSaveColor] = useState(colorTheme.garAmberLight);
+
+    useEffect(() => {
+        if (incidentInfo.type !== "cloud") {
+            setSaveColor(colorTheme.garGreenLight);
+            setSaveText("Changes saved locally");
+        }
+        else {
+            if (replicationStatus) {
+                if (replicationStatus?.started && replicationStatus?.status) {
+                    setSaveColor(colorTheme.garGreenLight);
+                    setSaveText("File up to date with cloud");
+                } else if (replicationStatus?.started && replicationStatus?.status === false) {
+                    setSaveColor(colorTheme.garAmberLight);
+                    setSaveText("Changes saved locally. Trying to save to cloud...");
+                } else {
+                    setSaveColor(colorTheme.garRedLight);
+                    setSaveText("Trying to connect to cloud...");
+                }
+            }
+        }
+    }, [incidentInfo, replicationStatus]);
 
     const handleFeed = async () => { feedLines(5) };
 
@@ -90,30 +115,36 @@ export const PrinterTab = ({ incidentInfo }) => {
             notificationText = "Grant notification permissions be notified when changes are made to this file";
             break;
     }
+
+    let fileStorageSecondaryText = incidentInfo.type === "cloud" ? "This file syncs when a connection is available. You can continue working while offline." : "This file is stored in this browser and will be deleted if browsing data is cleared";
+
     return (
         <>
-            {isPrinterSupported &&
-                <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                        <KeyValue title="Thermal printer" color={isPrinterConnected ? colorTheme.garGreenLight : colorTheme.garRedLight}>
-                            <Text style={textStyle.rowTitleText}>{isPrinterConnected ? "Connected" : "Not connected"}</Text>
-                        </KeyValue>
-                        <FilledButton small icon={isPrinterConnected ? "close" : "print-outline"} text={isPrinterConnected ? "Disconnect" : "Connect"} onPress={handleConnectPrinter} primary={!isPrinterConnected} destructive={isPrinterConnected} />
-                    </View>
-                    {isPrinterConnected && <KeyValue title="Actions">
-                        <View style={{ flexDirection: "row", gap: 12, marginTop: 8, justifyContent: "center" }}>
-                            <FilledButton small icon="print" text={"Header"} onPress={handlePrintHeader} />
-                            <FilledButton small icon="print" text={"Footer and cut"} onPress={handlePrintFooter} />
-                            <FilledButton small icon="caret-up" text={"Feed"} onPress={handleFeed} />
-                            <FilledButton small icon="cut" text={"Cut"} onPress={cutPaper} />
-                        </View>
-                    </KeyValue>}
-                </View>
-            }
             <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <KeyValue title="File storage" color={colorTheme.garGreenLight}>
-                        <Text style={textStyle.rowTitleText}>{"Changes saved"}</Text>
+                    <KeyValue title="Thermal printer" color={isPrinterConnected ? colorTheme.garGreenLight : colorTheme.garRedLight}>
+                        {isPrinterSupported ?
+                            <Text style={textStyle.rowTitleText}>{isPrinterConnected ? "Connected" : "Not connected"}</Text>
+                            :
+                            <Text style={textStyle.rowTitleText}>This browser doesn't support printers over serial</Text>
+                        }
+                    </KeyValue>
+                    <>{isPrinterSupported && <FilledButton small icon={isPrinterConnected ? "close" : "print-outline"} text={isPrinterConnected ? "Disconnect" : "Connect"} onPress={handleConnectPrinter} primary={!isPrinterConnected} destructive={isPrinterConnected} />}</>
+                </View>
+                {isPrinterConnected && <KeyValue title="Actions">
+                    <View style={{ flexDirection: "row", gap: 12, marginTop: 8, justifyContent: "center" }}>
+                        <FilledButton small icon="print" text={"Header"} onPress={handlePrintHeader} />
+                        <FilledButton small icon="print" text={"Footer and cut"} onPress={handlePrintFooter} />
+                        <FilledButton small icon="caret-up" text={"Feed"} onPress={handleFeed} />
+                        <FilledButton small icon="cut" text={"Cut"} onPress={cutPaper} />
+                    </View>
+                </KeyValue>}
+            </View>
+            <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <KeyValue title="File storage" color={saveColor}>
+                        <Text style={textStyle.rowTitleText}>{saveText}</Text>
+                        <Text style={[textStyle.secondaryText]}>{fileStorageSecondaryText}</Text>
                     </KeyValue>
                     {false && <FilledButton small primary icon="download" text={"Download"} onPress={handleConnectPrinter} />}
                 </View>
