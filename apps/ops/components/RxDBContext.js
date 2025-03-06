@@ -569,9 +569,6 @@ export const RxDBProvider = ({ children }) => {
                     ]
                   },
                   push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
                   },
                   live: true,
                   serverTimestampField: 'serverTimestamp'
@@ -597,9 +594,6 @@ export const RxDBProvider = ({ children }) => {
                     ]
                   },
                   push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
                   },
                   live: true,
                   serverTimestampField: 'serverTimestamp'
@@ -625,9 +619,7 @@ export const RxDBProvider = ({ children }) => {
                     ]
                   },
                   push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
+
                   },
                   live: true,
                   serverTimestampField: 'serverTimestamp'
@@ -653,9 +645,7 @@ export const RxDBProvider = ({ children }) => {
                     ]
                   },
                   push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
+
                   },
                   live: true,
                   serverTimestampField: 'serverTimestamp'
@@ -681,9 +671,7 @@ export const RxDBProvider = ({ children }) => {
                     ]
                   },
                   push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
+
                   },
                   live: true,
                   serverTimestampField: 'serverTimestamp'
@@ -709,9 +697,7 @@ export const RxDBProvider = ({ children }) => {
                     ]
                   },
                   push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
+
                   },
                   live: true,
                   serverTimestampField: 'serverTimestamp'
@@ -737,9 +723,7 @@ export const RxDBProvider = ({ children }) => {
                     ]
                   },
                   push: {
-                    filter: [
-                      where('fileId', 'in', files_to_sync)
-                    ]
+
                   },
                   live: true,
                   serverTimestampField: 'serverTimestamp'
