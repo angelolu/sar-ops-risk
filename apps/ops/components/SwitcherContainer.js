@@ -1,7 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
+import { textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { textStyles, ThemeContext } from 'calsar-ui';
 
 export function TabButton({ title, active, onClick }) {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
@@ -35,7 +34,7 @@ export default function SwitcherContainer({ tabs, activeTab, setActiveTab }) {
     const activeTabContent = tabs.find(tab => tab.name === activeTab)?.content;
 
     return (
-        <View style={{ height: "100%" }}>
+        <View style={{ flex: 1 }}>
             <View style={{ flexDirection: "row", justifyContent: "flex-start", gap: 12, padding: 20, paddingRight: 20, paddingLeft: 20, paddingBottom: 20 }}>
                 {tabs.filter(item => !item.bottom).map(item => (
                     <TabButton key={item.name} title={item.name} icon={item.icon} active={item.name === activeTab} onClick={() => { setActiveTab(item.name) }} />

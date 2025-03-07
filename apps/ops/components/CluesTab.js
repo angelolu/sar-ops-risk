@@ -1,7 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import { FilledButton, IconButton, RiskModal, textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadingTransition } from 'react-native-reanimated';
 import { getSimpleDateString } from './helperFunctions';
 import { validateLocationString } from './MapPanel';
@@ -115,6 +114,7 @@ const ClueCard = ({ item, teams, notifyFileUpdated, markers, removeMarker, addMa
 
 export const CluePanel = ({ fileId, notifyFileUpdated, teams, incidents = false, addMarker, markers, removeMarker }) => {
     const { getCluesByFileId } = useContext(RxDBContext);
+    const { width } = useWindowDimensions();
 
     const styles = pageStyles();
     const textStyle = textStyles();
@@ -179,8 +179,8 @@ export const CluePanel = ({ fileId, notifyFileUpdated, teams, incidents = false,
         }
     })
 
-    return <View style={[styles.mainScroll]}>
-        <View style={{ gap: 8, flexDirection: "row", height: "100%" }}>
+    return <View style={[styles.mainScroll, width > 600 ? { height: "100%" } : { flex: 1 }]}>
+        <View style={[{ gap: 8, flexDirection: "row" }, width > 600 ? { height: "100%" } : { flex: 1 }]}>
             <View style={[styles.stateColumn, { flex: newClues.length > 0 ? 2 : 1 }]}>
                 <Text style={[textStyle.rowTitleTextBold, { alignSelf: "center", paddingVertical: 4 }]}>New</Text>
                 <Animated.FlatList
@@ -222,8 +222,6 @@ export const CluePanel = ({ fileId, notifyFileUpdated, teams, incidents = false,
                 />
             </View>
         </View>
-
-
         <ChangeStateModal
             onClose={() => {
                 setChangeStateModalClue(null);
@@ -232,47 +230,6 @@ export const CluePanel = ({ fileId, notifyFileUpdated, teams, incidents = false,
             notifyFileUpdated={notifyFileUpdated}
             clue={changeStateModalClue} />
     </View>;
-}
-
-const Chip = ({ title, onCancel, color, onPress }) => {
-    const { colorTheme } = useContext(ThemeContext);
-    const textStyle = textStyles();
-
-    const content = (<>
-        <Text style={textStyle.chipText}>{title}</Text>
-        {onCancel !== undefined && <Ionicons name="close" size={18} color={colorTheme.onSurface} onPress={onCancel} />}
-    </>);
-    if (onPress) {
-        return <Pressable
-            onPress={onPress}
-            style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainer, paddingHorizontal: 12, borderRadius: 8 }}>
-            {content}
-        </Pressable>
-    } else {
-        return <View style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainer, paddingHorizontal: 12, borderRadius: 8 }}>
-            {content}
-        </View>
-    }
-}
-
-const IconChip = ({ icon, onCancel, color, onPress }) => {
-    const { colorTheme } = useContext(ThemeContext);
-
-    const content = (<>
-        <Ionicons name={icon} size={18} color={colorTheme.onSurface} />
-        {onCancel !== undefined && <Ionicons name="close" size={18} color={colorTheme.onSurface} onPress={onCancel} />}
-    </>);
-    if (onPress) {
-        return <Pressable
-            onPress={onPress}
-            style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainerHighest, paddingHorizontal: 8, borderRadius: 8 }}>
-            {content}
-        </Pressable>
-    } else {
-        return <View style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainerHighest, paddingHorizontal: 8, borderRadius: 8 }}>
-            {content}
-        </View>
-    }
 }
 
 const ChangeStateModal = ({ notifyFileUpdated, isVisible, onClose, clue }) => {
@@ -390,14 +347,15 @@ const pageStyles = () => {
             paddingTop: 8,
             gap: 8,
             backgroundColor: colorTheme.surfaceContainerLowest,
-            borderRadius: 12
+            borderRadius: 12,
+            minWidth: width > 600 ? 0 : 300
         },
         mainScroll: {
             paddingTop: 16,
             paddingBottom: 16,
             paddingRight: 16,
             paddingLeft: 16,
-            height: "100%"
+            overflow: width > 600 ? "visible" : "scroll"
         },
         card: {
             borderRadius: 12,

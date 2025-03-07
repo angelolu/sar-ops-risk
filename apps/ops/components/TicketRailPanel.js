@@ -104,11 +104,13 @@ const CommsQueueItemCard = ({ file, item, teams, activeTab, superseded, setReply
                                 } else {
                                     // Assume the task was deleted and close the request
                                     setDescriptionText(`Assign ${toTeam.name || "unnamed team"} to deleted task`);
-                                    item.incrementalPatch({
-                                        response: "Task deleted",
-                                        closed: true
-                                    });
-                                    file.incrementalPatch({ updated: new Date().toISOString() });
+                                    if (!item.closed) {
+                                        item.incrementalPatch({
+                                            response: "Task deleted",
+                                            closed: true
+                                        });
+                                        file.incrementalPatch({ updated: new Date().toISOString() });
+                                    }
                                 }
                             });
                         });
@@ -125,12 +127,14 @@ const CommsQueueItemCard = ({ file, item, teams, activeTab, superseded, setReply
                             if (result) {
                                 setRelatedItem(result);
                             } else {
-                                // Assume the clue was deleted and close the request
-                                item.incrementalPatch({
-                                    response: "Request cancelled",
-                                    closed: true
-                                });
-                                file.incrementalPatch({ updated: new Date().toISOString() });
+                                if (!item.closed) {
+                                    // Assume the clue was deleted and close the request
+                                    item.incrementalPatch({
+                                        response: "Request cancelled",
+                                        closed: true
+                                    });
+                                    file.incrementalPatch({ updated: new Date().toISOString() });
+                                }
                             }
                         });
                     });
@@ -376,7 +380,7 @@ const ReplyModal = ({ request, team, relatedItem, file, isVisible, onClose }) =>
             break;
         case "Clue":
             requestHeading = `${OPS_TEAM_TO_NAME[replyTeam]} requesting action from ${OPS_TEAM_TO_NAME[request?.toOpsTeam]}`;
-            requestDescription = `Regarding ${request?.type} "${relatedItem?.name}" found at ${getSimpleDateString(relatedItem.created)}, tell ${team?.name}: "${request.message}"`;
+            requestDescription = `${request?.type} "${relatedItem?.name}" (found at ${getSimpleDateString(relatedItem.created)})\nAsk ${team?.name}: ${request.message}`;
             requestShortDescription = `RE ${request?.type} "${relatedItem?.name}", ${request.message}. `;
             messageResponse = true;
             break;
@@ -388,8 +392,8 @@ const ReplyModal = ({ request, team, relatedItem, file, isVisible, onClose }) =>
         title={"Request details"}
         onClose={handleClose}>
         <View style={{ paddingHorizontal: 20, gap: 8 }}>
-            <Text style={textStyle.sectionTitleText}>Request</Text>
-            <Text style={textStyle.text}>{requestHeading}</Text>
+            <Text style={textStyle.secondaryText}>{requestHeading}</Text>
+            <Text style={textStyle.sectionTitleText}>Regarding</Text>
             <Text style={textStyle.text}>{requestDescription}</Text>
             <Text style={textStyle.sectionTitleText}>Reply</Text>
             {messageResponse && <>

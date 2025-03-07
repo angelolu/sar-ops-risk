@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
 export const PrinterContext = createContext();
@@ -30,20 +30,15 @@ export const PrinterProvider = ({ children }) => {
         await printerPortRef.current.open({ baudRate: 9600 }); // Adjust baud rate if needed
         setPrinterConnected(true);
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     }
   }
 
   function isSerialPossiblySupported() {
     if (Platform.OS === 'web') {
-      // anything but true, just in case there are other values other than "false"
-      if (navigator.userAgentData.mobile !== "true") {
-        for (brand_version_pair of navigator.userAgentData.brands) {
-          if (brand_version_pair.brand == "Chromium") {
-            return true;
-          }
-        }
+      if ('serial' in navigator) {
+        return true;
       }
     }
     return false;

@@ -100,7 +100,7 @@ export const textStyles = () => {
         pageNameText: {
             fontSize: width > 600 ? 24 : 20,
             color: colorTheme.onBackground,
-            fontFamily: 'Outfit_400Regular'
+            fontFamily: 'Outfit_600SemiBold'
         },
     });
 }

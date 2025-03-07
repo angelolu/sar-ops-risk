@@ -72,12 +72,11 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams, mapShowing }) =>
                             color={colorTheme.onSurface}
                             icon={<Ionicons name="print" size={24} color={colorTheme.onSurface} />}
                             title={"Tap the status box in the header to connect a thermal printer"} />
-                        <Banner
+                        {incidentInfo.type !== "cloud" && <Banner
                             backgroundColor={colorTheme.secondaryContainer}
                             color={colorTheme.onSecondaryContainer}
                             icon={<Ionicons name="lock-closed" size={24} color={colorTheme.onSecondaryContainer} />}
-                            title={"All data is stored in this browser and will be deleted if browsing data is cleared"}>
-                        </Banner>
+                            title={"This file is stored in this browser and will be deleted if browsing data is cleared"} />}
                     </View>
                 </View>
                 :
