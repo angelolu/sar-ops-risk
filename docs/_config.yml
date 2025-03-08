@@ -43,6 +43,7 @@ plugins:
 
 # Set a path/url to a logo that will be displayed instead of the title
 logo: "/assets/images/banner_100.png"
+favicon_ico: "/assets/images/favicon.ico"
 
 heading_anchors: true
 search_enabled: true

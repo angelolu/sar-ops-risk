@@ -40,3 +40,4 @@ yarn-error.*
 
 # vscode
 .vscode/
+docs/_site/
