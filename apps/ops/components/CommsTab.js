@@ -52,6 +52,8 @@ export const LogPanel = ({ incidentInfo, teams }) => {
     const parseTeamName = (teamNameToParse) => {
         if (teamNameToParse === "!@#$") {
             return incidentInfo.commsCallsign || "COMMS"
+        } else if (teamNameToParse === "$#@!") {
+            return "All teams"
         } else {
             const foundObject = teams.find(obj => obj.id === teamNameToParse);
             return foundObject ? foundObject.name || "Unnamed" : "Unnamed";
@@ -466,12 +468,13 @@ export const LogPanel = ({ incidentInfo, teams }) => {
 
 export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMarker }) => {
     const styles = pageStyles();
+    const textStyle = textStyles();
     const { width, height } = useWindowDimensions();
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const { createTeam } = useContext(RxDBContext)
 
     const [logTrafficTeam, setLogTrafficTeam] = useState();
-    const [expanded, setExpanded] = useState(false);
+    const [allTeamTrafficModalShowing, setAllTeamTrafficModalShowing] = useState(false);
 
     const areTimersRunning = useMemo(() =>
         activeTeams.some(item => item.isRunning === true && item.status !== "Inactive"),
@@ -483,7 +486,7 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
         incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
     }
 
-    const setIsRuning = (teamToUpdate, state) => {
+    const setIsRunning = (teamToUpdate, state) => {
         if (teamToUpdate.isRunning !== state) {
             if (state) {
                 // Start timer
@@ -499,15 +502,15 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
     };
 
     const setAllIsRunning = (state) => {
-        activeTeams.forEach(team => team.isRunning !== state && team.status !== "Inactive" && setIsRuning(team, state))
+        activeTeams.forEach(team => team.isRunning !== state && team.status !== "Inactive" && setIsRunning(team, state))
     };
 
     return (
         <ScrollView contentContainerStyle={{ gap: 12, paddingTop: 20, paddingBottom: 20, paddingRight: 20, paddingLeft: 20 }} style={{ height: "100%" }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 14, alignItems: "center" }}>
                 <Text style={styles.sectionTitle}></Text>
-                <View style={{ flexDirection: "row", gap: 14 }}>
-                    {false && width > 600 && <FilledButton small={height < 500} backgroundColor={colorTheme.background} disabled={teams.length === 0} icon={expanded ? "chevron-up-outline" : "chevron-down-outline"} text={expanded ? "Hide last" : "Show last"} onPress={() => setExpanded(!expanded)} />}
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                    <FilledButton small={width <= 600 || height < 500} backgroundColor={activeTeams.length === 0 ? getHoverColor(colorTheme.onSurface, 0.3) : colorTheme.background} disabled={activeTeams.length === 0} icon={"radio-outline"} text={"All team traffic"} onPress={() => setAllTeamTrafficModalShowing(true)} />
                     <FilledButton small={width <= 600 || height < 500} backgroundColor={activeTeams.length === 0 ? getHoverColor(colorTheme.onSurface, 0.3) : colorTheme.background} disabled={activeTeams.length === 0} icon={areTimersRunning ? "pause" : "play"} text={areTimersRunning ? "Pause all" : "Resume all"} onPress={() => setAllIsRunning(!areTimersRunning)} />
                     <FilledButton small={width <= 600 || height < 500} primary icon="add" text={width > 600 ? "Ad-hoc team" : "Ad-hoc"} onPress={addAdHocTeam} />
                 </View>
@@ -539,7 +542,6 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
                     <View style={[styles.timerSection]}>
                         {activeTeams.map(item => (item.status !== "Inactive") && <TimerComponent
                             incidentInfo={incidentInfo}
-                            expanded={expanded}
                             team={item}
                             teams={teams}
                             key={item.id}
@@ -563,7 +565,65 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
                 updateAssignment={(newAssignment) => editTeam(logTrafficTeam, { assignment: newAssignment }, false)}
                 setFlag={(state) => editTeam(logTrafficTeam, { flagged: state }, false)}
                 addMarker={addMarker} />
+            <AllTeamTrafficComponent
+                isVisible={allTeamTrafficModalShowing}
+                onClose={() => setAllTeamTrafficModalShowing(false)}
+                incidentInfo={incidentInfo} />
         </ScrollView>
+    );
+}
+
+const AllTeamTrafficComponent = ({ isVisible, onClose, incidentInfo }) => {
+    const { colorTheme } = useContext(ThemeContext);
+    const { createLog } = useContext(RxDBContext);
+
+    const textStyle = textStyles();
+
+    const [customTextBoxText, setCustomTextBoxText] = useState("");
+
+    const handleLogMessage = () => {
+        if (customTextBoxText.trim().length > 0) {
+            createLog(incidentInfo.id, {
+                created: new Date().toISOString(),
+                type: 2,
+                fromTeam: "!@#$",
+                toTeam: "$#@!",
+                message: customTextBoxText.trim()
+            });
+            handleClose();
+        }
+    }
+
+    const handleClose = () => {
+        setCustomTextBoxText("");
+        onClose();
+    }
+
+    return (
+        <RiskModal
+            isVisible={isVisible}
+            overrideWidth={700}
+            title={"Log traffic to all teams"}
+            onClose={handleClose}>
+            <View style={{ padding: 20, paddingTop: 0, gap: 12 }}>
+                <TextBox textStyle={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 8,
+                    backgroundColor: colorTheme.surfaceContainerHigh,
+                    width: "100%"
+                }}
+                    placeholder="Custom message"
+                    onChangeText={setCustomTextBoxText}
+                    initialValue={customTextBoxText}
+                    onConfirm={() => { handleLogMessage() }} limit={1000} autoFocus />
+                <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'space-between', alignItems: "flex-start", paddingTop: 8 }}>
+                    <Text style={textStyle.secondaryText}>A log will be added, but no team's contact timeout will be reset</Text>
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <FilledButton primary text={"Save log"} onPress={() => { handleLogMessage() }} disabled={customTextBoxText.trim().length === 0} />
+                    </View>
+                </View>
+            </View>
+        </RiskModal>
     );
 }
 

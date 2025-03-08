@@ -81,7 +81,7 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
         incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
     };
 
-    const setIsRuning = (state) => {
+    const setIsRunning = (state) => {
         setTeamTimeoutRunning(team, state);
         incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
     };
@@ -153,7 +153,9 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
 
     const parseTeamName = (teamNameToParse) => {
         if (teamNameToParse === "!@#$") {
-            return incidentInfo.commsCallsign || "OPERATOR"
+            return incidentInfo.commsCallsign || "COMMS"
+        } else if (teamNameToParse === "$#@!") {
+            return "All teams"
         } else {
             const foundObject = teams.find(obj => obj.id === teamNameToParse);
             return foundObject ? foundObject.name || "Unnamed" : "Unknown";
@@ -200,7 +202,7 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
                         <View style={[styles.sectionTitleContainer, { gap: 4 }]}>
                             <Text style={[textStyle.columnKeyText]} numberOfLines={1} >Contact timeout</Text>
                             {!readOnly && <View style={{ flexDirection: "row", gap: 0 }}>
-                                <IconButton small tonal={!team.isRunning} ionicons_name={team.isRunning ? "pause" : "play"} onPress={() => setIsRuning(!team.isRunning)} />
+                                <IconButton small tonal={!team.isRunning} ionicons_name={team.isRunning ? "pause" : "play"} onPress={() => setIsRunning(!team.isRunning)} />
                                 <IconButton small ionicons_name="refresh" onPress={handleResetTimeout} />
                             </View>}
                         </View>
@@ -297,7 +299,7 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
                         <Text style={textStyle.columnValueText}>{formatTime(time)}</Text>
                     </View>
                     {!readOnly && <View style={{ flexDirection: "row", gap: 4 }}>
-                        <IconButton small tonal={!team.isRunning} ionicons_name={team.isRunning ? "pause" : "play"} onPress={() => setIsRuning(!team.isRunning)} />
+                        <IconButton small tonal={!team.isRunning} ionicons_name={team.isRunning ? "pause" : "play"} onPress={() => setIsRunning(!team.isRunning)} />
                         <IconButton small ionicons_name="refresh" onPress={handleResetTimeout} />
                     </View>}
                 </View>
