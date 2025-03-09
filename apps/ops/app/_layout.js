@@ -18,10 +18,10 @@ export const unstable_settings = {
 
 export default function RootLayout() {
     return (
-        <PrinterProvider>
-            <ThemeProvider>
-                <FirebaseProvider>
-                    <RxDBProvider>
+        <ThemeProvider>
+            <FirebaseProvider>
+                <RxDBProvider>
+                    <PrinterProvider>
                         <SafeAreaProvider>
                             <Stack
                                 screenOptions={{
@@ -38,9 +38,9 @@ export default function RootLayout() {
                                 />
                             </Stack>
                         </SafeAreaProvider>
-                    </RxDBProvider>
-                </FirebaseProvider>
-            </ThemeProvider>
-        </PrinterProvider>
+                    </PrinterProvider>
+                </RxDBProvider>
+            </FirebaseProvider>
+        </ThemeProvider>
     );
 }

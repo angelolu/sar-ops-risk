@@ -8,19 +8,36 @@ export const PrinterProvider = ({ children }) => {
   const [printerConnected, setPrinterConnected] = useState(false);
 
   useEffect(() => {
-
     return () => {
       // Close the port
-      if (printerConnected) {
-        disconnectPrinter();
-      }
+      disconnectPrinter();
     }
   }, []);
 
   const disconnectPrinter = async () => {
-    if (printerPortRef.current?.connected) await printerPortRef.current.close().catch(() => { /* Ignore the error */ });
+    if (printerPortRef.current) {
+      // Remove the disconnect event listener first
+      try {
+        printerPortRef.current.removeEventListener("disconnect", handleDisconnect);
+      } catch (error) {
+        // Ignore errors during event listener removal
+      }
+
+      // Then close the port if connected
+      if (printerPortRef.current.connected) {
+        await printerPortRef.current.close().catch(() => { /* Ignore the error */ });
+      }
+
+      // Clear the reference
+      printerPortRef.current = null;
+    }
     setPrinterConnected(false);
-  }
+  };
+
+  const handleDisconnect = () => {
+    console.log("Printer disconnected");
+    disconnectPrinter();
+  };
 
   const connectPrinter = async () => {
     if (Platform.OS === 'web') {
@@ -29,11 +46,12 @@ export const PrinterProvider = ({ children }) => {
         printerPortRef.current = await navigator.serial.requestPort();
         await printerPortRef.current.open({ baudRate: 9600 }); // Adjust baud rate if needed
         setPrinterConnected(true);
+        printerPortRef.current.addEventListener("disconnect", handleDisconnect);
       } catch (error) {
         console.error(error);
       }
     }
-  }
+  };
 
   function isSerialPossiblySupported() {
     if (Platform.OS === 'web') {
@@ -73,9 +91,32 @@ export const PrinterProvider = ({ children }) => {
   // Function to send ESC/POS commands
   const sendCommand = async (command) => {
     if (Platform.OS === 'web' && printerPortRef.current) {
-      const writer = printerPortRef.current.writable.getWriter();
-      await writer.write(new Uint8Array(command));
-      await writer.releaseLock();
+      try {
+        // Wait until the writable is available (not locked)
+        if (printerPortRef.current.writable.locked) {
+          // Wait for the lock to be released
+          await new Promise(resolve => {
+            const checkLock = () => {
+              if (!printerPortRef.current.writable.locked) {
+                resolve();
+              } else {
+                setTimeout(checkLock, 50); // Check again in 50ms
+              }
+            };
+            checkLock();
+          });
+        }
+
+        const writer = printerPortRef.current.writable.getWriter();
+        await writer.write(new Uint8Array(command));
+        await writer.releaseLock();
+      } catch (error) {
+        console.error("Serial writer error:", error.message);
+        // If a stream error occurs, try to reconnect or handle it appropriately
+        if (error.message.includes("closed") || error.message.includes("locked") || error.message.includes("unknown")) {
+          disconnectPrinter();
+        }
+      }
     }
   };
 
@@ -137,7 +178,7 @@ export const PrinterProvider = ({ children }) => {
       setNormal,
       setRightAlign,
       setCenterAlign,
-      setLeftAlign
+      setLeftAlign,
     }}>
       {children}
     </PrinterContext.Provider>

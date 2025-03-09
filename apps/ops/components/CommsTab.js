@@ -3,12 +3,11 @@ import { Banner, FilledButton, IconButton, RiskModal, SegmentedButtons, textStyl
 import * as FileSystem from 'expo-file-system';
 import { printToFileAsync } from 'expo-print';
 import { shareAsync } from 'expo-sharing';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadingTransition } from 'react-native-reanimated';
 import { SearchBox } from '../components/TextInput';
 import { validateLocationString } from './MapPanel';
-import { PrinterContext } from './PrinterContext';
 import { RxDBContext } from './RxDBContext';
 import { TextBox } from './TextInput';
 import { TimerComponent } from './TimerComponent';
@@ -31,16 +30,22 @@ export const LogPanel = ({ incidentInfo, teams }) => {
     const [exportDatePreference, setExportDatePreference] = useState(0);
     const numLogsPerPage = 10;
 
+    // TODO: fix chronic re-rendering of this component
+
     useEffect(() => {
         // Load saved settings
         getAsyncStorageData("export-date-format").then((value) => { value && setExportDatePreference(value) });
+        let subscription;
         getLogsByFileId(incidentInfo.id).then(query => {
-            query.$.subscribe(logs => {
+            subscription = query.$.subscribe(logs => {
                 setLogs(logs);
             });
-            return () => { query.$.unsubscribe() };
         });
-    }, []);
+
+        return () => {
+            if (subscription) subscription.unsubscribe();
+        };
+    }, [getLogsByFileId, incidentInfo.id]);
 
     const textSearch = (text, filter) => {
         if (text && filter) {
@@ -49,67 +54,79 @@ export const LogPanel = ({ incidentInfo, teams }) => {
         return false;
     }
 
-    const parseTeamName = (teamNameToParse) => {
+    const parseTeamName = useCallback((teamNameToParse) => {
         if (teamNameToParse === "!@#$") {
             return incidentInfo.commsCallsign || "COMMS"
-        } else {
+        } else if (teamNameToParse === "$#@!") {
+            return "All teams"
+        } else if (teams && teams.length > 0) {
             const foundObject = teams.find(obj => obj.id === teamNameToParse);
             return foundObject ? foundObject.name || "Unnamed" : "Unnamed";
+        } else {
+            return "Unknown team";
         }
-    }
+    }, [incidentInfo.commsCallsign, teams]);
 
-    let displayLogs = logs;
-    if (typeFilter === 1) {
-        displayLogs = displayLogs.filter((log) => log.type === 2)
-    }
-    if (textFilter && textFilter.length >= 2) {
-        displayLogs = displayLogs.filter((log) => textSearch(parseTeamName(log.toTeam), textFilter) || textSearch(parseTeamName(log.toTeam), textFilter) || textSearch(log.message, textFilter))
-    }
+    const displayLogs = useMemo(() => {
+        let filtered = logs;
+        if (typeFilter === 1) {
+            filtered = filtered.filter((log) => log.type === 2);
+        }
+        if (textFilter && textFilter.length >= 2) {
+            filtered = filtered.filter((log) =>
+                textSearch(parseTeamName(log.toTeam), textFilter) ||
+                textSearch(parseTeamName(log.fromTeam), textFilter) ||
+                textSearch(log.message, textFilter)
+            );
+        }
+        return filtered;
+    }, [logs, typeFilter, textFilter, parseTeamName, textSearch]);
 
     let printToFile = async (displayLogs, incidentInfo) => {
-        const maxLogsLinesPerPage = 24;
-        const maxCharsPerLine = 65;
-        let logsHTML = "";
-        let lines = 0;
-        let pages = [];
+        try {
+            const maxLogsLinesPerPage = 24;
+            const maxCharsPerLine = 65;
+            let logsHTML = "";
+            let lines = 0;
+            let pages = [];
 
-        if (exportType === 0 || exportType === 1) displayLogs = displayLogs.filter((log) => log.type === 2); // ICS309, SAR 133 only has radio logs
+            if (exportType === 0 || exportType === 1) displayLogs = displayLogs.filter((log) => log.type === 2); // ICS309, SAR 133 only has radio logs
 
-        displayLogs.forEach((log) => {
-            if (log.message) {
-                let logLines = Math.ceil(log.message.length / maxCharsPerLine);
-                if ((logLines + lines) > maxLogsLinesPerPage) {
-                    lines = 0;
-                    pages.push(logsHTML);
-                    logsHTML = "";
+            displayLogs.forEach((log) => {
+                if (log.message) {
+                    let logLines = Math.ceil(log.message.length / maxCharsPerLine);
+                    if ((logLines + lines) > maxLogsLinesPerPage) {
+                        lines = 0;
+                        pages.push(logsHTML);
+                        logsHTML = "";
+                    }
+                    lines = lines + logLines;
+                } else {
+                    // If there is no message, this counts as a single line
+                    lines = lines + 1;
                 }
-                lines = lines + logLines;
-            } else {
-                // If there is no message, this counts as a single line
-                lines = lines + 1;
-            }
-            logsHTML = logsHTML + `<tr>
+                logsHTML = logsHTML + `<tr>
             <td class="time">${exportDatePreference === 1 ? new Date(log.created).toISOString() : new Date(log.created).toLocaleString('en-US', { hour12: false })}</td>
             ${log.toTeam ? `<td class="oneline center">${parseTeamName(log.fromTeam || "Unknown")}</td>
             <td class="oneline center">${parseTeamName(log.toTeam || "Unknown")}</td>` :
-                    `<td class="oneline center" colspan="2">${parseTeamName(log.fromTeam || "Unknown")}</td>`
-                }
+                        `<td class="oneline center" colspan="2">${parseTeamName(log.fromTeam || "Unknown")}</td>`
+                    }
             <td class="subject">${log.message || ""}</td>
         </tr>`})
-        pages.push(logsHTML);
+            pages.push(logsHTML);
 
-        let pageContents = "";
-        pages.forEach((tableContents, index) => {
-            if (exportType === 0) {
-                // ICS 309 style
-                pageContents = pageContents + `
+            let pageContents = "";
+            pages.forEach((tableContents, index) => {
+                if (exportType === 0) {
+                    // ICS 309 style
+                    pageContents = pageContents + `
                         <table>
                             <tr>
                                 <th colspan="3">COMMUNICATIONS LOG</th>
                                 <td colspan="2"><p class="small">TASK #</p>${incidentInfo.incidentNumber || ""}</td>
                                 <td colspan="2"><p class="small">FOR PERIOD</p>FROM: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[0]?.created).toISOString() : new Date(displayLogs[0]?.created).toLocaleString('en-US', { hour12: false })) ||
-                    ""}</br>TO: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[displayLogs.length - 1]?.created).toISOString() : new Date(displayLogs[displayLogs.length - 1]?.created).toLocaleString('en-US', { hour12: false })) ||
-                    ""}</td>
+                        ""}</br>TO: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[displayLogs.length - 1]?.created).toISOString() : new Date(displayLogs[displayLogs.length - 1]?.created).toLocaleString('en-US', { hour12: false })) ||
+                        ""}</td>
                             </tr>
                             <tr>
                                 <td colspan="2"><p class="small">FOR OP. PERIOD #</p>${incidentInfo.opPeriod || ""}</td>
@@ -145,15 +162,15 @@ export const LogPanel = ({ incidentInfo, teams }) => {
                         <p class="smallFooter">CALSAR 12/2024</p>
                         ${(index + 1 === pages.length) ? "" : `<div class="pagebreak"></div>`}
                         `;
-            } else if (exportType === 1) {
-                // BASARC SAR 133 style
-                pageContents = pageContents + `
+                } else if (exportType === 1) {
+                    // BASARC SAR 133 style
+                    pageContents = pageContents + `
                     <table>
                         <tr>
                             <th colspan="1" class="center">RADIO LOG</th>
                             <td colspan="1"><p class="small">1. INCIDENT NAME</p>${incidentInfo.incidentName || ""}</td>
                             <td colspan="1"><p class="small">2. DATE</p>${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[0]?.created).toISOString() : new Date(displayLogs[0]?.created).toLocaleString('en-US', { hour12: false })) ||
-                    ""}</td>
+                        ""}</td>
                             <td colspan="1"><p class="small">3. INCIDENT NUMBER</p>${incidentInfo.incidentNumber || ""}</td>
                         </tr>
                         <tr>
@@ -184,16 +201,16 @@ export const LogPanel = ({ incidentInfo, teams }) => {
                     </table>
                     ${(index + 1 === pages.length) ? "" : `<div class="pagebreak"></div>`}
                         `;
-            } else {
-                // Standard export style
-                pageContents = pageContents + `
+                } else {
+                    // Standard export style
+                    pageContents = pageContents + `
                         <table>
                             <tr>
                                 <td colspan="3" class="center"><p class="small">OPERATION MANAGEMENT TOOL</p><b>${((exportType === 2 && (typeFilter !== 0 || textFilter !== "") && exportContents !== 1) ? "PARTIAL " : "FULL ")}LOG</b></td>
                                 <td colspan="2"><p class="small">TASK #</p>${incidentInfo.incidentNumber || ""}</td>
                                 <td colspan="2"><p class="small">PERIOD</p>FROM: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[0]?.created).toISOString() : new Date(displayLogs[0]?.created).toLocaleString('en-US', { hour12: false })) ||
-                    ""}</br>TO: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[displayLogs.length - 1]?.created).toISOString() : new Date(displayLogs[displayLogs.length - 1]?.created).toLocaleString('en-US', { hour12: false })) ||
-                    ""}</td>
+                        ""}</br>TO: ${displayLogs.length > 0 && (exportDatePreference === 1 ? new Date(displayLogs[displayLogs.length - 1]?.created).toISOString() : new Date(displayLogs[displayLogs.length - 1]?.created).toLocaleString('en-US', { hour12: false })) ||
+                        ""}</td>
                             </tr>
                             <tr>
                                 <td colspan="1"><p class="small">OP. PERIOD #</p>${incidentInfo.opPeriod || ""}</td>
@@ -226,10 +243,10 @@ export const LogPanel = ({ incidentInfo, teams }) => {
                         </table>
                         ${(index + 1 === pages.length) ? "" : `<div class="pagebreak"></div>`}
                         `;
-            }
-        })
+                }
+            })
 
-        const exportWindowHTML = `
+            const exportWindowHTML = `
             <html>
             <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
             <head>
@@ -283,23 +300,27 @@ export const LogPanel = ({ incidentInfo, teams }) => {
             </body>
         `;
 
-        if (Platform.OS === 'web') {
-            const winUrl = URL.createObjectURL(
-                new Blob([exportWindowHTML], { type: "text/html" })
-            );
+            if (Platform.OS === 'web') {
+                const winUrl = URL.createObjectURL(
+                    new Blob([exportWindowHTML], { type: "text/html" })
+                );
 
-            const win = window.open(
-                winUrl,
-                "win",
-                `width=800,height=400,screenX=200,screenY=200`
-            );
+                const win = window.open(
+                    winUrl,
+                    "win",
+                    `width=800,height=400,screenX=200,screenY=200`
+                );
 
-            win.print(); // this is blocking
-        } else {
-            // On iOS/android prints the given html. On web prints the HTML from the current page.
-            const { uri } = await printToFileAsync({ exportWindowHTML });
-            console.log('File has been saved to:', uri);
-            await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+                win.print(); // this is blocking
+            } else {
+                // On iOS/android prints the given html. On web prints the HTML from the current page.
+                const { uri } = await printToFileAsync({ exportWindowHTML });
+                console.log('File has been saved to:', uri);
+                await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+            }
+        } catch (error) {
+            console.error("Error generating/printing file:", error);
+            // Consider showing a user-friendly notification
         }
     };
 
@@ -352,7 +373,7 @@ export const LogPanel = ({ incidentInfo, teams }) => {
     const LogRowSmall = ({ log }) => {
         const { colorTheme } = useContext(ThemeContext);
 
-        const renderRow = (time, from, to, message, bold = false) => {
+        const renderRow = (time, from, to, message) => {
             return (
                 <>
                     <View style={{ flexDirection: 'column' }}>
@@ -392,7 +413,10 @@ export const LogPanel = ({ incidentInfo, teams }) => {
         }
     }
 
-    let paginatedLogs = displayLogs.slice((logSlice - 1) * numLogsPerPage, logSlice * numLogsPerPage);
+    const paginatedLogs = useMemo(() =>
+        displayLogs.slice((logSlice - 1) * numLogsPerPage, logSlice * numLogsPerPage),
+        [displayLogs, logSlice, numLogsPerPage]
+    );
 
     return (
         <>
@@ -471,7 +495,7 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
     const { createTeam } = useContext(RxDBContext)
 
     const [logTrafficTeam, setLogTrafficTeam] = useState();
-    const [expanded, setExpanded] = useState(false);
+    const [allTeamTrafficModalShowing, setAllTeamTrafficModalShowing] = useState(false);
 
     const areTimersRunning = useMemo(() =>
         activeTeams.some(item => item.isRunning === true && item.status !== "Inactive"),
@@ -483,7 +507,7 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
         incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
     }
 
-    const setIsRuning = (teamToUpdate, state) => {
+    const setIsRunning = (teamToUpdate, state) => {
         if (teamToUpdate.isRunning !== state) {
             if (state) {
                 // Start timer
@@ -499,15 +523,15 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
     };
 
     const setAllIsRunning = (state) => {
-        activeTeams.forEach(team => team.isRunning !== state && team.status !== "Inactive" && setIsRuning(team, state))
+        activeTeams.forEach(team => team.isRunning !== state && team.status !== "Inactive" && setIsRunning(team, state))
     };
 
     return (
         <ScrollView contentContainerStyle={{ gap: 12, paddingTop: 20, paddingBottom: 20, paddingRight: 20, paddingLeft: 20 }} style={{ height: "100%" }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 14, alignItems: "center" }}>
                 <Text style={styles.sectionTitle}></Text>
-                <View style={{ flexDirection: "row", gap: 14 }}>
-                    {false && width > 600 && <FilledButton small={height < 500} backgroundColor={colorTheme.background} disabled={teams.length === 0} icon={expanded ? "chevron-up-outline" : "chevron-down-outline"} text={expanded ? "Hide last" : "Show last"} onPress={() => setExpanded(!expanded)} />}
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                    <FilledButton small={width <= 600 || height < 500} backgroundColor={activeTeams.length === 0 ? getHoverColor(colorTheme.onSurface, 0.3) : colorTheme.background} disabled={activeTeams.length === 0} icon={"radio-outline"} text={"All team traffic"} onPress={() => setAllTeamTrafficModalShowing(true)} />
                     <FilledButton small={width <= 600 || height < 500} backgroundColor={activeTeams.length === 0 ? getHoverColor(colorTheme.onSurface, 0.3) : colorTheme.background} disabled={activeTeams.length === 0} icon={areTimersRunning ? "pause" : "play"} text={areTimersRunning ? "Pause all" : "Resume all"} onPress={() => setAllIsRunning(!areTimersRunning)} />
                     <FilledButton small={width <= 600 || height < 500} primary icon="add" text={width > 600 ? "Ad-hoc team" : "Ad-hoc"} onPress={addAdHocTeam} />
                 </View>
@@ -539,7 +563,6 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
                     <View style={[styles.timerSection]}>
                         {activeTeams.map(item => (item.status !== "Inactive") && <TimerComponent
                             incidentInfo={incidentInfo}
-                            expanded={expanded}
                             team={item}
                             teams={teams}
                             key={item.id}
@@ -563,21 +586,70 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
                 updateAssignment={(newAssignment) => editTeam(logTrafficTeam, { assignment: newAssignment }, false)}
                 setFlag={(state) => editTeam(logTrafficTeam, { flagged: state }, false)}
                 addMarker={addMarker} />
+            <AllTeamTrafficComponent
+                isVisible={allTeamTrafficModalShowing}
+                onClose={() => setAllTeamTrafficModalShowing(false)}
+                incidentInfo={incidentInfo} />
         </ScrollView>
+    );
+}
+
+const AllTeamTrafficComponent = ({ isVisible, onClose, incidentInfo }) => {
+    const { colorTheme } = useContext(ThemeContext);
+    const { createLog } = useContext(RxDBContext);
+
+    const textStyle = textStyles();
+
+    const [customTextBoxText, setCustomTextBoxText] = useState("");
+
+    const handleLogMessage = () => {
+        if (customTextBoxText.trim().length > 0) {
+            createLog(incidentInfo.id, {
+                created: new Date().toISOString(),
+                type: 2,
+                fromTeam: "!@#$",
+                toTeam: "$#@!",
+                message: customTextBoxText.trim()
+            });
+            handleClose();
+        }
+    }
+
+    const handleClose = () => {
+        setCustomTextBoxText("");
+        onClose();
+    }
+
+    return (
+        <RiskModal
+            isVisible={isVisible}
+            overrideWidth={700}
+            title={"Log traffic to all teams"}
+            onClose={handleClose}>
+            <View style={{ padding: 20, paddingTop: 0, gap: 12 }}>
+                <TextBox textStyle={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 8,
+                    backgroundColor: colorTheme.surfaceContainerHigh,
+                    width: "100%"
+                }}
+                    placeholder="Custom message"
+                    onChangeText={setCustomTextBoxText}
+                    initialValue={customTextBoxText}
+                    onConfirm={() => { handleLogMessage() }} limit={1000} autoFocus />
+                <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'space-between', alignItems: "flex-start", paddingTop: 8 }}>
+                    <Text style={textStyle.secondaryText}>A log will be added, but no team's contact timeout will be reset</Text>
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <FilledButton primary text={"Save log"} onPress={() => { handleLogMessage() }} disabled={customTextBoxText.trim().length === 0} />
+                    </View>
+                </View>
+            </View>
+        </RiskModal>
     );
 }
 
 const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, updateStatus, updateAssignment, setFlag, addMarker }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const {
-        isPrinterConnected,
-        feedLines,
-        printText,
-        cutPaper,
-        setBold,
-        setNormal,
-        setCenterAlign,
-        setLeftAlign } = useContext(PrinterContext);
     const { getAssignmentsByFileId, getAssignmentById, getAssignmentsByTeamId, createAssignment, createClue, createLog, createCommsQueueMessage } = useContext(RxDBContext);
 
     const { width } = useWindowDimensions();
@@ -757,29 +829,6 @@ const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, updateStatus,
             }
         }
     };
-
-    const handlePrintClueStub = async (description, location, team, date, assignment) => {
-        //await printFooter();
-        await setBold();
-        await setCenterAlign();
-        await printText("OPERATION MANAGEMENT TOOL");
-        await printText("Clue Stub");
-        await setLeftAlign();
-        await setNormal();
-        await feedLines(1);
-        await printText(`TASK NAME: ${incidentInfo.incidentName || ""}`);
-        await printText(`TASK # ${incidentInfo.incidentNumber || ""}`);
-        await printText(`OP. PERIOD: ${incidentInfo.opPeriod || ""}`);
-        await feedLines(1);
-        await printText(`CLUE DESCRIPTION: ${description || ""}`);
-        await printText(`FOUND BY: ${team || ""}`);
-        await printText(`DATE & TIME FOUND: ${date || ""}`);
-        await printText(`ASSIGNMENT: ${assignment || "None"}`);
-        await printText(`LOCATION FOUND: ${location || "Not given"}`);
-        await feedLines(2);
-        await cutPaper();
-        //printHeader();
-    }
 
     const handleSetToField = (value) => {
         if (value === 1) {
@@ -1130,7 +1179,6 @@ const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, updateStatus,
                     <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'space-between', alignItems: "flex-end", paddingTop: 8 }}>
                         <Text style={textStyle.secondaryText}>{footerMessage}</Text>
                         <View style={{ flexDirection: 'row', gap: 12 }}>
-                            {isPrinterConnected && activeSubTypeKeys[messageSubType] === "Clue" && <FilledButton disabled={customTextBoxText === ""} text={"Print stub"} onPress={() => { handlePrintClueStub(customTextBoxText, clueLocationTextBoxText, team?.name || "Unnamed team", new Date(), team.assignment) }} />}
                             <FilledButton primary text={"Save log"} onPress={() => { handleLogMessage() }} />
                         </View>
                     </View>

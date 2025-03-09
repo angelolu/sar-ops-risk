@@ -10,7 +10,7 @@ import { CluePanel } from '../components/CluesTab';
 import { CommsPanel, LogPanel } from '../components/CommsTab';
 import { InfoTab } from '../components/FileInfoTab';
 import { useFirebase } from '../components/FirebaseContext';
-import { getAsyncStorageData, saveAsyncStorageData } from '../components/helperFunctions';
+import { calculateRemainingTime, format24HourTime, getAsyncStorageData, saveAsyncStorageData, timeFormat } from '../components/helperFunctions';
 import { validateLocationString } from '../components/MapPanel';
 import { OverviewTab } from '../components/OverviewTab';
 import { PlanningPanel } from '../components/PlanningTab';
@@ -22,11 +22,6 @@ import { ResourcesPanel, TeamsPanel } from '../components/RespondersTab';
 import { RxDBContext } from '../components/RxDBContext';
 import TabContainer from '../components/TabContainer';
 import { EditableText } from '../components/TextInput';
-
-const calculateRemainingTime = (lastStart, lastTimeRemaining) => {
-    const elapsedTime = lastStart ? (Date.now() - new Date(lastStart)) / 1000 : 0;
-    return lastTimeRemaining - Math.floor(elapsedTime);
-}
 
 const pollUntilFileReady = (fileId) => {
     return new Promise((resolve, reject) => {
@@ -41,15 +36,43 @@ const pollUntilFileReady = (fileId) => {
     });
 }
 
+var printInitiated = false;
+export const PRINT_TYPES = [
+    "None",
+    "Logs",
+    "Clues",
+];
+
 export default function OperationPage() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const { isPrinterSupported } = useContext(PrinterContext);
-    const { getFileByID, getTeamsByFileId, createLog, getAssignmentById, getAssignmentsByFileId, getClueById, getCluesByFileId, restartSync } = useContext(RxDBContext)
+    const { isPrinterSupported,
+        isPrinterConnected,
+        printText,
+        feedLines,
+        setBold,
+        setNormal,
+        setCenterAlign,
+        setLeftAlign,
+        cutPaper
+    } = useContext(PrinterContext);
+    const {
+        getFileByID,
+        getTeamsByFileId,
+        createLog,
+        getAssignmentById,
+        getAssignmentsByFileId,
+        getClueById,
+        getCluesByFileId,
+        restartSync,
+        getLogsByFileId
+    } = useContext(RxDBContext)
     const { waitForFirebaseReady } = useFirebase();
 
     setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
     const { width } = useWindowDimensions();
     const localParams = useLocalSearchParams();
+
+    const printedClues = useRef([]);
 
     const styles = pageStyles();
     const textStyle = textStyles();
@@ -62,6 +85,8 @@ export default function OperationPage() {
     const [activeTeams, setActiveTeams] = useState([]);
     const [selectedHeaderItem, setSelectedHeaderItem] = useState(0);
     const [markers, setMarkers] = useState([]);
+    const [printType, setPrintType] = useState("None");
+
     const watchedItems = useRef({ clues: [], incidents: [] });
 
     useEffect(() => {
@@ -137,7 +162,8 @@ export default function OperationPage() {
             getTeamsByFileId(localParams.file).then(query => {
                 query.$.subscribe(teams => {
                     setTeams(teams);
-                    setActiveTeams(teams.filter(team => !team.removed));
+                    let tempActiveTeams = teams.filter(team => !team.removed);
+                    setActiveTeams(tempActiveTeams);
                 });
                 return () => query.$.unsubscribe();
             });
@@ -163,7 +189,7 @@ export default function OperationPage() {
                         // Notify user of new incidents
                         newIncidents.forEach(incident => {
                             if (incident.type === "inc" && Notification.permission === "granted") {
-                                new Notification(`New incident`, {
+                                new Notification(`New incident reported`, {
                                     body: `${incident.notes || "No description provided"}`
                                 });
                             }
@@ -188,8 +214,8 @@ export default function OperationPage() {
                         // Notify user of new incidents
                         newIncidents.forEach(incident => {
                             if (Notification.permission === "granted") {
-                                new Notification(`New clue`, {
-                                    body: `${incident.name || ""}${incident.notes || ""}`
+                                new Notification(`New clue reported`, {
+                                    body: `${incident.name || ""} ${incident.notes || ""}`
                                 });
                             }
                         });
@@ -203,6 +229,148 @@ export default function OperationPage() {
             });
         });
     }, [incidentInfo.id]);
+
+    useEffect(() => {
+        let subscription;
+
+        if (isPrinterConnected && incidentInfo.id) {
+            if (printType === 'Logs') {
+                // Subscribe to logs and when a new log is added, print it
+                getLogsByFileId(incidentInfo.id).then(query => {
+                    printInitiated = false;
+                    subscription = query.$.subscribe(logs => {
+                        let lastLog = logs[0];
+                        if (printInitiated) {
+                            if (lastLog && lastLog.type === 2 && lastLog.created && lastLog.fromTeam && lastLog.toTeam && lastLog.message) {
+                                printText(`${format24HourTime(new Date(lastLog.created))}, ${parseTeamName(lastLog.fromTeam)} TO ${parseTeamName(lastLog.toTeam)}`);
+                                printText(`  ${lastLog.message}`);
+                            }
+                        } else {
+                            printInitiated = true;
+                            handlePrintLogHeader();
+                        }
+                    });
+                });
+            } else if (printType === 'Clues') {
+                // Subscribe to clues and when a new clue is added, print it
+                getCluesByFileId(incidentInfo.id).then(query => {
+                    printInitiated = false;
+                    subscription = query.$.subscribe(clues => {
+                        if (printInitiated) {
+                            clues.forEach(clue => {
+                                if (!printedClues.current.includes(clue.id)) {
+                                    handlePrintClueStub(clue);
+                                    printedClues.current.push(clue.id);
+                                }
+                            });
+                        } else {
+                            printInitiated = true;
+                            printedClues.current = clues.map(clue => clue.id);
+                        }
+                    });
+                });
+            } else {
+                printInitiated = false;
+            }
+        }
+
+        // Return cleanup function
+        return () => {
+            if (subscription) {
+                subscription.unsubscribe();
+                const currentPrintType = printType;
+                if (currentPrintType === 'Logs') {
+                    printInitiated = false;
+                    handlePrintLogFooter().then(() => {
+                        cutPaper();
+                    }).catch(err => console.error("Error in print cleanup:", err));
+                } else if (currentPrintType === 'Clues') {
+                    printInitiated = false;
+                    printedClues.current = [];
+                }
+            }
+        };
+    }, [printType, isPrinterConnected, incidentInfo.id]);
+
+    const parseTeamName = (teamNameToParse) => {
+        if (teamNameToParse === "!@#$") {
+            return incidentInfo?.commsCallsign || "COMMS";
+        } else if (teamNameToParse === "$#@!") {
+            return "All teams";
+        } else if (teams && teams.length > 0) {
+            const foundObject = teams.find(obj => obj.id === teamNameToParse);
+            return foundObject ? foundObject.name || "Unnamed" : "Unnamed";
+        } else {
+            return "Unknown team";
+        }
+    }
+
+    const handlePrintClueStub = async (clue) => {
+        let assignmentName = "None";
+        if (clue.assignmentId) {
+            await getAssignmentById(clue.assignmentId).then(query => query.exec()).then(assignment => {
+                assignmentName = assignment.name;
+            });
+        }
+        let teamName = "Unknown";
+        if (clue.foundByTeamId && teams && teams.length > 0) {
+            const foundObject = teams.find(obj => obj.id === clue.foundByTeamId);
+            teamName = foundObject ? foundObject.name || "Unnamed" : "Unknown";
+        }
+        await setBold();
+        await setCenterAlign();
+        await printText("OPERATION MANAGEMENT TOOL");
+        await printText("Clue Stub");
+        await setLeftAlign();
+        await setNormal();
+        await feedLines(1);
+        await printText(`TASK NAME: ${incidentInfo.incidentName || ""}`);
+        await printText(`TASK # ${incidentInfo.incidentNumber || ""}`);
+        await printText(`OP. PERIOD: ${incidentInfo.opPeriod || ""}`);
+        await feedLines(1);
+        await printText(`CLUE DESCRIPTION: ${clue.name || ""}`);
+        if (clue.notes) await printText(`  ${clue.notes}`);
+        await printText(`FOUND BY: ${teamName}`);
+        await printText(`DATE & TIME FOUND: ${timeFormat.format(new Date(clue.created)) || "Unknown"}`);
+        await printText(`ASSIGNMENT: ${assignmentName}`);
+        await printText(`LOCATION FOUND: ${clue.location || "Not given"}`);
+        await feedLines(2);
+        await cutPaper();
+    }
+
+    const handlePrintLogHeader = async () => {
+        await feedLines(2);
+        await setBold();
+        await setCenterAlign();
+        await printText("OPERATION MANAGEMENT TOOL");
+        await printText("Communication Log");
+        await setLeftAlign();
+        await setNormal();
+        await feedLines(1);
+        await printText(`TASK NAME: ${incidentInfo.incidentName || ""}`);
+        await printText(`TASK # ${incidentInfo.incidentNumber || ""}`);
+        await printText(`OP. PERIOD ${incidentInfo.opPeriod || ""}`);
+        await feedLines(1);
+        await printText(`LOG KEEPER: ${incidentInfo.commsName || ""}`);
+        await printText(`STATION CALLSIGN: ${incidentInfo.commsCallsign || ""}`);
+        await printText(`STATION FREQ./CHANNEL: ${incidentInfo.commsFrequency || ""}`)
+        await feedLines(1);
+        await setBold();
+        await setCenterAlign();
+        await printText(`--- Start of printout ${new Date().toLocaleString('en-US', { hour12: false })} ---`);
+        await setNormal();
+        await setLeftAlign();
+        await feedLines(1);
+    }
+
+    const handlePrintLogFooter = async () => {
+        await setBold();
+        await setCenterAlign();
+        await printText(`--- End of printout ${new Date().toLocaleString('en-US', { hour12: false })} ---`);
+        await setNormal();
+        await setLeftAlign();
+        await feedLines(2);
+    }
 
     const notifyFileUpdated = () => {
         if (incidentInfo) incidentInfo.incrementalPatch({ updated: new Date().toISOString() });
@@ -383,17 +551,16 @@ export default function OperationPage() {
                     href="/"
                     hideBack={width > 600}
                     menuButton={!readOnly && <View style={{ flexDirection: "row", height: 60, alignItems: "flex-end", gap: 4 }}>
-                        {isPrinterSupported &&
-                            <View style={[{ height: 55 }, selectedHeaderItem === 2 && { backgroundColor: colorTheme.surfaceContainerHighest, borderTopLeftRadius: 12, borderTopRightRadius: 12 }]}>
-                                <View>
-                                    <PrinterTabIcon
-                                        ionicons_name={selectedHeaderItem === 2 ? "caret-up-circle-outline" : "print-outline"}
-                                        onPress={() => { setSelectedHeaderItem(selectedHeaderItem === 2 ? 0 : 2) }}
-                                        saveLocation={incidentInfo.type}
-                                        selected={selectedHeaderItem === 2}
-                                        size={24} />
-                                </View>
-                            </View>}
+                        <View style={[{ height: 55 }, selectedHeaderItem === 2 && { backgroundColor: colorTheme.surfaceContainerHighest, borderTopLeftRadius: 12, borderTopRightRadius: 12 }]}>
+                            <View>
+                                <PrinterTabIcon
+                                    onPress={() => { setSelectedHeaderItem(selectedHeaderItem === 2 ? 0 : 2) }}
+                                    saveLocation={incidentInfo.type}
+                                    selected={selectedHeaderItem === 2}
+                                    printType={printType}
+                                />
+                            </View>
+                        </View>
                     </View>}
                 />
                 {width > 600 ?
@@ -426,7 +593,14 @@ export default function OperationPage() {
                             contentContainerStyle={styles.floatingViewContainer}
                             style={[styles.floatingView]}
                         >
-                            <PrinterTab incidentInfo={incidentInfo} />
+                            <PrinterTab
+                                incidentInfo={incidentInfo}
+                                setPrintType={setPrintType}
+                                printType={printType}
+                                printTypes={PRINT_TYPES}
+                                printLogFooter={handlePrintLogFooter}
+                                printLogHeader={handlePrintLogHeader}
+                            />
                         </ScrollView>
                     </>
                 }

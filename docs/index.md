@@ -17,7 +17,7 @@ Operation Management Tools gives your search management staff a single place to 
 ---
 
 ## Minimize chatter at your ICP
-Keep track of the people on teams, the equipment assigned to them, the tasks they are working on, the clues found, and more. This browser-based app syncs in real time, so all search management staff can be kept up to date.
+This browser-based app syncs in real time, so all search management staff can be kept up to date with what is happening in the field.
 
 ## Features
 

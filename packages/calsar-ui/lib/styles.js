@@ -88,14 +88,14 @@ var textStyles = exports.textStyles = function textStyles() {
       fontFamily: 'Inter_400Regular'
     },
     columnValueText: {
-      fontSize: 24,
+      fontSize: width > 600 ? 24 : 16,
       color: colorTheme.onSurface,
-      fontFamily: 'Outfit_400Regular'
+      fontFamily: width > 600 ? 'Outfit_400Regular' : 'Inter_400Regular'
     },
     columnValueTextMain: {
-      fontSize: 26,
+      fontSize: width > 600 ? 26 : 18,
       color: colorTheme.onSurface,
-      fontFamily: 'Outfit_600SemiBold'
+      fontFamily: width > 600 ? 'Outfit_600SemiBold' : 'Inter_600SemiBold'
     },
     rowTitleText: {
       fontSize: 16,

@@ -66,7 +66,7 @@ const timeFormatFull = new Intl.DateTimeFormat('en-US', {
     hour12: false,
 });
 
-const timeFormat = new Intl.DateTimeFormat('en-US', {
+export const timeFormat = new Intl.DateTimeFormat('en-US', {
     month: 'numeric',
     day: 'numeric',
     hour: '2-digit',

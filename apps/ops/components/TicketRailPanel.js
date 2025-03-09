@@ -29,7 +29,7 @@ export const TicketRailPanel = ({ file, teams, activeTab, filteredCommsQueue }) 
 
     if (!filteredCommsQueue || filteredCommsQueue.length === 0)
         return <View style={{ flex: 1, justifyContent: "center", alignItems: "center", height: "100%" }}>
-            <Text style={textStyle.secondaryText}>No pending requests. Requests sent by or for {TAB_TO_TEAM_MAP[activeTab]} will appear here.</Text>
+            <Text style={textStyle.secondaryText}>No pending requests. Requests related to {TAB_TO_TEAM_MAP[activeTab]} will appear here.</Text>
         </View>;
 
     return <>

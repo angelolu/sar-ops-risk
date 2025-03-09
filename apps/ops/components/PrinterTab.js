@@ -1,3 +1,4 @@
+import { Picker } from '@react-native-picker/picker';
 import { FilledButton, ThemeContext } from 'calsar-ui';
 import { textStyles } from 'calsar-ui/lib/styles';
 import React, { useContext, useEffect, useState } from 'react';
@@ -5,7 +6,7 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { PrinterContext } from './PrinterContext';
 import { RxDBContext } from './RxDBContext';
 
-export const PrinterTab = ({ incidentInfo }) => {
+export const PrinterTab = ({ incidentInfo, setPrintType, printType, printTypes, printLogHeader, printLogFooter }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { replicationStatus } = useContext(RxDBContext);
     const styles = pageStyles();
@@ -50,41 +51,6 @@ export const PrinterTab = ({ incidentInfo }) => {
 
     const handleFeed = async () => { feedLines(5) };
 
-    const handlePrintHeader = async () => {
-        await feedLines(2);
-        await setBold();
-        await setCenterAlign();
-        await printText("OPERATION MANAGEMENT TOOL");
-        await printText("Communication Log");
-        await setLeftAlign();
-        await setNormal();
-        await feedLines(1);
-        await printText(`TASK NAME: ${incidentInfo.incidentName || ""}`);
-        await printText(`TASK # ${incidentInfo.incidentNumber || ""}`);
-        await printText(`OP. PERIOD ${incidentInfo.opPeriod || ""}`);
-        await feedLines(1);
-        await printText(`LOG KEEPER: ${incidentInfo.commsName || ""}`);
-        await printText(`STATION CALLSIGN: ${incidentInfo.commsCallsign || ""}`);
-        await printText(`STATION FREQ./CHANNEL: ${incidentInfo.commsFrequency || ""}`)
-        await feedLines(1);
-        await setBold();
-        await setCenterAlign();
-        await printText(`--- Start of printout ${new Date().toLocaleString('en-US', { hour12: false })} ---`);
-        await setNormal();
-        await setLeftAlign();
-        await feedLines(1);
-    }
-
-    const handlePrintFooter = async () => {
-        await setBold();
-        await setCenterAlign();
-        await printText(`--- End of printout ${new Date().toLocaleString('en-US', { hour12: false })} ---`);
-        await setNormal();
-        await setLeftAlign();
-        await feedLines(2);
-        await cutPaper();
-    }
-
     const handleConnectPrinter = () => {
         isPrinterConnected ? disconnectPrinter() : connectPrinter();
     }
@@ -118,11 +84,29 @@ export const PrinterTab = ({ incidentInfo }) => {
 
     let fileStorageSecondaryText = incidentInfo.type === "cloud" ? "This file syncs when a connection is available. You can continue working while offline." : "This file is stored in this browser and will be deleted if browsing data is cleared";
 
+    let printColor;
+    if (isPrinterConnected) {
+        switch (printType) {
+            case "Logs":
+                printColor = colorTheme.garGreenLight;
+                break;
+            case "Clues":
+                printColor = colorTheme.garGreenLight;
+                break;
+            default:
+                printColor = colorTheme.garAmberLight;
+                break;
+
+        }
+    } else {
+        printColor = colorTheme.garRedLight;
+    }
+
     return (
         <>
             <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <KeyValue title="Thermal printer" color={isPrinterConnected ? colorTheme.garGreenLight : colorTheme.garRedLight}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8, paddingBottom: isPrinterConnected ? 4 : 0 }}>
+                    <KeyValue title="Thermal printer" color={printColor}>
                         {isPrinterSupported ?
                             <Text style={textStyle.rowTitleText}>{isPrinterConnected ? "Connected" : "Not connected"}</Text>
                             :
@@ -131,14 +115,29 @@ export const PrinterTab = ({ incidentInfo }) => {
                     </KeyValue>
                     <>{isPrinterSupported && <FilledButton small icon={isPrinterConnected ? "close" : "print-outline"} text={isPrinterConnected ? "Disconnect" : "Connect"} onPress={handleConnectPrinter} primary={!isPrinterConnected} destructive={isPrinterConnected} />}</>
                 </View>
-                {isPrinterConnected && <KeyValue title="Actions">
+                {isPrinterConnected && <View>
+                    <Text style={textStyle.tertiaryText}>Content to print</Text>
                     <View style={{ flexDirection: "row", gap: 12, marginTop: 8, justifyContent: "center" }}>
-                        <FilledButton small icon="print" text={"Header"} onPress={handlePrintHeader} />
-                        <FilledButton small icon="print" text={"Footer and cut"} onPress={handlePrintFooter} />
-                        <FilledButton small icon="caret-up" text={"Feed"} onPress={handleFeed} />
-                        <FilledButton small icon="cut" text={"Cut"} onPress={cutPaper} />
+                        <Picker
+                            style={[styles.picker]}
+                            selectedValue={printType}
+                            onValueChange={(itemValue) => setPrintType(itemValue)}>
+                            {printTypes.map((option) => (
+                                <Picker.Item
+                                    key={option}
+                                    label={option}
+                                    value={option}
+                                />
+                            ))}
+                        </Picker>
                     </View>
-                </KeyValue>}
+                </View>}
+                {isPrinterConnected && <View style={{ flexDirection: "row", gap: 12, marginTop: 8, justifyContent: "center", flexWrap: "wrap" }}>
+                    {printType === "Logs" && <FilledButton small icon="arrow-up-circle-outline" text={"Header"} onPress={printLogHeader} />}
+                    {printType === "Logs" && <FilledButton small icon="arrow-down-circle-outline" text={"Footer"} onPress={printLogFooter} />}
+                    <FilledButton small icon="caret-up" text={"Feed"} onPress={handleFeed} />
+                    <FilledButton small icon="cut" text={"Cut"} onPress={cutPaper} />
+                </View>}
             </View>
             <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -167,7 +166,7 @@ const KeyValue = ({ title, children, color }) => {
     const textStyle = textStyles();
 
     if (color) {
-        return (<View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
+        return (<View style={{ flexDirection: "column", gap: 8, flex: 1 }}>
             <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
                 <View style={[styles.circle, { backgroundColor: color }]} />
                 <Text style={textStyle.tertiaryText}>{title}</Text>
@@ -176,7 +175,7 @@ const KeyValue = ({ title, children, color }) => {
         </View>
         );
     } else {
-        return (<View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
+        return (<View style={{ flexDirection: "column", gap: 8, flex: 1 }}>
             <Text style={textStyle.tertiaryText}>{title}</Text>
             {children}
         </View>
@@ -210,6 +209,16 @@ const pageStyles = () => {
             width: 10,
             height: 10,
             borderRadius: 5,
-        }
+        },
+        picker: {
+            height: 34,
+            outlineStyle: "solid",
+            outlineWidth: 2,
+            outlineColor: colorTheme.outline,
+            color: colorTheme.onSurface,
+            backgroundColor: colorTheme.surfaceContainer,
+            width: "100%",
+            paddingHorizontal: 8
+        },
     });
 }
