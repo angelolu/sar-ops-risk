@@ -34,7 +34,7 @@ export default function SwitcherContainer({ tabs, activeTab, setActiveTab }) {
     const activeTabContent = tabs.find(tab => tab.name === activeTab)?.content;
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, height: "100%" }}>
             <View style={{ flexDirection: "row", justifyContent: "flex-start", gap: 12, padding: 20, paddingRight: 20, paddingLeft: 20, paddingBottom: 20 }}>
                 {tabs.filter(item => !item.bottom).map(item => (
                     <TabButton key={item.name} title={item.name} icon={item.icon} active={item.name === activeTab} onClick={() => { setActiveTab(item.name) }} />
