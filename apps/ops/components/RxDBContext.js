@@ -22,6 +22,8 @@ if (__DEV__) {
   addRxPlugin(RxDBDevModePlugin);
 }
 
+// TODO: fix issue where replication will not work if more than one tab is open
+
 const fileSchema = {
   version: 2,
   keyCompression: true,

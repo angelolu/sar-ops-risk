@@ -81,12 +81,12 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams, mapShowing }) =>
                 </View>
                 :
                 <>
-                    <View style={[styles.timerSection, { flexWrap: "wrap", flexDirection: (width > 600) ? "row" : "column", gap: 10 }]}>
+                    <View style={[styles.timerSection, { flexWrap: "wrap", flexDirection: (width > 600) ? "row" : "column", gap: 4 }]}>
                         {enabledTeams}
                     </View>
                     {disabledTeams.length > 0 ? <>
                         <Text style={[textStyle.sectionTitleText]}>Inactive teams</Text>
-                        <View style={[styles.timerSection, { flexWrap: "wrap", flexDirection: (width > 600) ? "row" : "column", gap: 10 }]}>
+                        <View style={[styles.timerSection, { flexWrap: "wrap", flexDirection: (width > 600) ? "row" : "column", gap: 4 }]}>
                             {disabledTeams}
                         </View>
                     </> : <></>

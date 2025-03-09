@@ -5,8 +5,8 @@ import { textStyles, ThemeContext } from 'calsar-ui';
 import { PrinterContext } from './PrinterContext';
 import { RxDBContext } from './RxDBContext';
 
-export const PrinterTabIcon = ({ saveLocation, onPress, selected = false }) => {
-    const { isPrinterConnected } = useContext(PrinterContext);
+export const PrinterTabIcon = ({ saveLocation, onPress, selected = false, printType }) => {
+    const { isPrinterConnected, isPrinterSupported } = useContext(PrinterContext);
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const { replicationStatus } = useContext(RxDBContext);
     const [focus, setFocus] = useState(false);
@@ -39,6 +39,29 @@ export const PrinterTabIcon = ({ saveLocation, onPress, selected = false }) => {
         }
     }, [saveLocation, replicationStatus]);
 
+    let printColor;
+    let printText;
+    if (isPrinterConnected) {
+        switch (printType) {
+            case "Logs":
+                printColor = colorTheme.garGreenLight;
+                printText = "Printing logs";
+                break;
+            case "Clues":
+                printColor = colorTheme.garGreenLight;
+                printText = "Printing clues";
+                break;
+            default:
+                printColor = colorTheme.garAmberLight;
+                printText = "Printer idle";
+                break;
+
+        }
+    } else {
+        printColor = colorTheme.garRedLight;
+        printText = "Printer disconnected";
+    }
+
     return (
         <View style={[styles.baseContainer]}>
             <Pressable
@@ -47,10 +70,10 @@ export const PrinterTabIcon = ({ saveLocation, onPress, selected = false }) => {
                 onPress={onPress}
                 android_ripple={{ color: colorTheme.surfaceContainerHighest }}
                 style={[styles.pressable, focusTheme]}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <View style={[styles.circle, { backgroundColor: isPrinterConnected ? colorTheme.garGreenLight : colorTheme.garRedLight }]} />
-                    <Text style={textStyle.tertiaryText}>{isPrinterConnected ? "Printer connected" : "Printer disconnected"}</Text>
-                </View>
+                {isPrinterSupported && <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    <View style={[styles.circle, { backgroundColor: printColor }]} />
+                    <Text style={textStyle.tertiaryText}>{printText}</Text>
+                </View>}
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8, justifyContent: 'flex-end' }}>
                     <View style={[styles.circle, { backgroundColor: saveColor }]} />
                     <Text style={textStyle.tertiaryText}>{saveText}</Text>

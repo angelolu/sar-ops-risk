@@ -1,5 +1,5 @@
 import { FilledButton, IconButton, RiskModal, textStyles, ThemeContext } from 'calsar-ui';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { RxDBContext } from './RxDBContext';
 import { EditableText } from './TextInput';
@@ -98,7 +98,7 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
             });
             return () => { query.$.unsubscribe() };
         });
-    }, []);
+    }, [getLastRadioLog, incidentInfo.id, team.id]);
 
     useEffect(() => {
         if (team.isRunning) {
@@ -142,25 +142,24 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
         };
     }, [team.assignment, getAssignmentById]);
 
-    const startTimer = () => {
+    const startTimer = useCallback(() => {
         intervalRef.current = setInterval(() => {
-            // Functional update to get the latest time
-            setTime(prevTime => {
-                return calculateRemainingTime(lastStartRef.current, lastTimeRemainingRef.current);
-            });
+            setTime(() => calculateRemainingTime(lastStartRef.current, lastTimeRemainingRef.current));
         }, 1000);
-    }
+    }, []);
 
-    const parseTeamName = (teamNameToParse) => {
+    const parseTeamName = useCallback((teamNameToParse) => {
         if (teamNameToParse === "!@#$") {
             return incidentInfo.commsCallsign || "COMMS"
         } else if (teamNameToParse === "$#@!") {
             return "All teams"
-        } else {
+        } else if (teams && teams.length > 0) {
             const foundObject = teams.find(obj => obj.id === teamNameToParse);
-            return foundObject ? foundObject.name || "Unnamed" : "Unknown";
+            return foundObject ? foundObject.name || "Unnamed" : "Unnamed";
+        } else {
+            return "Unknown team";
         }
-    }
+    }, [incidentInfo.commsCallsign, teams]);
 
     const error = time < 0;
 
@@ -261,60 +260,92 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
             </View>
         );
     } else {
-        return <View style={[styles.card, { backgroundColor: error ? colorTheme.errorContainer : team.flagged ? colorTheme.secondaryContainer : colorTheme.surfaceContainer, flexDirection: "column", gap: 4, paddingVertical: 10, }]}>
-            <SectionContainer justifyContent="flex-start">
-                <View style={styles.sectionTitleContainer}>
+        return <View style={[styles.card, { flexDirection: "column", padding: 0, gap: 0 }]}>
+            <View style={[{ backgroundColor: error ? colorTheme.errorContainer : team.flagged ? colorTheme.secondaryContainer : colorTheme.surfaceContainer, flexDirection: "column", gap: 4, paddingVertical: 10, paddingHorizontal: 18 }]}>
+                <View style={[styles.sectionTitleContainer, readOnly && { justifyContent: "center", paddingBottom: 4 }]}>
                     {team.type ? <>
                         <View style={{ flexDirection: "row", gap: 8 }}>
-                            <EditableText disabled={readOnly} style={textStyle.columnValueText} numberOfLines={1} value={team.name} defaultValue={readOnly ? "-" : "Tap to set"} suffix={"(" + team.type + ")"} onChangeText={(text) => editTeam({ name: text })} limit={10} />
+                            <EditableText disabled={readOnly || team.type !== "Ad-hoc"} style={textStyle.rowTitleText} numberOfLines={1} value={team.name} defaultValue={readOnly ? "-" : "Tap to set"} suffix={"(" + team.type + ")"} onChangeText={(text) => editTeam({ name: text })} limit={10} />
                         </View>
                     </> : <>
-                        <EditableText disabled={readOnly} style={textStyle.columnValueText} numberOfLines={1} value={team.name} defaultValue={readOnly ? "-" : "Tap to set"} onChangeText={(text) => editTeam({ name: text })} limit={10} />
+                        <EditableText disabled={readOnly || team.type !== "Ad-hoc"} style={textStyle.rowTitleText} numberOfLines={1} value={team.name} defaultValue={readOnly ? "-" : "Tap to set"} onChangeText={(text) => editTeam({ name: text })} limit={10} />
                     </>}
                     {!readOnly && <View style={{ flexDirection: "row", gap: 4 }}>
-                        <IconButton small ionicons_name="person-remove" onPress={() => setDeleteModalShowing(true)} />
+                        {team.type === "Ad-hoc" && <IconButton small ionicons_name="person-remove" onPress={() => setDeleteModalShowing(true)} />}
                         <IconButton small tonal={team.flagged} ionicons_name={team.flagged ? "flag" : "flag-outline"} text={team.flagged ? "Unflag" : "Flag"} onPress={handleToggleFlag} />
                         <IconButton small primary backgroundColor={colorTheme.surfaceContainer} ionicons_name="create" text="Log traffic" onPress={() => showLogTrafficModal()} />
                     </View>}
                 </View>
-            </SectionContainer>
-            <View style={{ flexDirection: "row", gap: 8 }}>
-                <SectionContainer style={{ flexBasis: 0, gap: 2 }}>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                    <SectionContainer style={{ flexBasis: 0, gap: 2 }}>
+                        <View style={styles.sectionTitleContainer}>
+                            <Text style={[textStyle.tertiaryText]}>Task</Text>
+                        </View>
+                        <Text style={textStyle.text} numberOfLines={1}>{assignmentName || "-"}</Text>
+                    </SectionContainer>
+                    <SectionContainer style={{ flexBasis: 0, gap: 2, flex: 2 }}>
+                        <View style={styles.sectionTitleContainer}>
+                            <Text style={[textStyle.tertiaryText]}>Status</Text>
+                        </View>
+                        <EditableText disabled={readOnly} style={textStyle.text} numberOfLines={1} value={team.status} defaultValue={readOnly ? "-" : "Tap to set"} onChangeText={(text) => editTeam({ status: text })} limit={25} />
+                    </SectionContainer>
+                    {readOnly && <SectionContainer style={{ flexBasis: 0, gap: 2 }}>
+                        <View style={styles.sectionTitleContainer}>
+                            <View style={{ gap: 2 }}>
+                                <Text style={[textStyle.tertiaryText]}>Timeout</Text>
+                                <Text style={textStyle.text}>{formatTime(time)}</Text>
+                            </View>
+                        </View>
+                    </SectionContainer>}
+                </View>
+                {!readOnly && <SectionContainer>
                     <View style={styles.sectionTitleContainer}>
-                        <Text style={[textStyle.text]}>Assignment</Text>
+                        <View style={{ gap: 2 }}>
+                            <Text style={[textStyle.tertiaryText]}>Timeout</Text>
+                            <Text style={textStyle.text}>{formatTime(time)}</Text>
+                        </View>
+                        <View style={{ flexDirection: "row", gap: 4 }}>
+                            <IconButton small tonal={!team.isRunning} ionicons_name={team.isRunning ? "pause" : "play"} onPress={() => setIsRunning(!team.isRunning)} />
+                            <IconButton small ionicons_name="refresh" onPress={handleResetTimeout} />
+                        </View>
                     </View>
-                    <EditableText disabled={readOnly} style={textStyle.columnValueText} numberOfLines={1} value={team.assignment} defaultValue={readOnly ? "-" : "Tap to set"} onChangeText={(text) => editTeam({ assignment: text })} limit={25} />
-                </SectionContainer>
-                <SectionContainer style={{ flexBasis: 0, gap: 2 }}>
-                    <View style={styles.sectionTitleContainer}>
-                        <Text style={[textStyle.text]}>Status</Text>
+                </SectionContainer>}
+                <RiskModal
+                    isVisible={deleteModalShowing}
+                    title={"Delete team?"}
+                    onClose={() => { setDeleteModalShowing(false) }}>
+                    <View style={{
+                        padding: 20, paddingTop: 0, gap: 20
+                    }}>
+                        <Text style={{ color: colorTheme.onSurface }}>{team.name ? team.name : "This team"} will be removed, but any radio logs won't be affected</Text>
+                        <FilledButton rightAlign destructive text={"Delete team"} onPress={removeTeam} />
                     </View>
-                    <EditableText disabled={readOnly} style={textStyle.columnValueText} numberOfLines={1} value={team.status} defaultValue={readOnly ? "-" : "Tap to set"} onChangeText={(text) => editTeam({ status: text })} limit={25} />
-                </SectionContainer>
+                </RiskModal>
             </View>
-            <SectionContainer>
-                <View style={styles.sectionTitleContainer}>
-                    <View style={{ gap: 2 }}>
-                        <Text style={[textStyle.text]}>Timeout</Text>
-                        <Text style={textStyle.columnValueText}>{formatTime(time)}</Text>
-                    </View>
-                    {!readOnly && <View style={{ flexDirection: "row", gap: 4 }}>
-                        <IconButton small tonal={!team.isRunning} ionicons_name={team.isRunning ? "pause" : "play"} onPress={() => setIsRunning(!team.isRunning)} />
-                        <IconButton small ionicons_name="refresh" onPress={handleResetTimeout} />
-                    </View>}
-                </View>
-            </SectionContainer>
-            <RiskModal
-                isVisible={deleteModalShowing}
-                title={"Delete team?"}
-                onClose={() => { setDeleteModalShowing(false) }}>
+            {(expanded || readOnly) &&
                 <View style={{
-                    padding: 20, paddingTop: 0, gap: 20
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    backgroundColor: colorTheme.surfaceContainerLow,
+                    paddingLeft: readOnly ? 18 : 24,
+                    paddingRight: readOnly ? 18 : 24,
+                    paddingBottom: 6,
+                    paddingTop: 6,
+                    borderBottomLeftRadius: 6,
+                    borderBottomRightRadius: 6,
                 }}>
-                    <Text style={{ color: colorTheme.onSurface }}>{team.name ? team.name : "This team"} will be removed, but any radio logs won't be affected</Text>
-                    <FilledButton rightAlign destructive text={"Delete team"} onPress={removeTeam} />
+                    <View style={{
+                        flex: 1,
+                        flexDirection: "row",
+                        gap: 12
+                    }}>
+                        {lastLog && <Text style={[textStyle.tertiaryText, { flexShrink: 0 }]} numberOfLines={1}>{lastLog.fromTeam === team.id ? `To ${parseTeamName(lastLog.toTeam)}` : lastLog ? `${parseTeamName(lastLog.fromTeam)} to ${parseTeamName(lastLog.toTeam)}` : ""}</Text>}
+                        <Text style={[textStyle.tertiaryText]} numberOfLines={1}>{lastLog ? `${lastLog.message}` : "No previous traffic found"}</Text>
+                    </View>
+                    <Text style={[textStyle.tertiaryText, { fontStyle: 'italic', flexShrink: 0 }]} numberOfLines={1}>{lastLog ? `${getElapsedTimeString(lastLog.created)}` : ""}</Text>
                 </View>
-            </RiskModal>
+            }
         </View>
     }
 };

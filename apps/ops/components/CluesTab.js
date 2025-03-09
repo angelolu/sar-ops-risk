@@ -24,20 +24,6 @@ const ClueCard = ({ item, teams, notifyFileUpdated, markers, removeMarker, addMa
         }
     }, [item.assignment]);
 
-    // Compute the text for the chip based on the teams assigned to the assignment
-    let completingTeams = teams.filter(t => t?.assignment === item.id);
-    if (completingTeams.length > 0) {
-        item.completingTeamNames = completingTeams.map(t => t?.name).join(", ");
-    } else if (item.teamId && item.teamId.length > 0) {
-        // No teams are currently completing the assignment
-        item.completingTeamNames = "";
-        let assignedTeams = item.teamId.map(id => teams.find(t => t.id === id));
-        item.queuedTeamNames = assignedTeams.map(t => t?.name).join(", ");
-    } else {
-        item.completingTeamNames = "";
-        item.queuedTeamNames = "";
-    }
-
     let isInMarkerArray;
 
     if (markers && markers.length > 0) {
@@ -292,7 +278,7 @@ const ChangeStateModal = ({ notifyFileUpdated, isVisible, onClose, clue }) => {
     } else if (selectedState !== "") {
         primaryButtonText = "Change state";
     } else if (operatorMessage !== "") {
-        primaryButtonText = "Notify radio operator";
+        primaryButtonText = "Notify operator";
     }
 
     return (<RiskModal
