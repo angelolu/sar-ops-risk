@@ -43,8 +43,17 @@ const cardStyles = () => {
     card: {
       marginLeft: 20,
       marginRight: 20,
-      borderRadius: 26, // Rounded corners
+      borderRadius: 12, // MD3 Standard
       overflow: 'hidden',
+      // MD3 Elevation Level 1
+      shadowColor: colorTheme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+      elevation: 1,
     },
   });
 }

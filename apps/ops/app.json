@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ops",
     "slug": "ops",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "orientation": "default",
     "scheme": "calsar-ops",
     "icon": "./assets/icon.png",

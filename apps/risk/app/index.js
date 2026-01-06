@@ -10,15 +10,21 @@ const ORMAOptions = require('../assets/images/orma-options.jpg');
 const WebDownloadBanner = () => {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
     const userAgent = navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream; // More robust iOS check
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+    // Apple Smart App Banners only work in Safari
+    const isSafari = isIOS && /Safari/i.test(userAgent) && /Version/i.test(userAgent);
     const isAndroid = /android/i.test(userAgent);
 
-    if (isIOS) {
-        // Rely on Apple Smart Banner
+    if (isIOS && isSafari) {
+        // Rely on Apple Smart App Banner
         return <></>;
-    } else if (isAndroid) {
+    } else if (isAndroid || isIOS) {
+        const link = isIOS
+            ? "https://apps.apple.com/us/app/risk-sar-risk-assessment/id6596800682"
+            : "https://play.google.com/store/apps/details?id=org.ca_sar.risk";
+
         return <Banner
-            onPress={() => { router.navigate("https://play.google.com/store/apps/details?id=org.ca_sar.risk") }}
+            onPress={() => { router.navigate(link) }}
             backgroundColor={colorTheme.secondaryContainer}
             color={colorTheme.onSecondaryContainer}
             icon={<Ionicons name="cloud-offline-outline" size={24} color={colorTheme.onSecondaryContainer} />}
