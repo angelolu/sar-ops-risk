@@ -368,7 +368,19 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
                 <Text style={[riskStyles.score, { color: getTextColor(item.score) }]}>{item.score}</Text>
                 <Text style={riskStyles.description}>{getDescriptionFromScore(item.score)}</Text>
             </View>
-            <View style={{ marginBottom: 15, }}>
+            <View style={{ marginBottom: 15, justifyContent: 'center' }}>
+                {/* Background Dots */}
+                <View style={{ flexDirection: 'row', gap: 2, position: 'absolute', width: '100%', paddingHorizontal: overridePadding, borderRadius: 99, overflow: 'hidden' }}>
+                    {/* Added paddingHorizontal offset of 16 roughly corresponds to thumb width/2 to align dots with track */}
+                    {Array.from(Array(10).keys()).map((index) => {
+                        const dotColor = index < item.score ? getBarColor(index + 1) : colorTheme.primaryContainer;
+                        return (
+                            <View key={index} style={{ backgroundColor: dotColor, height: 8, flexGrow: 1 }} />
+                        )
+                    })}
+                </View>
+
+                {/* Slider */}
                 <Slider
                     style={{ width: "100%", height: 40 }}
                     minimumValue={0}
@@ -380,14 +392,6 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
                     onValueChange={onChangeValue}
                     step={1}
                 />
-                <View style={{ flexDirection: 'row', gap: 2, top: - 24, zIndex: -1, flex: -1, marginHorizontal: overridePadding, borderRadius: 99, overflow: 'hidden' }}>
-                    {Array.from(Array(10).keys()).map((index) => {
-                        const dotColor = index < item.score ? getBarColor(index + 1) : colorTheme.primaryContainer;
-                        return (
-                            <View key={index} style={{ backgroundColor: dotColor, height: 8, flexGrow: 1 }} />
-                        )
-                    })}
-                </View>
             </View>
             <FilledButton rightAlign primary disabled={item.score === 0} text={selected === entries.length - 1 ? "Finish" : "Next element"} onPress={onNext} style={{ alignSelf: "flex-end" }} />
         </View>

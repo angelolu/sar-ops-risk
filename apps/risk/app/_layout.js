@@ -1,7 +1,32 @@
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { BackHandler } from 'react-native';
 import 'expo-dev-client';
 import { ThemeProvider } from 'calsar-ui';
+
+if (BackHandler?.addEventListener) {
+    const originalAddEventListener = BackHandler.addEventListener;
+    const subscriptions = new Map();
+
+    BackHandler.addEventListener = (eventName, handler) => {
+        const subscription = originalAddEventListener(eventName, handler);
+        if (!subscriptions.has(eventName)) {
+            subscriptions.set(eventName, new Map());
+        }
+        subscriptions.get(eventName).set(handler, subscription);
+        return subscription;
+    };
+
+    if (!BackHandler.removeEventListener) {
+        BackHandler.removeEventListener = (eventName, handler) => {
+            const eventSubs = subscriptions.get(eventName);
+            if (eventSubs && eventSubs.has(handler)) {
+                eventSubs.get(handler).remove();
+                eventSubs.delete(handler);
+            }
+        };
+    }
+}
 
 export {
     // Catch any errors thrown by the Layout component.

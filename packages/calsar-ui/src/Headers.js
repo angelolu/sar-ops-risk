@@ -51,16 +51,16 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
                             {customTitle ?
                                 customTitle
                                 :
-                                <Text style={[textStyle.headerText, { color: color ? color : colorTheme.onPrimaryContainer }]} adjustsFontSizeToFit={true} numberOfLines={1}>{title}</Text>
+                                <Text style={[textStyle.headerText, { color: color ? color : colorTheme.onPrimaryContainer, flexShrink: 1 }]} adjustsFontSizeToFit={true} numberOfLines={1}>{title}</Text>
                             }
                         </>
                     }
                     {menuButton ?
-                        <View style={[styles.menuContainer, { flexGrow: 1, flexBasis: 1, alignItems: "flex-end" }]}>
+                        <View style={[styles.menuContainer, { alignItems: "flex-end" }]}>
                             {menuButton}
                         </View>
                         :
-                        <View style={{ flexGrow: 1, flexBasis: 1 }} />
+                        <View style={{ width: 40 }} />
                     }
                 </View>
                 {children}
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
         gap: 6,
         alignItems: 'center',
         justifyContent: 'flex-start',
-        flex: -1,
+        flex: 1, // Changed from flexShrink to flex 1 to push against menu
     },
     subtitleContainer: {
         paddingTop: 10,
@@ -106,17 +106,15 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 18,
-        flex: -1,
-        fontWeight: '500'
+        fontWeight: '500',
+        flexShrink: 1 // Added flexShrink so text truncates
     },
     backButtonContainer: {
         width: 40,
-        height: "100%",
+        height: 40,
         minHeight: 40,
         borderRadius: 20,
         overflow: 'hidden',
-        flexGrow: 1,
-        flexBasis: 1,
         alignItems: "flex-start",
         justifyContent: "center"
     },

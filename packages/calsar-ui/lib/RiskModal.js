@@ -8,6 +8,7 @@ var _vectorIcons = require("@expo/vector-icons");
 var _react = require("react");
 var _reactNative = require("react-native");
 var _reactNativeModal = _interopRequireDefault(require("react-native-modal"));
+var _reactNativeSafeAreaContext = require("react-native-safe-area-context");
 var _ThemeContext = require("./ThemeContext");
 var _styles = require("./styles");
 var _jsxRuntime = require("react/jsx-runtime");
@@ -22,7 +23,8 @@ function RiskModal(_ref) {
     overrideWidth = _ref.overrideWidth;
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext.colorTheme;
-  var styles = modalStyles();
+  var insets = (0, _reactNativeSafeAreaContext.useSafeAreaInsets)();
+  var styles = modalStyles(insets);
   var textStyle = (0, _styles.textStyles)();
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNativeModal["default"], {
     isVisible: isVisible,
@@ -68,7 +70,7 @@ function RiskModal(_ref) {
     })
   });
 }
-var modalStyles = function modalStyles() {
+var modalStyles = function modalStyles(insets) {
   var _useContext2 = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext2.colorTheme;
   return _reactNative.StyleSheet.create({
@@ -79,7 +81,7 @@ var modalStyles = function modalStyles() {
       position: 'absolute',
       bottom: 0,
       maxWidth: 600,
-      paddingBottom: _reactNative.Platform.OS === "ios" ? 20 : 0
+      paddingBottom: ((insets === null || insets === void 0 ? void 0 : insets.bottom) || 0) + (_reactNative.Platform.OS === 'ios' ? 0 : 20)
     },
     titleContainer: {
       marginTop: 16,
