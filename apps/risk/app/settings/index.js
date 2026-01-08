@@ -1,9 +1,9 @@
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BackHeader, Banner, BannerGroup, HorizontalTileGroup, ThemeContext, VerticalTile } from 'calsar-ui';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useEffect, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
-import { ThemeContext, Banner, BackHeader } from 'calsar-ui';
 
 const saveData = async (key, value) => {
     try {
@@ -25,7 +25,6 @@ const getData = async (key) => {
 
 export default function Settings() {
     const styles = pageStyles();
-    const riskStyles = riskInputStyles();
     const { colorTheme, changeColorScheme, colorScheme } = useContext(ThemeContext);
     setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
 
@@ -82,124 +81,120 @@ export default function Settings() {
                     { width: (width > 850 ? 850 : width) }
                 ]}
                 contentContainerStyle={styles.mainScroll}>
-                <View>
+                <View style={styles.listContainer}>
                     <Text style={styles.headings}>Appearance</Text>
-                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
-                        <Banner
-                            backgroundColor={appearanceState === 1 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={appearanceState === 1 ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialCommunityIcons name="theme-light-dark" size={24} color={appearanceState === 1 ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={appearanceState === 1 && riskStyles.boldText}>Device Default</Text> ({baseColorScheme})</>}
+                    <HorizontalTileGroup marginHorizontal={0}>
+                        <VerticalTile
+                            selected={appearanceState === 1}
+                            icon={<MaterialCommunityIcons name="theme-light-dark" size={24} />}
+                            title="Device Default"
                             onPress={() => {
                                 saveAppearance(1);
                                 changeColorScheme(baseColorScheme);
                             }}
-                            noRadius />
-                        <Banner
-                            backgroundColor={appearanceState === 2 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={appearanceState === 2 ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialCommunityIcons name="weather-sunny" size={24} color={appearanceState === 2 ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={appearanceState === 2 && riskStyles.boldText}>Light</Text></>}
+                        />
+                        <VerticalTile
+                            selected={appearanceState === 2}
+                            icon={<MaterialCommunityIcons name="weather-sunny" size={24} />}
+                            title="Light"
                             onPress={() => {
                                 saveAppearance(2);
                                 changeColorScheme('light');
                             }}
-                            noRadius />
-                        <Banner
-                            backgroundColor={appearanceState === 3 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={appearanceState === 3 ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialCommunityIcons name="weather-night" size={24} color={appearanceState === 3 ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={appearanceState === 3 && riskStyles.boldText}>Dark</Text></>}
+                        />
+                        <VerticalTile
+                            selected={appearanceState === 3}
+                            icon={<MaterialCommunityIcons name="weather-night" size={24} />}
+                            title="Dark"
                             onPress={() => {
                                 saveAppearance(3);
                                 changeColorScheme('dark');
                             }}
-                            noRadius />
-
-                    </View>
+                        />
+                    </HorizontalTileGroup>
                 </View>
-                <View>
+                <View style={styles.listContainer}>
                     <Text style={styles.headings}>ORMA language</Text>
-                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
-                        {false && <Banner
-                            backgroundColor={languageState === "calsar" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={languageState === "calsar" ? colorTheme.secondary : disabledColor}
-                            icon={<Ionicons name="heart-circle" size={24} color={languageState === "calsar" ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={languageState === "calsar" && riskStyles.boldText}>California Search and Rescue</Text> (CALSAR)</>}
-                            onPress={() => { saveLanguage("calsar") }}
-                            noRadius />}
+                    <BannerGroup marginHorizontal={0}>
                         <Banner
                             backgroundColor={languageState === "nps" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={languageState === "nps" ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialIcons name="account-balance" size={24} color={languageState === "nps" ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={languageState === "nps" && riskStyles.boldText}>National Parks Service</Text> (NPS)</>}
+                            color={languageState === "nps" ? colorTheme.primary : disabledColor}
+                            icon={<MaterialIcons name="account-balance" size={24} color={languageState === "nps" ? colorTheme.primary : disabledColor} />}
+                            title={<><Text style={languageState === "nps" && styles.boldText}>National Parks Service</Text> (NPS)</>}
                             onPress={() => { saveLanguage("nps") }}
-                            noRadius />
+                        />
+                        {false && <Banner
+                            backgroundColor={languageState === "calsar" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={languageState === "calsar" ? colorTheme.primary : disabledColor}
+                            icon={<Ionicons name="heart-circle" size={24} color={languageState === "calsar" ? colorTheme.primary : disabledColor} />}
+                            title={<><Text style={languageState === "calsar" && styles.boldText}>California Search and Rescue</Text> (CALSAR)</>}
+                            onPress={() => { saveLanguage("calsar") }}
+                        />}
                         <Banner
                             backgroundColor={languageState === "fws" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={languageState === "fws" ? colorTheme.secondary : disabledColor}
-                            icon={<Ionicons name="fish" size={24} color={languageState === "fws" ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={languageState === "fws" && riskStyles.boldText}>U.S. Fish & Wildlife Service</Text></>}
+                            color={languageState === "fws" ? colorTheme.primary : disabledColor}
+                            icon={<Ionicons name="fish" size={24} color={languageState === "fws" ? colorTheme.primary : disabledColor} />}
+                            title={<><Text style={languageState === "fws" && styles.boldText}>U.S. Fish & Wildlife Service</Text></>}
                             onPress={() => { saveLanguage("fws") }}
-                            noRadius />
-                    </View>
+                        />
+                    </BannerGroup>
                 </View>
-                <View>
+                <View style={styles.listContainer}>
                     <Text style={styles.headings}>PEAACE language</Text>
-                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
+                    <BannerGroup marginHorizontal={0}>
                         <Banner
                             backgroundColor={languagePeaceState === "nasar" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={languagePeaceState === "nasar" ? colorTheme.secondary : disabledColor}
-                            icon={<Ionicons name="walk" size={24} color={languagePeaceState === "nasar" ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={languagePeaceState === "nasar" && riskStyles.boldText}>NASAR</Text></>}
+                            color={languagePeaceState === "nasar" ? colorTheme.primary : disabledColor}
+                            icon={<Ionicons name="walk" size={24} color={languagePeaceState === "nasar" ? colorTheme.primary : disabledColor} />}
+                            title={<><Text style={languagePeaceState === "nasar" && styles.boldText}>NASAR</Text></>}
                             onPress={() => { saveLanguagePeace("nasar") }}
-                            noRadius />
+                        />
                         <Banner
                             backgroundColor={languagePeaceState === "uscg" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={languagePeaceState === "uscg" ? colorTheme.secondary : disabledColor}
-                            icon={<Ionicons name="boat" size={24} color={languagePeaceState === "uscg" ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={languagePeaceState === "uscg" && riskStyles.boldText}>USCG Ashore</Text></>}
+                            color={languagePeaceState === "uscg" ? colorTheme.primary : disabledColor}
+                            icon={<Ionicons name="boat" size={24} color={languagePeaceState === "uscg" ? colorTheme.primary : disabledColor} />}
+                            title={<><Text style={languagePeaceState === "uscg" && styles.boldText}>USCG Ashore</Text></>}
                             onPress={() => { saveLanguagePeace("uscg") }}
-                            noRadius />
-                    </View>
+                        />
+                    </BannerGroup>
                 </View>
-                <View>
+                <View style={styles.listContainer}>
                     <Text style={styles.headings}>PEACE input mode</Text>
-                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
+                    <BannerGroup marginHorizontal={0}>
                         <Banner
                             backgroundColor={peaceInputState === "emoji" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={peaceInputState === "emoji" ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialCommunityIcons name="emoticon-happy-outline" size={24} color={peaceInputState === "emoji" ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={peaceInputState === "emoji" && riskStyles.boldText}>Emoji</Text></>}
+                            color={peaceInputState === "emoji" ? colorTheme.primary : disabledColor}
+                            icon={<MaterialCommunityIcons name="emoticon-happy-outline" size={24} color={peaceInputState === "emoji" ? colorTheme.primary : disabledColor} />}
+                            title={<><Text style={peaceInputState === "emoji" && styles.boldText}>Emoji</Text></>}
                             onPress={() => { savePeaceInput("emoji") }}
-                            noRadius />
+                        />
                         <Banner
                             backgroundColor={peaceInputState === "text" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={peaceInputState === "text" ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialCommunityIcons name="format-list-bulleted" size={24} color={peaceInputState === "text" ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={peaceInputState === "text" && riskStyles.boldText}>Text</Text> with descriptions</>}
+                            color={peaceInputState === "text" ? colorTheme.primary : disabledColor}
+                            icon={<MaterialCommunityIcons name="format-list-bulleted" size={24} color={peaceInputState === "text" ? colorTheme.primary : disabledColor} />}
+                            title={<><Text style={peaceInputState === "text" && styles.boldText}>Text</Text> with descriptions</>}
                             onPress={() => { savePeaceInput("text") }}
-                            noRadius />
-                    </View>
+                        />
+                    </BannerGroup>
                 </View>
-                <View>
+                <View style={styles.listContainer}>
                     <Text style={styles.headings}>List style</Text>
-                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
+                    <BannerGroup gap={2} marginHorizontal={0}>
                         <Banner
                             backgroundColor={listStyleState === "new" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={listStyleState === "new" ? colorTheme.secondary : disabledColor}
                             icon={<Ionicons name="heart-circle" size={24} color={listStyleState === "new" ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={listStyleState === "new" && riskStyles.boldText}>New</Text></>}
+                            title={<><Text style={listStyleState === "new" && styles.boldText}>New</Text></>}
                             onPress={() => { saveListStyle("new") }}
-                            noRadius />
+                        />
                         <Banner
                             backgroundColor={listStyleState === "legacy" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={listStyleState === "legacy" ? colorTheme.secondary : disabledColor}
                             icon={<MaterialIcons name="account-balance" size={24} color={listStyleState === "legacy" ? colorTheme.secondary : disabledColor} />}
-                            title={<><Text style={listStyleState === "legacy" && riskStyles.boldText}>Legacy</Text> (NPS Risk)</>}
+                            title={<><Text style={listStyleState === "legacy" && styles.boldText}>Legacy</Text> (NPS Risk)</>}
                             onPress={() => { saveListStyle("legacy") }}
-                            noRadius />
-                    </View>
+                        />
+                    </BannerGroup>
                 </View>
             </ScrollView >
         </View >
@@ -226,6 +221,7 @@ const pageStyles = () => {
             alignSelf: 'center'
         },
         listContainer: {
+            gap: 8
         },
         boldText: {
             fontWeight: 'bold',
@@ -243,27 +239,5 @@ const pageStyles = () => {
         text: {
             color: colorTheme.onBackground
         }
-    });
-}
-
-const riskInputStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-
-    return StyleSheet.create({
-        container: {
-            padding: 20,
-            paddingTop: 0
-        },
-        subtitle: {
-            color: colorTheme.onSurface,
-            fontSize: 16
-        },
-        description: {
-            flex: -1,
-            flexShrink: 1
-        },
-        boldText: {
-            fontWeight: 'bold',
-        },
     });
 }

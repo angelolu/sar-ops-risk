@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Banner, BrandingBar, FilledButton, Header, IconButton, MaterialCard, RiskModal, ShareButton, ThemeContext, Tile } from 'calsar-ui';
+import { Banner, BannerGroup, BrandingBar, FilledButton, Header, IconButton, MaterialCard, RiskModal, ThemeContext, Tile, VerticalTileGroup } from 'calsar-ui';
 import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useState } from 'react';
-import { Image, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View, useWindowDimensions } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View, useWindowDimensions } from 'react-native';
 
 const ORMAOptions = require('../assets/images/orma-options.jpg');
 
@@ -92,7 +92,7 @@ export default function App() {
                     marginRight={20}
                     title="Operational Risk Management Analysis (ORMA)"
                     subtitle="Use before the team enters the field. Considers all factors of a team’s participation in an event.">
-                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center", marginTop: 15 }}>
+                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(0) }} />
                         <FilledButton rightAlign primary text="Complete an ORMA" onPress={() => { router.navigate("/ORMA") }} />
                     </View>
@@ -102,7 +102,7 @@ export default function App() {
                     marginRight={20}
                     title="PEAACE"
                     subtitle="Quickly identify risks before and during a mission." >
-                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, marginTop: 15 }}>
+                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(2) }} />
                         <FilledButton rightAlign primary text="Complete a PEAACE" onPress={() => { router.navigate("/PEACE") }} />
                     </View>
@@ -112,32 +112,34 @@ export default function App() {
                     marginRight={20}
                     title="Severity, Probability, Exposure (SPE)"
                     subtitle="Use to categorize a specific risk when the situation in the field changes." >
-                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, marginTop: 15 }}>
+                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(1) }} />
                         <FilledButton rightAlign primary text="Complete a SPE" onPress={() => { router.navigate("/SPE") }} />
                     </View>
                 </MaterialCard>
-                <Text style={styles.headings}>Miscellaneous</Text>
-                <View style={styles.miscSection}>
-                    <Tile
-                        href="settings"
-                        icon={<Ionicons name="settings" size={20} color={colorTheme.primary} />}
-                        title="App settings"
-                        subtitle="Appearance, language, list style"
-                    />
-                </View>
-                <View style={styles.miscSection}>
-                    <Tile
-                        href="https://www.cal-esar.org/"
-                        icon={<Ionicons name="open-outline" size={20} color={colorTheme.primary} />}
-                        title="About CALSAR"
-                    />
-                    <Tile
-                        href="https://sites.google.com/cal-esar.org/members-only"
-                        icon={<Ionicons name="open-outline" size={20} color={colorTheme.primary} />}
-                        title="Member portal"
-                        subtitle="Requires ca-sar.org login"
-                    />
+                <View style={{ gap: 16 }}>
+                    <Text style={styles.headings}>Miscellaneous</Text>
+                    <VerticalTileGroup>
+                        <Tile
+                            href="settings"
+                            icon={<Ionicons name="settings" size={20} />}
+                            title="App settings"
+                            subtitle="Appearance, language, list style"
+                        />
+                    </VerticalTileGroup>
+                    <VerticalTileGroup>
+                        <Tile
+                            href="https://www.cal-esar.org/"
+                            icon={<Ionicons name="open-outline" size={20} />}
+                            title="About CALSAR"
+                        />
+                        <Tile
+                            href="https://sites.google.com/cal-esar.org/members-only"
+                            icon={<Ionicons name="open-outline" size={20} />}
+                            title="Member portal"
+                            subtitle="Requires ca-sar.org login"
+                        />
+                    </VerticalTileGroup>
                 </View>
                 <RiskModal
                     isVisible={isModalVisible}
@@ -175,15 +177,9 @@ const appStyles = () => {
             paddingBottom: Platform.OS === "ios" ? 40 : 20,
             gap: 20,
         },
-        miscSection: {
-            gap: 4,
-            borderRadius: 26,
-            overflow: 'hidden',
-            marginHorizontal: 20,
-        },
         headings: {
-            fontSize: 20,
-            color: colorTheme.onBackground,
+            color: colorTheme.onPrimaryContainer,
+            fontWeight: 'bold',
             marginLeft: 20,
             marginRight: 20
         },
@@ -260,32 +256,32 @@ function HelpInfo({ subject }) {
                     <View style={styles.section}>
                         <Text style={styles.heading}>ORMA (GAR) Scoring</Text>
                         <Text style={styles.bodyText}>The following model is commonly referred to as GAR (Green, Amber, Red):</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
+                        <BannerGroup marginHorizontal={0}>
                             <Banner
                                 backgroundColor='#b9f0b8'
                                 color='#002107'
                                 icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
                                 title={<><Text style={styles.boldText}>1-2</Text>: No to little concern.</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#e6f4ea'
                                 color='#002107'
                                 icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
                                 title={<><Text style={styles.boldText}>3-4</Text>: Mild concern. Not concerning enough to require mitigation but worth drawing attention to.</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#ffdeae'
                                 color='#281900'
                                 icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
                                 title={<><Text style={styles.boldText}>5-7</Text>: Concerning enough we should work to mitigate risks.</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#ffdad6'
                                 color='#410002'
                                 icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
                                 title={<><Text style={styles.boldText}>8-10</Text>: Serious concern. Major restructure or mission turn down should be considered.</>}
-                                noRadius />
-                        </View>
+                            />
+                        </BannerGroup>
                         <Text style={[styles.bodyText, { marginTop: 6 }]}>At the end of the GAR, you should have a consensus on: General risk level, Mitigations and controls, Risk vs Gain, and Go / No Go.</Text>
                     </View>
                 </View>
@@ -305,17 +301,17 @@ function HelpInfo({ subject }) {
                     <View style={styles.section}>
                         <Text style={styles.heading}>What is SPE?</Text>
                         <Text style={styles.bodyText}>SPE is a method to help leaders make decisions made about risky situation in the field. It's useful for assessing specific risks. For example: is it safe to rappel this cliff?</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
+                        <BannerGroup marginHorizontal={0}>
                             <Banner
                                 title="Severity - What is the potential loss or consequence?"
-                                noRadius />
+                            />
                             <Banner
                                 title="Probability - What is the likelihood of loss or consequence?"
-                                noRadius />
+                            />
                             <Banner
                                 title="Exposure - What is the amount of time, cycles, people or equipment involved?"
-                                noRadius />
-                        </View>
+                            />
+                        </BannerGroup>
                         <Text style={styles.bodyText}>Probability is easily understood, but exposure is less obvious.</Text>
                     </View>
                     <View style={styles.section}>
@@ -336,66 +332,66 @@ function HelpInfo({ subject }) {
                     <View style={styles.section}>
                         <Text style={styles.heading}>Element Scoring</Text>
                         <Text style={styles.bodyText}>Severity is scored on a scale of 1 (none or slight) to 5 (catastrophic):</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
+                        <BannerGroup marginHorizontal={0}>
                             <Banner
                                 backgroundColor='#b9f0b8'
                                 color='#002107'
                                 icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
                                 title={<><Text style={styles.boldText}>None or Slight</Text>: Discomfort or nuisance.</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#ffdeae'
                                 color='#281900'
                                 icon={<Ionicons name="heart-circle" size={24} color="#281900" />}
                                 title={<><Text style={styles.boldText}>Minimal</Text>: First aid required.</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#ffdeae'
                                 color='#281900'
                                 icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
                                 title={<><Text style={styles.boldText}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#ffdad6'
                                 color='#410002'
                                 icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
                                 title={<><Text style={styles.boldText}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#ffb4ab'
                                 color='#690005'
                                 icon={<Ionicons name="close-circle" size={24} color="#690005" />}
                                 title={<><Text style={styles.boldText}>Catastrophic</Text>: Death or permanent disability.</>}
-                                noRadius />
-                        </View>
+                            />
+                        </BannerGroup>
                         <Text style={styles.bodyText}>Probability is scored on a scale of 1-5.</Text>
                         <Text style={styles.bodyText}>Exposure is scored on a scale of 1-4 with the following definitions as adopted by CALSAR:</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
+                        <BannerGroup marginHorizontal={0}>
                             <Banner
                                 backgroundColor='#b9f0b8'
                                 color='#002107'
                                 icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
                                 title={<><Text style={styles.boldText}>None or below average</Text>: One member of the team exposed for a short time.</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#ffdeae'
                                 color='#281900'
                                 icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
                                 title={<><Text style={styles.boldText}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#ffdad6'
                                 color='#410002'
                                 icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
                                 title={<><Text style={styles.boldText}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor='#ffb4ab'
                                 color='#690005'
                                 icon={<Ionicons name="close-circle" size={24} color="#690005" />}
                                 title={<><Text style={styles.boldText}>Great</Text>: Long or repeated exposure to multiple team members.</>}
-                                noRadius />
-                        </View>
+                            />
+                        </BannerGroup>
                     </View>
                 </View>
             </TouchableWithoutFeedback>
@@ -415,26 +411,26 @@ function HelpInfo({ subject }) {
                     <View style={styles.section}>
                         <Text style={styles.heading}>What is PEAACE?</Text>
                         <Text style={styles.bodyText}>PEAACE is GAR 2.0. It offers several advantages and simplifications over the legacy model while remaining interoperable with USCG standards.</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
+                        <BannerGroup marginHorizontal={0}>
                             <Banner
                                 title="Planning - sufficient info? clear mission? time to plan?"
-                                noRadius />
+                            />
                             <Banner
                                 title="Event Complexity - difficulty? endurance? timelines?"
-                                noRadius />
+                            />
                             <Banner
                                 title="Assets - Crew - fitness? selection? training? supervision?"
-                                noRadius />
+                            />
                             <Banner
                                 title="Assets - Resources - appropriate boats? trucks? gear?"
-                                noRadius />
+                            />
                             <Banner
                                 title="Communications - coverage? equipment? terminology?"
-                                noRadius />
+                            />
                             <Banner
                                 title="Environment - weather? night/day? terrain?"
-                                noRadius />
-                        </View>
+                            />
+                        </BannerGroup>
                     </View>
                     <View style={styles.section}>
                         <Text style={styles.heading}>Instructions</Text>
@@ -452,13 +448,13 @@ function HelpInfo({ subject }) {
                     <View style={styles.section}>
                         <Text style={styles.heading}>Mitigation (STAAR)</Text>
                         <Text style={styles.bodyText}>If the risk is too high, consider the STAAR model to mitigate risks:</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
-                            <Banner title="Spread Out - can we increase time or distance?" noRadius />
-                            <Banner title="Transfer - update equipment, other assets, or different crews?" noRadius />
-                            <Banner title="Avoid - wait for day? wait for weather?" noRadius />
-                            <Banner title="Accept - is the gain worth the risk?" noRadius />
-                            <Banner title="Reduce - more PPE? more training?" noRadius />
-                        </View>
+                        <BannerGroup marginHorizontal={0}>
+                            <Banner title="Spread Out - can we increase time or distance?" />
+                            <Banner title="Transfer - update equipment, other assets, or different crews?" />
+                            <Banner title="Avoid - wait for day? wait for weather?" />
+                            <Banner title="Accept - is the gain worth the risk?" />
+                            <Banner title="Reduce - more PPE? more training?" />
+                        </BannerGroup>
                     </View>
                 </View>
             </TouchableWithoutFeedback>

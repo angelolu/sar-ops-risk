@@ -1,15 +1,15 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Slider from '@react-native-community/slider';
+import { Banner, BannerGroup, FilledButton, RiskModal, ShareButton, ThemeContext } from 'calsar-ui';
 import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { useContext, useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
-import { FilledButton, ShareButton, ThemeContext, RiskModal, Banner } from 'calsar-ui';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
-import { useRiskAssessment } from '../../hooks/useRiskAssessment';
 import { ORMA_CONFIG } from '../../config/RiskStrategies';
+import { useRiskAssessment } from '../../hooks/useRiskAssessment';
 
 var modalDelayTimeout;
 
@@ -25,6 +25,7 @@ export default function orma() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedEntry, setSelectedEntry] = useState(0);
     const [entries, setEntries] = useState([]);
+    const [isAdvancing, setIsAdvancing] = useState(false);
 
     const [listStyle, setListStyle] = useState(null);
     const [explicitLanguageSet, setExplicitLanguageSet] = useState(false);
@@ -122,20 +123,12 @@ export default function orma() {
     };
 
     const onChangeValue = (value) => {
-        const updatedEntries = [...entries];
-        updatedEntries[selectedEntry].score = value;
-
-        // update score container color using strategy
         const itemColors = getItemResult(value);
-        updatedEntries[selectedEntry].containerColor = itemColors.containerColor;
-        // Text color for ORMA usually handled by ListItem style defaults but we can start passing it if strategy provides it
-        // The original logic had complex checks for listStyle === "legacy" etc.
-        // We will respect what the strategy returns.
-        if (itemColors.contentColor) {
-            updatedEntries[selectedEntry].color = itemColors.contentColor;
-        }
-
-        setEntries(updatedEntries);
+        setEntries(entries.map((entry, idx) =>
+            idx === selectedEntry
+                ? { ...entry, score: value, containerColor: itemColors.containerColor, color: itemColors.contentColor || entry.color }
+                : entry
+        ));
     };
 
     const onModalClose = () => {
@@ -146,7 +139,11 @@ export default function orma() {
         if (selectedEntry === entries.length - 1) {
             setIsModalVisible(false);
         } else {
-            setSelectedEntry(selectedEntry + 1);
+            setIsAdvancing(true);
+            setTimeout(() => {
+                setSelectedEntry(selectedEntry + 1);
+                setIsAdvancing(false);
+            }, 300);
         }
     };
 
@@ -183,7 +180,13 @@ export default function orma() {
                     title={"Score \"" + entries[selectedEntry]?.title + "\""}
                     onClose={onModalClose}
                 >
-                    <RiskInput selected={selectedEntry} entries={entries} onChangeValue={onChangeValue} onNext={onNext} />
+                    <RiskInput
+                        selected={selectedEntry}
+                        entries={entries}
+                        onChangeValue={onChangeValue}
+                        onNext={onNext}
+                        isAdvancing={isAdvancing}
+                    />
                 </RiskModal>
             </View>
         );
@@ -205,29 +208,29 @@ export default function orma() {
                 >
                     <View style={{ padding: 20, paddingTop: 0 }}>
                         <Text style={{ color: colorTheme.onSurface }}>Agencies use different descriptions for ORMA elements. You can change this later in Settings.</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
+                        <BannerGroup marginHorizontal={0}>
                             {false && <Banner
                                 backgroundColor={colorTheme.surfaceContainerLow}
                                 color={colorTheme.onSurfaceVariant}
                                 icon={<Ionicons name="heart-circle" size={24} color={colorTheme.onSurfaceVariant} />}
                                 title="California Search and Rescue (CALSAR)"
                                 onPress={() => { saveLanguage("calsar") }}
-                                noRadius />}
+                            />}
                             <Banner
                                 backgroundColor={colorTheme.surfaceContainerLow}
                                 color={colorTheme.onSurfaceVariant}
                                 icon={<MaterialIcons name="account-balance" size={24} color={colorTheme.onSurfaceVariant} />}
                                 title="National Parks Service (NPS)"
                                 onPress={() => { saveLanguage("nps") }}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor={colorTheme.surfaceContainerLow}
                                 color={colorTheme.onSurfaceVariant}
                                 icon={<Ionicons name="fish" size={24} color={colorTheme.onSurfaceVariant} />}
                                 title="U.S. Fish & Wildlife Service"
                                 onPress={() => { saveLanguage("fws") }}
-                                noRadius />
-                        </View>
+                            />
+                        </BannerGroup>
                     </View>
                 </RiskModal>
             </View>
@@ -260,9 +263,26 @@ const pageStyles = () => {
 }
 
 
-function RiskInput({ selected, entries, onChangeValue, onNext }) {
+function RiskInput({ selected, entries, onChangeValue, onNext, isAdvancing }) {
     const { colorTheme } = useContext(ThemeContext);
     const riskStyles = riskInputStyles();
+
+    // Unified animation value: 1 = visible, 0 = advancing (out)
+    const anim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        Animated.timing(anim, {
+            toValue: isAdvancing ? 0 : 1,
+            duration: isAdvancing ? 150 : 250,
+            useNativeDriver: true,
+        }).start();
+    }, [isAdvancing, selected]);
+
+    const opacity = anim;
+    const translateY = anim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [isAdvancing ? -8 : 10, 0]
+    });
 
     let item = entries[selected];
 
@@ -331,7 +351,13 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
     }
 
     return (
-        <View style={riskStyles.container}>
+        <Animated.View
+            renderToHardwareTextureAndroid={true}
+            style={[
+                riskStyles.container,
+                { opacity, transform: [{ translateY }] }
+            ]}
+        >
             <Text style={riskStyles.subtitle}>{item.subtitle}</Text>
             <View style={riskStyles.scorebox}>
                 <Text style={[riskStyles.score, { color: getTextColor(item.score) }]}>{item.score}</Text>
@@ -363,7 +389,7 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
                 />
             </View>
             <FilledButton rightAlign primary disabled={item.score === 0} text={selected === entries.length - 1 ? "Finish" : "Next element"} onPress={onNext} style={{ alignSelf: "flex-end" }} />
-        </View>
+        </Animated.View>
     );
 }
 
@@ -373,7 +399,7 @@ const riskInputStyles = () => {
     return StyleSheet.create({
         container: {
             padding: 20,
-            paddingTop: 0
+            paddingVertical: 0
         },
         subtitle: {
             color: colorTheme.onSurface,

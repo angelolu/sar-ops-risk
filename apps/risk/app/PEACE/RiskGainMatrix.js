@@ -1,8 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
+import { BackHeader, Banner, FilledButton, ThemeContext } from 'calsar-ui';
 import { useLocalSearchParams } from 'expo-router';
 import { useContext, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, Switch, Platform } from 'react-native';
-import { BackHeader, Banner, ThemeContext, FilledButton } from 'calsar-ui';
-import { Ionicons } from '@expo/vector-icons';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function RiskGainMatrix() {
     const params = useLocalSearchParams();
@@ -45,7 +45,7 @@ export default function RiskGainMatrix() {
 
     return (
         <View style={styles.container}>
-            <BackHeader title="Risk vs Gain" />
+            <BackHeader title="PEAACE Interpretation" />
             {isLandscape ? (
                 <View>
                     <View style={styles.controls}>
@@ -204,9 +204,10 @@ export default function RiskGainMatrix() {
 
                     <View style={[styles.section, { backgroundColor: colorTheme.surfaceContainerHighest, padding: 16, borderRadius: 20 }]}>
                         <Text style={styles.sectionTitle}>Gain definitions</Text>
-                        <Text style={styles.legendText}><Text style={styles.bold}>Low Gain:</Text> Unstable situation, property only, evidence search.</Text>
-                        <Text style={styles.legendText}><Text style={styles.bold}>Medium Gain:</Text> Stable patient, environment is stable.</Text>
-                        <Text style={styles.legendText}><Text style={styles.bold}>High Gain:</Text> Life saving opportunity, immediate threat to life.</Text>
+                        <Text style={[styles.legendText, { marginBottom: 8, opacity: 0.8, fontStyle: 'italic' }]}>These are examples of possible scenarios corresponding with each gain category.</Text>
+                        <Text style={styles.legendText}><Text style={styles.bold}>Low Gain:</Text> Routine training, PR, property recovery, or evidence search. Only for low risk conditions.</Text>
+                        <Text style={styles.legendText}><Text style={styles.bold}>Medium Gain:</Text> Stable patient/environment, non-critical injury, or protecting significant property.</Text>
+                        <Text style={styles.legendText}><Text style={styles.bold}>High Gain:</Text> Life saving opportunity, immediate threat to life, or preventing permanent injury.</Text>
                     </View>
 
                     <View style={[styles.section, { backgroundColor: colorTheme.surfaceContainerHighest, padding: 16, borderRadius: 20 }]}>

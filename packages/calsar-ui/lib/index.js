@@ -15,6 +15,12 @@ Object.defineProperty(exports, "Banner", {
     return _Banner.Banner;
   }
 });
+Object.defineProperty(exports, "BannerGroup", {
+  enumerable: true,
+  get: function get() {
+    return _Banner.BannerGroup;
+  }
+});
 Object.defineProperty(exports, "BrandingBar", {
   enumerable: true,
   get: function get() {
@@ -31,6 +37,12 @@ Object.defineProperty(exports, "Header", {
   enumerable: true,
   get: function get() {
     return _Headers.Header;
+  }
+});
+Object.defineProperty(exports, "HorizontalTileGroup", {
+  enumerable: true,
+  get: function get() {
+    return _Tile.HorizontalTileGroup;
   }
 });
 Object.defineProperty(exports, "IconButton", {
@@ -79,6 +91,18 @@ Object.defineProperty(exports, "Tile", {
   enumerable: true,
   get: function get() {
     return _Tile.Tile;
+  }
+});
+Object.defineProperty(exports, "VerticalTile", {
+  enumerable: true,
+  get: function get() {
+    return _Tile.VerticalTile;
+  }
+});
+Object.defineProperty(exports, "VerticalTileGroup", {
+  enumerable: true,
+  get: function get() {
+    return _Tile.VerticalTileGroup;
   }
 });
 Object.defineProperty(exports, "textStyles", {

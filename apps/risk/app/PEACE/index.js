@@ -1,14 +1,32 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Banner, BannerGroup, FilledButton, RiskModal, ShareButton, ThemeContext } from 'calsar-ui';
 import { useRouter } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { useContext, useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, View, Pressable } from 'react-native';
-import { FilledButton, RiskModal, ShareButton, ThemeContext, Banner } from 'calsar-ui';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
-import { useRiskAssessment } from '../../hooks/useRiskAssessment';
 import { PEACE_USCG_ASHORE_CONFIG } from '../../config/RiskStrategies';
+import { useRiskAssessment } from '../../hooks/useRiskAssessment';
+
+const getAshoreEntries = () => [
+    { title: "Planning", subtitle: "Enough time and information to conduct thorough pre-mission planning. Consider: B-0 response, completeness of mission information and of on-scene details.", score: 0, description: "" },
+    { title: "Event", subtitle: "Refers to mission complexity. Consider: non-standard mission profile, coordinating multi-agency/nationality, language barriers, not performed often, etc.", score: 0, description: "" },
+    { title: "Asset - Crew", subtitle: "Proper number and skill set for the mission. Consider: time at unit, familiarity w/OP area, fatigue, u/w time, crew selection, adequate supervision, etc.", score: 0, description: "" },
+    { title: "Asset - Cutter/Boat Resources", subtitle: "Proper number and operational characteristics for mission. Consider: operational thresholds/limitations, status of equipment, etc.", score: 0, description: "" },
+    { title: "Communications/Supervision", subtitle: "Ability to maintain comms throughout mission. Consider: availability/quality of internal w/command and external w/customer.", score: 0, description: "" },
+    { title: "Environment", subtitle: "External conditions surrounding mission. Consider: weather, night/day, sea state, currents, water temp, air temp, visibility, etc.", score: 0, description: "" },
+];
+
+const getNasarEntries = () => [
+    { title: "Planning", subtitle: "Enough time and information to conduct thorough pre-mission planning", score: 0, description: "" },
+    { title: "Event", subtitle: "Mission complexity, standard or nonstandard, working with unfamiliar teams, etc.", score: 0, description: "" },
+    { title: "Asset — Crew", subtitle: "Proper number, skill, leadership experience and rest or fatigue level", score: 0, description: "" },
+    { title: "Asset — Equipment", subtitle: "Vehicles, personal and team gear and personal protective equipment that is mission-ready", score: 0, description: "" },
+    { title: "Communications and Supervision", subtitle: "Ability to maintain communications and span of control throughout the incident", score: 0, description: "" },
+    { title: "Environment", subtitle: "Weather, terrain, snow, night or day and wildlife", score: 0, description: "" },
+];
 
 export default function PEACE() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
@@ -20,14 +38,7 @@ export default function PEACE() {
     const [isModalVisible, setIsModalVisible] = useState(true);
     const [selectedEntry, setSelectedEntry] = useState(0);
     const [inputMode, setInputMode] = useState("emoji");
-    const [entries, setEntries] = useState([
-        { title: "Planning", subtitle: "Enough time and information to conduct thorough pre-mission planning. Consider: B-0 response, completeness of mission information and of on-scene details.", score: 0, description: "" },
-        { title: "Event", subtitle: "Refers to mission complexity. Consider: non-standard mission profile, coordinating multi-agency/nationality, language barriers, not performed often, etc.", score: 0, description: "" },
-        { title: "Asset - Crew", subtitle: "Proper number and skill set for the mission. Consider: time at unit, familiarity w/OP area, fatigue, u/w time, crew selection, adequate supervision, etc.", score: 0, description: "" },
-        { title: "Asset - Cutter/Boat Resources", subtitle: "Proper number and operational characteristics for mission. Consider: operational thresholds/limitations, status of equipment, etc.", score: 0, description: "" },
-        { title: "Communications/Supervision", subtitle: "Ability to maintain comms throughout mission. Consider: availability/quality of internal w/command and external w/customer.", score: 0, description: "" },
-        { title: "Environment", subtitle: "External conditions surrounding mission. Consider: weather, night/day, sea state, currents, water temp, air temp, visibility, etc.", score: 0, description: "" },
-    ]);
+    const [entries, setEntries] = useState(getAshoreEntries());
 
 
     const [language, setLanguage] = useState(null);
@@ -48,27 +59,8 @@ export default function PEACE() {
         if (lang) {
             setExplicitLanguageSet(true);
             AsyncStorage.setItem("language-peace", JSON.stringify(lang));
-
-            if (lang === 'nasar') {
-                setEntries([
-                    { title: "Planning", subtitle: "Enough time and information to conduct thorough pre-mission planning", score: 0, description: "" },
-                    { title: "Event", subtitle: "Mission complexity, standard or nonstandard, working with unfamiliar teams, etc.", score: 0, description: "" },
-                    { title: "Asset — Crew", subtitle: "Proper number, skill, leadership experience and rest or fatigue level", score: 0, description: "" },
-                    { title: "Asset — Equipment", subtitle: "Vehicles, personal and team gear and personal protective equipment that is mission-ready", score: 0, description: "" },
-                    { title: "Communications and Supervision", subtitle: "Ability to maintain communications and span of control throughout the incident", score: 0, description: "" },
-                    { title: "Environment", subtitle: "Weather, terrain, snow, night or day and wildlife", score: 0, description: "" },
-                ]);
-            } else {
-                // Default USCG Ashore
-                setEntries([
-                    { title: "Planning", subtitle: "Enough time and information to conduct thorough pre-mission planning. Consider: B-0 response, completeness of mission information and of on-scene details.", score: 0, description: "" },
-                    { title: "Event", subtitle: "Refers to mission complexity. Consider: non-standard mission profile, coordinating multi-agency/nationality, language barriers, not performed often, etc.", score: 0, description: "" },
-                    { title: "Asset - Crew", subtitle: "Proper number and skill set for the mission. Consider: time at unit, familiarity w/OP area, fatigue, u/w time, crew selection, adequate supervision, etc.", score: 0, description: "" },
-                    { title: "Asset - Cutter/Boat Resources", subtitle: "Proper number and operational characteristics for mission. Consider: operational thresholds/limitations, status of equipment, etc.", score: 0, description: "" },
-                    { title: "Communications/Supervision", subtitle: "Ability to maintain comms throughout mission. Consider: availability/quality of internal w/command and external w/customer.", score: 0, description: "" },
-                    { title: "Environment", subtitle: "External conditions surrounding mission. Consider: weather, night/day, sea state, currents, water temp, air temp, visibility, etc.", score: 0, description: "" },
-                ]);
-            }
+            setEntries(lang === 'nasar' ? getNasarEntries() : getAshoreEntries());
+            setSelectedEntry(0);
         }
     }
 
@@ -88,23 +80,31 @@ export default function PEACE() {
         setIsModalVisible(true);
     };
 
-    const onChangeValue = (value, description) => {
-        const updatedEntries = [...entries];
-        const itemColors = getItemResult(value);
-        updatedEntries[selectedEntry].score = value;
-        updatedEntries[selectedEntry].containerColor = itemColors.containerColor;
-        updatedEntries[selectedEntry].color = itemColors.contentColor;
-        updatedEntries[selectedEntry].description = description;
-        setEntries(updatedEntries);
+    const [isAdvancing, setIsAdvancing] = useState(false);
 
-        // Wait 0.25 seconds, then auto-advance
+    const onChangeValue = (value, description) => {
+        const itemColors = getItemResult(value);
+        setEntries(entries.map((entry, idx) =>
+            idx === selectedEntry
+                ? { ...entry, score: value, containerColor: itemColors.containerColor, color: itemColors.contentColor, description }
+                : entry
+        ));
+
+        // Snap to selection faster (150ms), then begin movement
+        setTimeout(() => {
+            setIsAdvancing(true);
+        }, 150);
+
+        // Overall cycle time reduced to 550ms for snappier feel
         setTimeout(() => {
             if (selectedEntry < entries.length - 1) {
                 setSelectedEntry(selectedEntry + 1);
+                setIsAdvancing(false);
             } else {
                 setIsModalVisible(false);
+                setIsAdvancing(false);
             }
-        }, 250);
+        }, 550);
     };
 
     const onModalClose = () => {
@@ -134,22 +134,22 @@ export default function PEACE() {
                 >
                     <View style={{ padding: 20, paddingTop: 0 }}>
                         <Text style={{ color: colorTheme.onSurface, marginBottom: 15 }}>Different agencies use different definitions. You can change this later in Settings.</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2 }}>
+                        <BannerGroup marginHorizontal={0}>
                             <Banner
                                 backgroundColor={colorTheme.surfaceContainerLow}
                                 color={colorTheme.onSurfaceVariant}
                                 icon={<Ionicons name="walk" size={24} color={colorTheme.onSurfaceVariant} />}
                                 title="NASAR"
                                 onPress={() => updateLanguage('nasar')}
-                                noRadius />
+                            />
                             <Banner
                                 backgroundColor={colorTheme.surfaceContainerLow}
                                 color={colorTheme.onSurfaceVariant}
                                 icon={<Ionicons name="boat" size={24} color={colorTheme.onSurfaceVariant} />}
                                 title="USCG Ashore"
                                 onPress={() => updateLanguage('uscg')}
-                                noRadius />
-                        </View>
+                            />
+                        </BannerGroup>
                     </View>
                 </RiskModal>
             </View>
@@ -160,7 +160,7 @@ export default function PEACE() {
         <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
             <RiskHeader
                 sharedTransitionTag="sectionTitle"
-                title="PEAACE Model"
+                title="PEAACE Tool"
                 subtitle={isDone ? result.action : "Tap each element below to assign a risk score"}
                 riskText={isDone ? result.label : ''}
                 riskColor={isDone ? result.color : colorTheme.surfaceContainer}
@@ -209,6 +209,7 @@ export default function PEACE() {
                     mode={inputMode}
                     onChangeValue={onChangeValue}
                     language={language}
+                    isAdvancing={isAdvancing}
                 />
             </RiskModal>
         </View>
@@ -252,9 +253,87 @@ const pageStyles = () => {
     });
 }
 
-function RiskInput({ item, mode, onChangeValue, language }) {
+function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true, speed: 20 }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
+    };
+
     const styles = riskInputStyles();
+
+    const baseBorderColor = colorTheme.outlineVariant;
+    const baseBgColor = colorTheme.surfaceContainerHigh;
+    const selectedBg = activeColor ? getHoverColor(activeColor, 0.15) : colorTheme.secondaryContainer;
+    const selectedBorder = activeColor || colorTheme.primary;
+
+    return (
+        <Animated.View style={[
+            styles.emojiButton,
+            {
+                backgroundColor: selected ? selectedBg : baseBgColor,
+                borderColor: selected ? selectedBorder : baseBorderColor,
+                borderWidth: 2,
+                transform: [{ scale: scaleAnim }]
+            }
+        ]}>
+            <Pressable
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                onPress={onPress}
+                android_ripple={{ color: colorTheme.surfaceContainerHighest, borderless: false }}
+                style={styles.emojiPressable}
+            >
+                <Text
+                    style={styles.emoji}
+                    allowFontScaling={false}
+                >
+                    {emoji}
+                </Text>
+                <Text style={[
+                    styles.emojiLabel,
+                    {
+                        color: colorTheme.onSurface,
+                        fontWeight: selected ? '600' : '400',
+                        opacity: selected ? 1 : 0.7
+                    }
+                ]}>{label}</Text>
+            </Pressable>
+        </Animated.View>
+    );
+}
+
+function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
+    const { colorTheme } = useContext(ThemeContext);
+    const styles = riskInputStyles();
+
+    // Unified animation value: 1 = visible, 0 = advancing (out)
+    const anim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        Animated.timing(anim, {
+            toValue: isAdvancing ? 0 : 1,
+            duration: isAdvancing ? 150 : 250,
+            useNativeDriver: true,
+        }).start();
+
+        // If we've just landed on a new item, ensure we start from the "bottom"
+        if (!isAdvancing) {
+            // We can't easily reset an interpolated value mid-animation without logic,
+            // but for this simple snappy transition, the timing block above is sufficient.
+        }
+    }, [isAdvancing, item.title]);
+
+    const opacity = anim;
+    const translateY = anim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [isAdvancing ? -8 : 10, 0]
+    });
 
     const options = language === 'nasar' ? [
         { value: 1, emoji: '👍', label: 'Low Risk', desc: 'Minimal concern' },
@@ -267,38 +346,38 @@ function RiskInput({ item, mode, onChangeValue, language }) {
     ];
 
     return (
-        <View style={styles.container}>
+        <Animated.View
+            renderToHardwareTextureAndroid={true}
+            style={[
+                styles.container,
+                { opacity, transform: [{ translateY }] }
+            ]}
+        >
             <Text style={styles.subtitle}>{item.subtitle}</Text>
 
             <View style={styles.inputContainer}>
                 {mode === 'emoji' ? (
                     <View style={styles.emojiRow}>
                         {options.map((opt) => {
-                            let itemStyle = { backgroundColor: colorTheme.surfaceContainerHigh, borderColor: colorTheme.outlineVariant };
-                            if (item.score === opt.value) {
-                                if (opt.value === 1) itemStyle = { backgroundColor: getHoverColor(colorTheme.garGreenDark, 0.2), borderColor: colorTheme.garGreenDark };
-                                else if (opt.value === 2) itemStyle = { backgroundColor: getHoverColor(colorTheme.garAmberDark, 0.2), borderColor: colorTheme.garAmberDark };
-                                else if (opt.value === 3) itemStyle = { backgroundColor: getHoverColor(colorTheme.garRedDark, 0.2), borderColor: colorTheme.garRedDark };
-                            }
+                            let activeColor = null;
+                            if (opt.value === 1) activeColor = colorTheme.garGreenDark;
+                            else if (opt.value === 2) activeColor = colorTheme.garAmberDark;
+                            else if (opt.value === 3) activeColor = colorTheme.garRedDark;
 
                             return (
-                                <Pressable
+                                <EmojiButton
                                     key={opt.value}
-                                    style={[
-                                        styles.emojiButton,
-                                        item.score === opt.value && styles.emojiSelected,
-                                        itemStyle
-                                    ]}
+                                    emoji={opt.emoji}
+                                    label={opt.label}
+                                    selected={item.score === opt.value}
+                                    activeColor={activeColor}
                                     onPress={() => onChangeValue(opt.value, "")}
-                                >
-                                    <Text style={styles.emoji}>{opt.emoji}</Text>
-                                    <Text style={[styles.emojiLabel, { color: colorTheme.onSurface }]}>{opt.label}</Text>
-                                </Pressable>
+                                />
                             )
                         })}
                     </View>
                 ) : (
-                    <View style={styles.textStack}>
+                    <BannerGroup marginHorizontal={0}>
                         {options.map((opt) => (
                             <Banner
                                 key={opt.value}
@@ -307,13 +386,12 @@ function RiskInput({ item, mode, onChangeValue, language }) {
                                 icon={<Text style={{ fontSize: 20 }}>{opt.emoji}</Text>}
                                 title={<><Text style={styles.boldText}>{opt.label}</Text>: {opt.desc}</>}
                                 onPress={() => onChangeValue(opt.value, opt.label)}
-                                noRadius
                             />
                         ))}
-                    </View>
+                    </BannerGroup>
                 )}
             </View>
-        </View>
+        </Animated.View>
     );
 }
 
@@ -323,7 +401,7 @@ const riskInputStyles = () => {
     return StyleSheet.create({
         container: {
             padding: 20,
-            paddingTop: 0
+            paddingVertical: 0
         },
         subtitle: {
             color: colorTheme.onSurface,
@@ -341,29 +419,32 @@ const riskInputStyles = () => {
         emojiButton: {
             height: 125,
             borderRadius: 50,
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
             flexBasis: 0,
             flexGrow: 1,
-            borderWidth: 2,
-            borderColor: colorTheme.outlineVariant
+            // Removed overflow:hidden on Android to prevent ripple/shadow clipping glitches
+            backgroundColor: colorTheme.surfaceContainerHigh,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 1,
         },
-        emojiSelected: {
-            borderWidth: 2,
+        emojiPressable: {
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 10,
+            borderRadius: 50, // Ensure ripple/press state stays circular
         },
         emoji: {
             fontSize: 40,
-            marginBottom: 5
+            marginBottom: 5,
+            textAlign: 'center',
+            backgroundColor: 'transparent', // Android stability fix
         },
         emojiLabel: {
             fontSize: 12,
             textAlign: 'center'
-        },
-        textStack: {
-            borderRadius: 26,
-            overflow: 'hidden',
-            gap: 2
         },
         boldText: {
             fontWeight: 'bold'
