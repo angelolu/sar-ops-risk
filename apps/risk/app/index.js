@@ -58,6 +58,10 @@ export default function App() {
         {
             title: "Severity, Probability, Exposure (SPE)",
             content: <HelpInfo subject="SPE" />
+        },
+        {
+            title: "PEAACE Model",
+            content: <HelpInfo subject="PEAACE" />
         }
     ]
 
@@ -91,6 +95,16 @@ export default function App() {
                     <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center", marginTop: 15 }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(0) }} />
                         <FilledButton rightAlign primary text="Complete an ORMA" onPress={() => { router.navigate("/ORMA") }} />
+                    </View>
+                </MaterialCard>
+                <MaterialCard
+                    marginLeft={20}
+                    marginRight={20}
+                    title="PEAACE"
+                    subtitle="Quickly identify risks before and during a mission." >
+                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, marginTop: 15 }}>
+                        <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(2) }} />
+                        <FilledButton rightAlign primary text="Complete a PEAACE" onPress={() => { router.navigate("/PEACE") }} />
                     </View>
                 </MaterialCard>
                 <MaterialCard
@@ -194,59 +208,85 @@ function HelpInfo({ subject }) {
                         color={colorTheme.onSecondaryContainer}
                         icon={<Ionicons name="bulb" size={24} color={colorTheme.onSecondaryContainer} />}
                         title="ORMA is also referred to as Green-Amber-Red (GAR)" />
+
                     <View style={styles.section}>
-                        <Text style={styles.heading}>When</Text>
-                        <Text style={styles.bodyText}>ORMA is used before the team enters the field. Complete it AFTER you have all your assignment information.</Text>
+                        <Text style={styles.heading}>Risk Management Process</Text>
+                        <Text style={styles.bodyText}>Risk management is a continuous process that involves identifying hazards, assessing them, and developing mitigations.</Text>
+
+                        <Text style={[styles.bodyText, styles.boldText, { marginTop: 10 }]}>1. Identify Hazards (Situational Awareness)</Text>
+                        <Text style={styles.bodyText}>• <Text style={styles.boldText}>Gather Information</Text>: Objectives, Communications, Who's in charge.</Text>
+                        <Text style={styles.bodyText}>• <Text style={styles.boldText}>Identify Hazards</Text>: Up, Down, All Around (weather, terrain, etc.), and any "Watch Out" conditions.</Text>
+
+                        <Text style={[styles.bodyText, styles.boldText, { marginTop: 10 }]}>2. Assess Hazards and Develop Mitigations</Text>
+                        <Text style={styles.bodyText}>Use GAR or PEAACE to systematically evaluate the identified risks and plan controls.</Text>
+
+                        <Text style={[styles.bodyText, styles.boldText, { marginTop: 10 }]}>3. Decide GO / NO GO</Text>
+                        <View style={{ flexDirection: 'row', gap: 10, marginVertical: 8 }}>
+                            <View style={{ flex: 1, padding: 10, backgroundColor: colorTheme.surfaceContainerLowest, borderRadius: 12 }}>
+                                <Text style={[styles.boldText, { textAlign: 'center' }]}>GAR</Text>
+                                <Text style={{ fontSize: 12, textAlign: 'center' }}>Baseline many teams know, interoperable with NPS.</Text>
+                            </View>
+                            <View style={{ flex: 1, padding: 10, backgroundColor: colorTheme.surfaceContainerLowest, borderRadius: 12 }}>
+                                <Text style={[styles.boldText, { textAlign: 'center' }]}>PEAACE</Text>
+                                <Text style={{ fontSize: 12, textAlign: 'center' }}>GAR 2.0. Interoperable with USCG and simpler to use.</Text>
+                            </View>
+                        </View>
+
+                        <Text style={[styles.bodyText, styles.boldText, { marginTop: 10 }]}>4. Supervise and Evaluate</Text>
+                        <Text style={styles.bodyText}>Are controls adequately mitigating hazards? If <Text style={styles.boldText}>NO</Text>, reassess and consider:</Text>
+                        <Text style={styles.bodyText}>• <Text style={styles.boldText}>Human Factors</Text>: Experience level, Fatigue/Stress, Unsafe attitude.</Text>
+                        <Text style={styles.bodyText}>• <Text style={styles.boldText}>Situation</Text>: What is changing? Are strategies/tactics working?</Text>
                     </View>
+
                     <View style={styles.section}>
-                        <Text style={styles.heading}>Who</Text>
-                        <Text style={styles.bodyText}>ORMA considers all factors of a team’s participation in an event. Every member of the team should complete it.</Text>
+                        <Text style={styles.heading}>GAR vs PEAACE</Text>
+                        <Text style={styles.bodyText}>Both were developed by the USCG to assess and mitigate risk. PEAACE is GAR 2.0 and offers several advantages and simplifications. Many teams still use GAR for interoperability reasons.</Text>
+                        <Text style={[styles.bodyText, { marginTop: 6 }]}>To complete: Discuss with either your whole team, or a representative subset. GAR/PEAACE works because it gives a voice to all members. It should be completed once all available information is known, but <Text style={styles.boldText}>before going into the field!</Text></Text>
                     </View>
+
                     <View style={styles.section}>
-                        <Text style={styles.heading}>How</Text>
-                        <Text style={styles.bodyText}>Use this app, the NPS Risk app, or the GAR worksheet on the IAP (if the search is organized by CALSAR) to complete the "individual" or "finger" methods.</Text>
-                        <Image source={ORMAOptions} style={[styles.image, { aspectRatio: 863 / 540 }]} />
+                        <Text style={styles.heading}>How - Methods</Text>
                         <Text style={styles.bodyText}>Individual method:</Text>
-                        <Text style={styles.bodyText}>All team members complete the ORMA individually, then come together to discuss concerns and mitigations. This works best if every member of the team has a ORMA app.</Text>
-                        <Text style={styles.bodyText}>Finger method:</Text>
-                        <Text style={styles.bodyText}>1. Team leader reads each section out loud, including the description from the worksheet or app.</Text>
-                        <Text style={styles.bodyText}>2. Each member decides on their score in their head</Text>
-                        <Text style={styles.bodyText}>3. Team leader asks everyone to throw up their scores on their fingers</Text>
-                        <Text style={styles.bodyText}>4. The score for the worksheet is the highest score from any member. </Text>
-                        <Text style={styles.bodyText}>5. Members with the higher scores should say a few words as to why they’re concerned. Save discussions of mitigations for the end. </Text>
-                        <Text style={styles.bodyText}>6. Once all categories are complete, discuss mitigations. Saving the mitigation discussion for the end helps, as sometimes one mitigation can address multiple concerns </Text>
+                        <Text style={styles.bodyText}>All team members complete the assessment individually, then come together to discuss concerns and mitigations. This works best if every member of the team has this app.</Text>
+                        <Text style={[styles.bodyText, { marginTop: 8 }]}>Finger method:</Text>
+                        <Text style={styles.bodyText}>1. Team leader reads each section out loud, including the description.</Text>
+                        <Text style={styles.bodyText}>2. Each member decides on their score in their head.</Text>
+                        <Text style={styles.bodyText}>3. Team leader asks everyone to throw up their scores on their fingers.</Text>
+                        <Text style={styles.bodyText}>4. The score for the worksheet is the <Text style={styles.boldText}>highest score</Text> from any member.</Text>
+                        <Text style={styles.bodyText}>5. Members with the higher scores should say a few words as to why they're concerned. Save discussions of mitigations for the end.</Text>
+                        <Text style={styles.bodyText}>6. Once complete, discuss mitigations. One mitigation can often address multiple concerns.</Text>
                     </View>
+
                     <View style={styles.section}>
-                        <Text style={styles.heading}>Element Scoring</Text>
-                        <Text style={styles.bodyText}>Each element gets scored 1-10. 1-10 seems like a lot of resolution, so how do we actually use this? Again think GAR:</Text>
+                        <Text style={styles.heading}>ORMA (GAR) Scoring</Text>
+                        <Text style={styles.bodyText}>The following model is commonly referred to as GAR (Green, Amber, Red):</Text>
                         <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
                             <Banner
                                 backgroundColor='#b9f0b8'
                                 color='#002107'
                                 icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
-                                title={<><Text style={styles.boldText}>Green</Text>: 1-4. No to little concern.</>}
+                                title={<><Text style={styles.boldText}>1-2</Text>: No to little concern.</>}
+                                noRadius />
+                            <Banner
+                                backgroundColor='#e6f4ea'
+                                color='#002107'
+                                icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
+                                title={<><Text style={styles.boldText}>3-4</Text>: Mild concern. Not concerning enough to require mitigation but worth drawing attention to.</>}
                                 noRadius />
                             <Banner
                                 backgroundColor='#ffdeae'
                                 color='#281900'
                                 icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
-                                title={<><Text style={styles.boldText}>Amber</Text>: 5-7. Concerned enough we should work to mitigate risks.</>}
+                                title={<><Text style={styles.boldText}>5-7</Text>: Concerning enough we should work to mitigate risks.</>}
                                 noRadius />
                             <Banner
                                 backgroundColor='#ffdad6'
                                 color='#410002'
                                 icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
-                                title={<><Text style={styles.boldText}>Red</Text>: 8-10. Serious concern. Major restructure or mission turn down should be considered.</>}
+                                title={<><Text style={styles.boldText}>8-10</Text>: Serious concern. Major restructure or mission turn down should be considered.</>}
                                 noRadius />
                         </View>
-                        <Text style={styles.bodyText}>Any elements in the amber range should trigger a talk about managing the risk.</Text>
-                        <Text style={styles.bodyText}>The total score should be calculated, but isn’t as important as individual elements scores.</Text>
-                        <Text style={styles.bodyText}>A large number of elements in the yellow, or a few in red are reasons to turn down an assignment unless those risks can be mitigated.</Text>
-                    </View>
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>Cool so we’re done?</Text>
-                        <Text style={styles.bodyText}>Nope! Managing risk is a task that requires constant vigilance.</Text>
-                        <Text style={styles.bodyText}>Have conditions changed in the field? Has our team dynamic changed? Is the command post still engaged? Are we using the mitigations we planned, and are they working?</Text>
+                        <Text style={[styles.bodyText, { marginTop: 6 }]}>At the end of the GAR, you should have a consensus on: General risk level, Mitigations and controls, Risk vs Gain, and Go / No Go.</Text>
                     </View>
                 </View>
             </TouchableWithoutFeedback>
@@ -355,6 +395,69 @@ function HelpInfo({ subject }) {
                                 icon={<Ionicons name="close-circle" size={24} color="#690005" />}
                                 title={<><Text style={styles.boldText}>Great</Text>: Long or repeated exposure to multiple team members.</>}
                                 noRadius />
+                        </View>
+                    </View>
+                </View>
+            </TouchableWithoutFeedback>
+        </ScrollView>
+
+    );
+    if (subject === "PEAACE") return (
+        <ScrollView
+            contentContainerStyle={styles.container}>
+            <TouchableWithoutFeedback>
+                <View style={styles.content}>
+                    <Banner
+                        backgroundColor={colorTheme.tertiaryContainer}
+                        color={colorTheme.onTertiaryContainer}
+                        icon={<Ionicons name="shield-checkmark" size={24} color={colorTheme.onTertiaryContainer} />}
+                        title="PEAACE is a tool to identify and mitigate risks." />
+                    <View style={styles.section}>
+                        <Text style={styles.heading}>What is PEAACE?</Text>
+                        <Text style={styles.bodyText}>PEAACE is GAR 2.0. It offers several advantages and simplifications over the legacy model while remaining interoperable with USCG standards.</Text>
+                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
+                            <Banner
+                                title="Planning - sufficient info? clear mission? time to plan?"
+                                noRadius />
+                            <Banner
+                                title="Event Complexity - difficulty? endurance? timelines?"
+                                noRadius />
+                            <Banner
+                                title="Assets - Crew - fitness? selection? training? supervision?"
+                                noRadius />
+                            <Banner
+                                title="Assets - Resources - appropriate boats? trucks? gear?"
+                                noRadius />
+                            <Banner
+                                title="Communications - coverage? equipment? terminology?"
+                                noRadius />
+                            <Banner
+                                title="Environment - weather? night/day? terrain?"
+                                noRadius />
+                        </View>
+                    </View>
+                    <View style={styles.section}>
+                        <Text style={styles.heading}>Instructions</Text>
+                        <Text style={styles.bodyText}>Determine the level of risk for each element based on the Low/Med/High scale. If rated Medium or High, explore controls or mitigations.</Text>
+                        <Text style={[styles.bodyText, { marginTop: 6 }]}>For Medium and High, the team should discuss mitigations and the risk vs gain. Only go ahead with High risk factor missions for higher gain missions, and with leadership endorsement.</Text>
+                    </View>
+                    <View style={styles.section}>
+                        <Text style={styles.heading}>Consensus</Text>
+                        <Text style={styles.bodyText}>At the end of the PEAACE assessment you should have a consensus on:</Text>
+                        <Text style={styles.bodyText}>• General risk level of the mission</Text>
+                        <Text style={styles.bodyText}>• Mitigations and controls</Text>
+                        <Text style={styles.bodyText}>• Risk vs Gain</Text>
+                        <Text style={styles.bodyText}>• Go / No Go</Text>
+                    </View>
+                    <View style={styles.section}>
+                        <Text style={styles.heading}>Mitigation (STAAR)</Text>
+                        <Text style={styles.bodyText}>If the risk is too high, consider the STAAR model to mitigate risks:</Text>
+                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
+                            <Banner title="Spread Out - can we increase time or distance?" noRadius />
+                            <Banner title="Transfer - update equipment, other assets, or different crews?" noRadius />
+                            <Banner title="Avoid - wait for day? wait for weather?" noRadius />
+                            <Banner title="Accept - is the gain worth the risk?" noRadius />
+                            <Banner title="Reduce - more PPE? more training?" noRadius />
                         </View>
                     </View>
                 </View>

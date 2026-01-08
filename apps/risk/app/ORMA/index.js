@@ -8,6 +8,8 @@ import { Platform, StyleSheet, Text, View } from 'react-native';
 import { FilledButton, ShareButton, ThemeContext, RiskModal, Banner } from 'calsar-ui';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
+import { useRiskAssessment } from '../../hooks/useRiskAssessment';
+import { ORMA_CONFIG } from '../../config/RiskStrategies';
 
 var modalDelayTimeout;
 
@@ -15,7 +17,10 @@ export default function orma() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
     const styles = pageStyles();
 
-    const minimumScore = 8;
+    // Use risk assessment hook
+    const { calculate, getResult, getItemResult } = useRiskAssessment(ORMA_CONFIG);
+
+
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedEntry, setSelectedEntry] = useState(0);
@@ -120,56 +125,17 @@ export default function orma() {
         const updatedEntries = [...entries];
         updatedEntries[selectedEntry].score = value;
 
-        // update score container color
-        if (listStyle === "legacy") {
-            if (value >= 1 && value <= 4) {
-                updatedEntries[selectedEntry].containerColor = '#b9f0b8';
-                colorScheme === 'dark' && (updatedEntries[selectedEntry].color = colorTheme.inverseOnSurface);
-            } else if (value >= 5 && value <= 7) {
-                updatedEntries[selectedEntry].containerColor = '#ffdeae';
-                colorScheme === 'dark' && (updatedEntries[selectedEntry].color = colorTheme.inverseOnSurface);
-            } else if (value >= 8 && value <= 10) {
-                updatedEntries[selectedEntry].containerColor = '#ffdad6';
-                colorScheme === 'dark' && (updatedEntries[selectedEntry].color = colorTheme.inverseOnSurface);
-            } else {
-                updatedEntries[selectedEntry].containerColor = colorTheme.surface;
-                updatedEntries[selectedEntry].color = colorTheme.onSurface;
-            }
-        } else {
-            if (value >= 1 && value <= 4) {
-                updatedEntries[selectedEntry].containerColor = colorTheme.garGreenDark;
-            } else if (value >= 5 && value <= 7) {
-                updatedEntries[selectedEntry].containerColor = colorTheme.garAmberDark
-            } else if (value >= 8 && value <= 10) {
-                updatedEntries[selectedEntry].containerColor = colorTheme.garRedDark;
-            } else {
-                updatedEntries[selectedEntry].containerColor = colorTheme.surfaceVariant;
-            }
+        // update score container color using strategy
+        const itemColors = getItemResult(value);
+        updatedEntries[selectedEntry].containerColor = itemColors.containerColor;
+        // Text color for ORMA usually handled by ListItem style defaults but we can start passing it if strategy provides it
+        // The original logic had complex checks for listStyle === "legacy" etc.
+        // We will respect what the strategy returns.
+        if (itemColors.contentColor) {
+            updatedEntries[selectedEntry].color = itemColors.contentColor;
         }
 
         setEntries(updatedEntries);
-    };
-
-    const getHeaderBackgroundColorFromScore = (value) => {
-        if (value >= minimumScore && value <= 35) {
-            return colorTheme.garGreenDark;
-        } else if (value >= 36 && value <= 60) {
-            return colorTheme.garAmberDark;
-        } else if (value >= 61 && value <= 80) {
-            return colorTheme.garRedDark;
-        }
-    };
-
-    const getHeaderTextFromScore = (value) => {
-        if (value >= minimumScore && value <= 35) {
-            return 'Low Risk';
-        } else if (value >= 36 && value <= 60) {
-            return 'Caution';
-        } else if (value >= 31 && value <= 80) {
-            return 'High Risk';
-        } else {
-            return '-';
-        }
     };
 
     const onModalClose = () => {
@@ -187,17 +153,20 @@ export default function orma() {
     if (explicitLanguageSet) {
         let isDone = !entries.some(entry => entry.score === 0);
         let hasAmberScore = entries.some(entry => entry.score >= 5);
-        let score = entries.reduce((acc, entry) => acc + entry.score, 0);
         setStatusBarStyle(colorScheme === 'light' ? (isDone ? "light" : "dark") : "light", true);
+
+        let score = calculate(entries);
+        let result = getResult(score);
+
         return (
             <View style={styles.container}>
                 <RiskHeader
                     sharedTransitionTag="sectionTitle"
                     title="Operational Risk Management Analysis"
-                    subtitle={isDone ? "Review this score with your team" : "Tap each element below to assign a score of 1 (for no risk) through 10 (for maximum risk)"}
+                    subtitle={isDone ? result.action : "Tap each element below to assign a score of 1 (for no risk) through 10 (for maximum risk)"}
                     complete={isDone}
-                    riskColor={getHeaderBackgroundColorFromScore(score)}
-                    riskText={score + " - " + getHeaderTextFromScore(score)}
+                    riskColor={result.color}
+                    riskText={result.label}
                     menu={isDone && <ShareButton title="ORMA Results" content={"ORMA results\nOverall score: " + score + "\n\n" + getResultString()} color="#ffffff" />}
                 />
                 {hasAmberScore && isDone &&

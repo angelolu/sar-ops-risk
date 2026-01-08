@@ -46,12 +46,24 @@ export default function Settings() {
         setListStyleState(value);
         saveData("list-style", value);
     };
+    const [peaceInputState, setPeaceInputState] = useState("emoji");
+    const savePeaceInput = (value) => {
+        setPeaceInputState(value);
+        saveData("peace-input-mode", value);
+    };
+    const [languagePeaceState, setLanguagePeaceState] = useState("uscg");
+    const saveLanguagePeace = (value) => {
+        setLanguagePeaceState(value);
+        saveData("language-peace", value);
+    }
 
     useEffect(() => {
         // Load saved settings
         getData("appearance").then((value) => { value && setAppearanceState(value) });
         getData("language-orma").then((value) => { value && setLanguageState(value) });
         getData("list-style").then((value) => { value && setListStyleState(value) });
+        getData("peace-input-mode").then((value) => { value && setPeaceInputState(value) });
+        getData("language-peace").then((value) => { value && setLanguagePeaceState(value) });
     }, []);
 
     const { height, width } = useWindowDimensions();
@@ -72,7 +84,7 @@ export default function Settings() {
                 contentContainerStyle={styles.mainScroll}>
                 <View>
                     <Text style={styles.headings}>Appearance</Text>
-                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
+                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
                         <Banner
                             backgroundColor={appearanceState === 1 ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={appearanceState === 1 ? colorTheme.secondary : disabledColor}
@@ -107,9 +119,8 @@ export default function Settings() {
                     </View>
                 </View>
                 <View>
-                    <Text style={styles.headings}>Language</Text>
-                    <Text style={styles.text}>Set the element descriptions used in the ORMA</Text>
-                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
+                    <Text style={styles.headings}>ORMA language</Text>
+                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
                         {false && <Banner
                             backgroundColor={languageState === "calsar" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={languageState === "calsar" ? colorTheme.secondary : disabledColor}
@@ -134,8 +145,46 @@ export default function Settings() {
                     </View>
                 </View>
                 <View>
-                    <Text style={styles.headings}>List Style</Text>
-                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
+                    <Text style={styles.headings}>PEAACE language</Text>
+                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
+                        <Banner
+                            backgroundColor={languagePeaceState === "nasar" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={languagePeaceState === "nasar" ? colorTheme.secondary : disabledColor}
+                            icon={<Ionicons name="walk" size={24} color={languagePeaceState === "nasar" ? colorTheme.secondary : disabledColor} />}
+                            title={<><Text style={languagePeaceState === "nasar" && riskStyles.boldText}>NASAR</Text></>}
+                            onPress={() => { saveLanguagePeace("nasar") }}
+                            noRadius />
+                        <Banner
+                            backgroundColor={languagePeaceState === "uscg" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={languagePeaceState === "uscg" ? colorTheme.secondary : disabledColor}
+                            icon={<Ionicons name="boat" size={24} color={languagePeaceState === "uscg" ? colorTheme.secondary : disabledColor} />}
+                            title={<><Text style={languagePeaceState === "uscg" && riskStyles.boldText}>USCG Ashore</Text></>}
+                            onPress={() => { saveLanguagePeace("uscg") }}
+                            noRadius />
+                    </View>
+                </View>
+                <View>
+                    <Text style={styles.headings}>PEACE input mode</Text>
+                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
+                        <Banner
+                            backgroundColor={peaceInputState === "emoji" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={peaceInputState === "emoji" ? colorTheme.secondary : disabledColor}
+                            icon={<MaterialCommunityIcons name="emoticon-happy-outline" size={24} color={peaceInputState === "emoji" ? colorTheme.secondary : disabledColor} />}
+                            title={<><Text style={peaceInputState === "emoji" && riskStyles.boldText}>Emoji</Text></>}
+                            onPress={() => { savePeaceInput("emoji") }}
+                            noRadius />
+                        <Banner
+                            backgroundColor={peaceInputState === "text" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
+                            color={peaceInputState === "text" ? colorTheme.secondary : disabledColor}
+                            icon={<MaterialCommunityIcons name="format-list-bulleted" size={24} color={peaceInputState === "text" ? colorTheme.secondary : disabledColor} />}
+                            title={<><Text style={peaceInputState === "text" && riskStyles.boldText}>Text</Text> with descriptions</>}
+                            onPress={() => { savePeaceInput("text") }}
+                            noRadius />
+                    </View>
+                </View>
+                <View>
+                    <Text style={styles.headings}>List style</Text>
+                    <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 10 }}>
                         <Banner
                             backgroundColor={listStyleState === "new" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={listStyleState === "new" ? colorTheme.secondary : disabledColor}
@@ -152,8 +201,8 @@ export default function Settings() {
                             noRadius />
                     </View>
                 </View>
-            </ScrollView>
-        </View>
+            </ScrollView >
+        </View >
     );
 }
 
@@ -188,8 +237,8 @@ const pageStyles = () => {
             gap: 20,
         },
         headings: {
-            fontSize: 22,
-            color: colorTheme.onBackground,
+            color: colorTheme.onPrimaryContainer,
+            fontWeight: 'bold',
         },
         text: {
             color: colorTheme.onBackground
