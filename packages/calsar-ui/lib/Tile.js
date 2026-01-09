@@ -186,7 +186,7 @@ var VerticalTile = exports.VerticalTile = function VerticalTile(_ref3) {
   var scaleAnim = (0, _react.useRef)(new _reactNative.Animated.Value(1)).current;
   var handlePressIn = function handlePressIn() {
     _reactNative.Animated.spring(scaleAnim, {
-      toValue: 0.96,
+      toValue: 0.98,
       useNativeDriver: true,
       speed: 20,
       bounciness: 0
@@ -223,7 +223,7 @@ var VerticalTile = exports.VerticalTile = function VerticalTile(_ref3) {
         width: 0,
         height: 1
       },
-      shadowOpacity: noShadow || noRadius ? 0 : isGrouped ? 0.08 : 0.15,
+      shadowOpacity: noShadow || noRadius ? 0 : isGrouped ? 0.08 : 0.1,
       shadowRadius: 3,
       elevation: noShadow || noRadius ? 0 : 1
     }],
@@ -267,7 +267,7 @@ var VerticalTile = exports.VerticalTile = function VerticalTile(_ref3) {
             color: textColor,
             fontSize: 14,
             lineHeight: 18,
-            fontFamily: selected ? 'Inter_700Bold' : 'Inter_600SemiBold'
+            fontFamily: selected ? 'Inter_700Bold' : 'Inter_400Regular'
           }],
           numberOfLines: 2,
           children: title

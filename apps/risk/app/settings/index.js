@@ -86,6 +86,7 @@ export default function Settings() {
                     <HorizontalTileGroup marginHorizontal={0}>
                         <VerticalTile
                             selected={appearanceState === 1}
+                            color={appearanceState === 1 ? colorTheme.primary : colorTheme.onSurfaceVariant}
                             icon={<MaterialCommunityIcons name="theme-light-dark" size={24} />}
                             title="Device Default"
                             onPress={() => {
@@ -95,6 +96,7 @@ export default function Settings() {
                         />
                         <VerticalTile
                             selected={appearanceState === 2}
+                            color={appearanceState === 2 ? colorTheme.primary : colorTheme.onSurfaceVariant}
                             icon={<MaterialCommunityIcons name="weather-sunny" size={24} />}
                             title="Light"
                             onPress={() => {
@@ -104,6 +106,7 @@ export default function Settings() {
                         />
                         <VerticalTile
                             selected={appearanceState === 3}
+                            color={appearanceState === 3 ? colorTheme.primary : colorTheme.onSurfaceVariant}
                             icon={<MaterialCommunityIcons name="weather-night" size={24} />}
                             title="Dark"
                             onPress={() => {
@@ -159,7 +162,7 @@ export default function Settings() {
                     </BannerGroup>
                 </View>
                 <View style={styles.listContainer}>
-                    <Text style={styles.headings}>PEACE input mode</Text>
+                    <Text style={styles.headings}>PEAACE input mode</Text>
                     <BannerGroup marginHorizontal={0}>
                         <Banner
                             backgroundColor={peaceInputState === "emoji" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
@@ -182,15 +185,15 @@ export default function Settings() {
                     <BannerGroup gap={2} marginHorizontal={0}>
                         <Banner
                             backgroundColor={listStyleState === "new" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={listStyleState === "new" ? colorTheme.secondary : disabledColor}
-                            icon={<Ionicons name="heart-circle" size={24} color={listStyleState === "new" ? colorTheme.secondary : disabledColor} />}
+                            color={listStyleState === "new" ? colorTheme.primary : disabledColor}
+                            icon={<Ionicons name="heart-circle" size={24} color={listStyleState === "new" ? colorTheme.primary : disabledColor} />}
                             title={<><Text style={listStyleState === "new" && styles.boldText}>New</Text></>}
                             onPress={() => { saveListStyle("new") }}
                         />
                         <Banner
                             backgroundColor={listStyleState === "legacy" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={listStyleState === "legacy" ? colorTheme.secondary : disabledColor}
-                            icon={<MaterialIcons name="account-balance" size={24} color={listStyleState === "legacy" ? colorTheme.secondary : disabledColor} />}
+                            color={listStyleState === "legacy" ? colorTheme.primary : disabledColor}
+                            icon={<MaterialIcons name="account-balance" size={24} color={listStyleState === "legacy" ? colorTheme.primary : disabledColor} />}
                             title={<><Text style={listStyleState === "legacy" && styles.boldText}>Legacy</Text> (NPS Risk)</>}
                             onPress={() => { saveListStyle("legacy") }}
                         />

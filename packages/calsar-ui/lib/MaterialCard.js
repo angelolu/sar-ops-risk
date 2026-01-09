@@ -105,7 +105,12 @@ var MaterialCard = exports.MaterialCard = function MaterialCard(_ref) {
       android_ripple: {
         color: colorTheme.surfaceContainerHighest
       },
-      style: styles.pressable,
+      style: function style(_ref2) {
+        var pressed = _ref2.pressed;
+        return [styles.pressable, {
+          backgroundColor: pressed && _reactNative.Platform.OS !== 'android' ? colorTheme.surfaceContainerHighest : 'transparent'
+        }];
+      },
       children: contents
     }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
       style: styles.contentContainer,
@@ -125,13 +130,13 @@ var cardStyles = function cardStyles() {
         shadowColor: '#000',
         shadowOffset: {
           width: 0,
-          height: 3
+          height: 1
         },
-        shadowOpacity: 0.08,
-        shadowRadius: 5
+        shadowOpacity: 0.1,
+        shadowRadius: 3
       },
       android: {
-        elevation: 3
+        elevation: 1
       }
     })), _reactNative.Platform.select({
       web: {

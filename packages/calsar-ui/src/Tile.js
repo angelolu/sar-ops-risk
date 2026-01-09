@@ -135,7 +135,7 @@ export const VerticalTile = ({
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
-        Animated.spring(scaleAnim, { toValue: 0.96, useNativeDriver: true, speed: 20, bounciness: 0 }).start();
+        Animated.spring(scaleAnim, { toValue: 0.98, useNativeDriver: true, speed: 20, bounciness: 0 }).start();
     };
 
     const handlePressOut = () => {
@@ -162,7 +162,7 @@ export const VerticalTile = ({
                 // Individual shadows enabled
                 shadowColor: noShadow ? 'transparent' : colorTheme.shadow,
                 shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: noShadow || noRadius ? 0 : (isGrouped ? 0.08 : 0.15),
+                shadowOpacity: noShadow || noRadius ? 0 : (isGrouped ? 0.08 : 0.1),
                 shadowRadius: 3,
                 elevation: noShadow || noRadius ? 0 : 1,
             }
@@ -197,7 +197,7 @@ export const VerticalTile = ({
                                     color: textColor,
                                     fontSize: 14,
                                     lineHeight: 18,
-                                    fontFamily: selected ? 'Inter_700Bold' : 'Inter_600SemiBold'
+                                    fontFamily: selected ? 'Inter_700Bold' : 'Inter_400Regular'
                                 },
                             ]}
                             numberOfLines={2}

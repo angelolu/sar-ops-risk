@@ -60,7 +60,10 @@ export const MaterialCard = ({ title, subtitle, children, href = "", color, noMa
           onPressOut={handlePressOut}
           onPress={() => { router.navigate(href) }}
           android_ripple={{ color: colorTheme.surfaceContainerHighest }}
-          style={styles.pressable}
+          style={({ pressed }) => [
+            styles.pressable,
+            { backgroundColor: (pressed && Platform.OS !== 'android') ? colorTheme.surfaceContainerHighest : 'transparent' }
+          ]}
         >
           {contents}
         </Pressable>
@@ -84,12 +87,12 @@ const cardStyles = () => {
       ...Platform.select({
         ios: {
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.08,
-          shadowRadius: 5,
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3,
         },
         android: {
-          elevation: 3,
+          elevation: 1,
         }
       }),
       ...Platform.select({

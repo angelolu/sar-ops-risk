@@ -90,21 +90,22 @@ export default function PEACE() {
                 : entry
         ));
 
-        // Snap to selection faster (150ms), then begin movement
-        setTimeout(() => {
-            setIsAdvancing(true);
-        }, 150);
+        if (selectedEntry < entries.length - 1) {
+            // Not last item - animate to next
+            // Snap to selection faster (150ms), then begin movement
+            setTimeout(() => {
+                setIsAdvancing(true);
+            }, 150);
 
-        // Overall cycle time reduced to 550ms for snappier feel
-        setTimeout(() => {
-            if (selectedEntry < entries.length - 1) {
+            // Overall cycle time reduced to 550ms for snappier feel
+            setTimeout(() => {
                 setSelectedEntry(selectedEntry + 1);
                 setIsAdvancing(false);
-            } else {
-                setIsModalVisible(false);
-                setIsAdvancing(false);
-            }
-        }, 550);
+            }, 550);
+        } else {
+            // Last item - close immediately without animation
+            setIsModalVisible(false);
+        }
     };
 
     const onModalClose = () => {

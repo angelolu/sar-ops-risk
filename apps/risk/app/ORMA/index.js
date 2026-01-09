@@ -137,8 +137,10 @@ export default function orma() {
 
     const onNext = () => {
         if (selectedEntry === entries.length - 1) {
+            // Last item - close immediately without animation
             setIsModalVisible(false);
         } else {
+            // Not last item - animate to next
             setIsAdvancing(true);
             setTimeout(() => {
                 setSelectedEntry(selectedEntry + 1);

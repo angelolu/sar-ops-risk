@@ -213,12 +213,12 @@ const buttonStyles = () => {
             ...Platform.select({
                 ios: {
                     shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.08,
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.1,
                     shadowRadius: 3,
                 },
                 android: {
-                    elevation: 1.5,
+                    elevation: 1,
                 }
             })
         },

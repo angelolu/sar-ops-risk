@@ -19,4 +19,10 @@ config.resolver.nodeModulesPaths = [
 // 4. Force Metro to follow symlinks (common in monorepos)
 config.resolver.unstable_enableSymlinks = true;
 
+// 5. Fix for assets in monorepos (maps __node_modules etc correctly)
+config.server = {
+    ...config.server,
+    unstable_serverRoot: workspaceRoot,
+};
+
 module.exports = config;

@@ -119,15 +119,15 @@ export default function App() {
                 </MaterialCard>
                 <View style={{ gap: 16 }}>
                     <Text style={styles.headings}>Miscellaneous</Text>
-                    <VerticalTileGroup>
+                    <BannerGroup marginHorizontal={20}>
                         <Tile
                             href="settings"
                             icon={<Ionicons name="settings" size={20} />}
                             title="App settings"
                             subtitle="Appearance, language, list style"
                         />
-                    </VerticalTileGroup>
-                    <VerticalTileGroup>
+                    </BannerGroup>
+                    <BannerGroup marginHorizontal={20}>
                         <Tile
                             href="https://www.cal-esar.org/"
                             icon={<Ionicons name="open-outline" size={20} />}
@@ -139,7 +139,7 @@ export default function App() {
                             title="Member portal"
                             subtitle="Requires ca-sar.org login"
                         />
-                    </VerticalTileGroup>
+                    </BannerGroup>
                 </View>
                 <RiskModal
                     isVisible={isModalVisible}
@@ -175,7 +175,7 @@ const appStyles = () => {
         mainScroll: {
             paddingTop: 20,
             paddingBottom: Platform.OS === "ios" ? 40 : 20,
-            gap: 20,
+            gap: 10,
         },
         headings: {
             color: colorTheme.onPrimaryContainer,
@@ -218,13 +218,13 @@ function HelpInfo({ subject }) {
 
                         <Text style={[styles.bodyText, styles.boldText, { marginTop: 10 }]}>3. Decide GO / NO GO</Text>
                         <View style={{ flexDirection: 'row', gap: 10, marginVertical: 8 }}>
-                            <View style={{ flex: 1, padding: 10, backgroundColor: colorTheme.surfaceContainerLowest, borderRadius: 12 }}>
-                                <Text style={[styles.boldText, { textAlign: 'center' }]}>GAR</Text>
-                                <Text style={{ fontSize: 12, textAlign: 'center' }}>Baseline many teams know, interoperable with NPS.</Text>
+                            <View style={{ flex: 1, padding: 10, backgroundColor: colorTheme.surfaceContainerHighest, borderRadius: 12 }}>
+                                <Text style={[styles.boldText, { textAlign: 'center', color: colorTheme.onSurface }]}>GAR</Text>
+                                <Text style={{ fontSize: 12, textAlign: 'center', color: colorTheme.onSurface }}>Baseline many teams know, interoperable with NPS.</Text>
                             </View>
-                            <View style={{ flex: 1, padding: 10, backgroundColor: colorTheme.surfaceContainerLowest, borderRadius: 12 }}>
-                                <Text style={[styles.boldText, { textAlign: 'center' }]}>PEAACE</Text>
-                                <Text style={{ fontSize: 12, textAlign: 'center' }}>GAR 2.0. Interoperable with USCG and simpler to use.</Text>
+                            <View style={{ flex: 1, padding: 10, backgroundColor: colorTheme.surfaceContainerHighest, borderRadius: 12 }}>
+                                <Text style={[styles.boldText, { textAlign: 'center', color: colorTheme.onSurface }]}>PEAACE</Text>
+                                <Text style={{ fontSize: 12, textAlign: 'center', color: colorTheme.onSurface }}>GAR 2.0. Interoperable with USCG and simpler to use.</Text>
                             </View>
                         </View>
 
@@ -476,9 +476,10 @@ const riskStyles = () => {
             gap: 12
         },
         heading: {
-            fontSize: 22,
+            fontSize: 20,
             lineHeight: 28,
-            color: colorTheme.onBackground
+            color: colorTheme.onBackground,
+            fontFamily: 'Outfit_600SemiBold'
         },
         bodyText: {
             color: colorTheme.onBackground
