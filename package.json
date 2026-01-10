@@ -8,5 +8,12 @@
     ],
     "dependencies": {
         "expo-linear-gradient": "~15.0.8"
+    },
+    "resolutions": {
+        "react": "19.1.0",
+        "react-dom": "19.1.0",
+        "react-is": "19.1.0",
+        "@types/react": "19.1.10",
+        "@types/react-dom": "19.1.10"
     }
 }
