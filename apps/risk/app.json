@@ -2,7 +2,7 @@
   "expo": {
     "name": "Risk",
     "slug": "OpsRisk",
-    "version": "1.6.0",
+    "version": "1.6.2",
     "orientation": "default",
     "scheme": "calsar-risk",
     "icon": "./assets/icon.png",
@@ -48,7 +48,8 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-updates"
     ],
     "extra": {
       "router": {
