@@ -1,28 +1,28 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
-// 1. Resolve the absolute paths for the app and the monorepo root
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
-// 2. Tell Metro to watch the entire monorepo for file changes
+// 1. Watch the whole monorepo
 config.watchFolders = [workspaceRoot];
 
-// 3. Ensure Metro looks in BOTH the local and root node_modules
+// 2. Force resolution of react to the app's node_modules
+// This prevents "Double React" even if packages have their own installs
+config.resolver.extraNodeModules = {
+    'react': path.resolve(projectRoot, 'node_modules/react'),
+    'react-dom': path.resolve(projectRoot, 'node_modules/react-dom'),
+    'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
+};
+
+// 3. Ensure Metro looks in the right places
 config.resolver.nodeModulesPaths = [
     path.resolve(projectRoot, 'node_modules'),
     path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-// 4. Force Metro to follow symlinks (common in monorepos)
 config.resolver.unstable_enableSymlinks = true;
-
-// 5. Fix for assets in monorepos (maps __node_modules etc correctly)
-config.server = {
-    ...config.server,
-    unstable_serverRoot: workspaceRoot,
-};
 
 module.exports = config;

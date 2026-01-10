@@ -191,15 +191,20 @@ export default function PEACE() {
                 })}
                 onSelect={onItemSelect}
             />
-            {isDone && <View style={styles.bottomBar}>
-                <FilledButton
-                    primary
-                    icon="grid-outline"
-                    text="Interpret Risk vs Gain"
-                    onPress={() => router.push({ pathname: "/PEACE/RiskGainMatrix", params: { riskLevel: result.label } })}
-                    style={{ width: '100%' }}
-                />
-            </View>}
+            {isDone && (
+                <View style={styles.bottomBar}>
+                    <FilledButton
+                        primary
+                        icon="grid-outline"
+                        text="Analyze Risk vs Gain"
+                        onPress={() => router.push({
+                            pathname: "/PEACE/RiskGainMatrix",
+                            params: { riskLevel: result.label }
+                        })}
+                        style={{ paddingHorizontal: 16 }}
+                    />
+                </View>
+            )}
             <RiskModal
                 isVisible={isModalVisible}
                 title={entries[selectedEntry].title}
@@ -245,11 +250,24 @@ const pageStyles = () => {
             flexShrink: 1
         },
         bottomBar: {
-            padding: 20,
-            paddingBottom: 20,
-            backgroundColor: colorTheme.surface,
-            borderTopWidth: 1,
-            borderColor: colorTheme.outlineVariant
+            position: "absolute",
+            bottom: 30, // Distance from the bottom of the screen
+            right: 20,  // Distance from the right edge
+            // Remove backgroundColor if you want it to be invisible/floating
+            // backgroundColor: 'transparent', 
+
+            // Elevation (Shadows)
+            ...Platform.select({
+                ios: {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4.65,
+                },
+                android: {
+                    elevation: 8,
+                },
+            }),
         }
     });
 }

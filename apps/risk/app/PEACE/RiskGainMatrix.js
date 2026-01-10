@@ -132,9 +132,9 @@ export default function RiskGainMatrix() {
                         {/* Header */}
                         <View style={[styles.row, { flexGrow: 1 }]}>
                             <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}></Text></View>
-                            <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Low Gain</Text></View>
-                            <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Med Gain</Text></View>
                             <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>High Gain</Text></View>
+                            <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Med Gain</Text></View>
+                            <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Low Gain</Text></View>
                         </View>
 
                         {/* Low Risk */}
@@ -144,13 +144,13 @@ export default function RiskGainMatrix() {
                                 <>
                                     <FullCell text={lowRiskAction} color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
                                     <FullCell text={lowRiskAction} color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
-                                    <FullCell text={lowRiskAction} gradient1={riskColors.low.bg} gradient2={riskColors.medium.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
+                                    <FullCell text={lowRiskAction} color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
                                 </>
                             ) : (
                                 <>
                                     <ShortCell text="Accept" color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
                                     <ShortCell text="Accept" color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
-                                    <ShortCell text="Accept" gradient1={riskColors.low.bg} gradient2={riskColors.medium.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
+                                    <ShortCell text="Accept" color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
                                 </>
                             )}
                         </View>
@@ -194,6 +194,15 @@ export default function RiskGainMatrix() {
                 </ScrollView>
             ) : (
                 <ScrollView contentContainerStyle={styles.scroll}>
+                    {currentRisk.toLowerCase().includes('high') && (
+                        <Banner
+                            backgroundColor={colorTheme.errorContainer}
+                            color={colorTheme.onErrorContainer}
+                            icon={<Ionicons name="warning" size={24} color={colorTheme.onErrorContainer} />}
+                            title="High risk factor missions require leadership endorsement. Only proceed for high gain missions."
+                        />
+                    )}
+
                     <MaterialCard noMargin>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Text style={styles.sectionTitle}>Matrix</Text>
@@ -210,33 +219,33 @@ export default function RiskGainMatrix() {
                         <View style={styles.matrix}>
                             {/* Header */}
                             <View style={styles.row}>
-                                <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Risk \ Gain</Text></View>
-                                <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Low</Text></View>
-                                <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Med</Text></View>
-                                <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>High</Text></View>
+                                <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Risk vs Gain</Text></View>
+                                <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>High Gain</Text></View>
+                                <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Med Gain</Text></View>
+                                <View style={[styles.cell, styles.headerCell, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={styles.headerText}>Low Gain</Text></View>
                             </View>
 
                             {/* Low Risk */}
                             <View style={[styles.row, getHighlight('Low')]}>
-                                <View style={[styles.cell, styles.riskLow, getRiskCellHighlight('Low').highlight && { backgroundColor: colorTheme.primaryContainer }, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={[styles.riskLabel, { color: getRiskCellHighlight('Low').highlight ? colorTheme.onPrimaryContainer : colorTheme.onSurface }]}>Low</Text></View>
+                                <View style={[styles.cell, styles.riskLow, getRiskCellHighlight('Low').highlight && { backgroundColor: colorTheme.primaryContainer }, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={[styles.riskLabel, { color: getRiskCellHighlight('Low').highlight ? colorTheme.onPrimaryContainer : colorTheme.onSurface }]}>Low Risk</Text></View>
                                 {isLandscape ? (
                                     <>
                                         <FullCell text={lowRiskAction} color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
                                         <FullCell text={lowRiskAction} color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
-                                        <FullCell text={lowRiskAction} gradient1={riskColors.low.bg} gradient2={riskColors.medium.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
+                                        <FullCell text={lowRiskAction} color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
                                     </>
                                 ) : (
                                     <>
                                         <ShortCell text="Accept" color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
                                         <ShortCell text="Accept" color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
-                                        <ShortCell text="Accept" gradient1={riskColors.low.bg} gradient2={riskColors.medium.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
+                                        <ShortCell text="Accept" color={riskColors.low.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
                                     </>
                                 )}
                             </View>
 
                             {/* Medium Risk */}
                             <View style={[styles.row, getHighlight('Medium')]}>
-                                <View style={[styles.cell, styles.riskMed, getRiskCellHighlight('Medium').highlight && { backgroundColor: colorTheme.primaryContainer }, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={[styles.riskLabel, { color: getRiskCellHighlight('Medium').highlight ? colorTheme.onPrimaryContainer : colorTheme.onSurface }]}>Med</Text></View>
+                                <View style={[styles.cell, styles.riskMed, getRiskCellHighlight('Medium').highlight && { backgroundColor: colorTheme.primaryContainer }, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={[styles.riskLabel, { color: getRiskCellHighlight('Medium').highlight ? colorTheme.onPrimaryContainer : colorTheme.onSurface }]}>Med Risk</Text></View>
                                 {isLandscape ? (
                                     <>
                                         <FullCell text={medRiskAction} color={riskColors.medium.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
@@ -254,7 +263,7 @@ export default function RiskGainMatrix() {
 
                             {/* High Risk */}
                             <View style={[styles.finalRow, getHighlight('High')]}>
-                                <View style={[styles.cell, styles.riskHigh, getRiskCellHighlight('High').highlight && { backgroundColor: colorTheme.primaryContainer }, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={[styles.riskLabel, { color: getRiskCellHighlight('High').highlight ? colorTheme.onPrimaryContainer : colorTheme.onSurface }]}>High</Text></View>
+                                <View style={[styles.cell, styles.riskHigh, getRiskCellHighlight('High').highlight && { backgroundColor: colorTheme.primaryContainer }, isLandscape ? styles.fullCell : styles.shortCell]}><Text style={[styles.riskLabel, { color: getRiskCellHighlight('High').highlight ? colorTheme.onPrimaryContainer : colorTheme.onSurface }]}>High Risk</Text></View>
                                 {isLandscape ? (
                                     <>
                                         <FullCell text={highRiskAction} color={riskColors.high.bg} cellWidth={cellWidth} cellHeight={cellHeight} />
@@ -270,6 +279,7 @@ export default function RiskGainMatrix() {
                                 )}
                             </View>
                         </View>
+                        <Text style={[styles.legendText, { opacity: 0.8, fontStyle: 'italic', marginTop: 6 }]}>Match your mission to a gain category to find the corresponding matrix cell.</Text>
                     </MaterialCard>
 
                     {/* LEGEND / DEFINITIONS */}
@@ -279,8 +289,6 @@ export default function RiskGainMatrix() {
                             <Text style={styles.legendText}><Text style={styles.bold}>Low Gain:</Text> Routine training, PR, property recovery or evidence search. Use for low-risk conditions only.</Text>
                             <Text style={styles.legendText}><Text style={styles.bold}>Medium Gain:</Text> Stable patient or environment, noncritical injury or protecting significant property.</Text>
                             <Text style={styles.legendText}><Text style={styles.bold}>High Gain:</Text> Lifesaving opportunity, immediate threat to life or preventing permanent injury.</Text>
-                            <Text style={[styles.legendText, { opacity: 0.8, fontStyle: 'italic', marginTop: 6 }]}>Match your mission to a gain category and your risk level to the corresponding matrix cell.</Text>
-
                         </View>
                     </MaterialCard>
 
@@ -306,18 +314,8 @@ export default function RiskGainMatrix() {
                                 <Text style={styles.legendText}>• Risk vs Gain</Text>
                                 <Text style={styles.legendText}>• <Text style={styles.bold}>Go / No Go Decision</Text></Text>
                             </View>
-                            {currentRisk.toLowerCase().includes('high') && (
-                                <Banner
-                                    backgroundColor={colorTheme.errorContainer}
-                                    color={colorTheme.onErrorContainer}
-                                    icon={<Ionicons name="warning" size={24} color={colorTheme.onErrorContainer} />}
-                                    title="High risk factor missions require leadership endorsement. Only proceed for higher gain missions."
-                                    noRadius
-                                />
-                            )}
                         </View>
                     </MaterialCard>
-                    <View style={{ height: 40 }} />
                 </ScrollView>
             )}
         </View>
