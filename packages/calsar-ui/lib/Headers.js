@@ -93,7 +93,8 @@ function BackHeader(_ref2) {
             })
           }), customTitle ? customTitle : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
             style: [textStyle.headerText, {
-              color: color ? color : colorTheme.onPrimaryContainer
+              color: color ? color : colorTheme.onPrimaryContainer,
+              flexShrink: 1
             }],
             adjustsFontSizeToFit: true,
             numberOfLines: 1,
@@ -101,15 +102,12 @@ function BackHeader(_ref2) {
           })]
         }), menuButton ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
           style: [styles.menuContainer, {
-            flexGrow: 1,
-            flexBasis: 1,
             alignItems: "flex-end"
           }],
           children: menuButton
         }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
           style: {
-            flexGrow: 1,
-            flexBasis: 1
+            width: 40
           }
         })]
       }), children, subtitle && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
@@ -147,7 +145,7 @@ var styles = _reactNative.StyleSheet.create({
     gap: 6,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    flex: -1
+    flex: 1 // Changed from flexShrink to flex 1 to push against menu
   },
   subtitleContainer: {
     paddingTop: 10,
@@ -159,17 +157,15 @@ var styles = _reactNative.StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    flex: -1,
-    fontWeight: '500'
+    fontWeight: '500',
+    flexShrink: 1 // Added flexShrink so text truncates
   },
   backButtonContainer: {
     width: 40,
-    height: "100%",
+    height: 40,
     minHeight: 40,
     borderRadius: 20,
     overflow: 'hidden',
-    flexGrow: 1,
-    flexBasis: 1,
     alignItems: "flex-start",
     justifyContent: "center"
   },

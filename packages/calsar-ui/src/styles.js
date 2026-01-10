@@ -29,7 +29,6 @@ export const textStyles = () => {
         headerText: {
             fontSize: 18,
             color: colorTheme.onPrimaryContainer,
-            flex: -1,
             fontFamily: 'Inter_500Medium'
         },
         chipText: {
@@ -48,6 +47,8 @@ export const textStyles = () => {
             fontFamily: 'Inter_400Regular'
         },
         buttonText: {
+            fontSize: 14,
+            lineHeight: 20,
             color: colorTheme.secondary,
             fontFamily: 'Inter_500Medium'
         },

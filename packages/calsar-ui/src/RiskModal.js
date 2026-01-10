@@ -2,12 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useContext } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Modal from "react-native-modal";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemeContext } from './ThemeContext';
 import { textStyles } from './styles';
 
 export function RiskModal({ isVisible, children, onClose, height = 0, title, overrideWidth }) {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = modalStyles();
+    const insets = useSafeAreaInsets();
+    const styles = modalStyles(insets);
     const textStyle = textStyles();
 
     return (
@@ -38,7 +40,7 @@ export function RiskModal({ isVisible, children, onClose, height = 0, title, ove
     );
 }
 
-const modalStyles = () => {
+const modalStyles = (insets) => {
     const { colorTheme } = useContext(ThemeContext);
 
     return StyleSheet.create({
@@ -49,7 +51,7 @@ const modalStyles = () => {
             position: 'absolute',
             bottom: 0,
             maxWidth: 600,
-            paddingBottom: Platform.OS === "ios" ? 20 : 0
+            paddingBottom: (insets?.bottom || 0) + (Platform.OS === 'ios' ? 0 : 20)
         },
         titleContainer: {
             marginTop: 16,

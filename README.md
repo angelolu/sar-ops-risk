@@ -38,9 +38,19 @@ The Expo `production` channel is used by native apps built using the `production
 - EAS Update creates an update for the `main` branch, which is used by the `production` channel.
   - If the `version` property in `app.json` matches the one in production on app stores, users will get the update the next time they restart the app.
 
+# Working with calsar-ui
+The `calsar-ui` package contains shared components used by both the Risk and Ops apps. 
+
+Because `calsar-ui` is a local package, you must re-transpile it whenever you make changes to its source code in the `src` directory so that the changes are picked up by the apps.
+
+1. Navigate to the `packages/calsar-ui` directory.
+2. Run `npm run transpile` to update the `lib` folder.
+3. **Important:** Always commit the updated `lib` files along with your changes to the `src` folder.
+
 # Contributing
 All contributions welcome! The intent is to keep this app lightweight and generally applicable for teams to use.
-1. Decide if the `version` property in `app.json` needs to be updated (major changes, native changes, etc.)
+1. If you've modified `calsar-ui`, ensure you've ran `npm run transpile` in that package.
+2. Decide if the `version` property in `app.json` needs to be updated (major changes, native changes, etc.)
 2. Push to `preview`
 3. Open a PR to `main`. Check that the web page works.
 4. Merge to `main`
