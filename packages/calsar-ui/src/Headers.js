@@ -29,7 +29,8 @@ export function BackHeader({
 }) {
     const { colorTheme } = useContext(ThemeContext);
     const { height: screenHeight } = useWindowDimensions();
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     const activeColor = color || colorTheme.onPrimaryContainer;
     const activeBg = backgroundColor || colorTheme.primaryContainer;

@@ -1,22 +1,7 @@
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
-import { Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, useFonts } from '@expo-google-fonts/outfit';
-import { useContext } from "react";
-import { StyleSheet, useWindowDimensions } from 'react-native';
-import { ThemeContext } from "./ThemeContext";
+import { StyleSheet } from 'react-native';
 
 
-export const textStyles = () => {
-    const [loaded, error] = useFonts({
-        Outfit_600SemiBold,
-        Outfit_500Medium,
-        Outfit_400Regular,
-        Inter_400Regular,
-        Inter_500Medium,
-        Inter_600SemiBold,
-        Inter_700Bold
-    });
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
+export const textStyles = (colorTheme, width) => {
 
     // Use Outfit if size is over 20
 

@@ -1,5 +1,5 @@
 import React, { useContext, useRef } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { ThemeContext } from './ThemeContext';
 import { textStyles } from './styles';
 
@@ -40,7 +40,8 @@ export const Banner = ({
     selected
 }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     const scaleAnim = useRef(new Animated.Value(1)).current;
 

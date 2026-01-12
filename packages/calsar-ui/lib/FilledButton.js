@@ -47,7 +47,9 @@ var FilledButton = exports.FilledButton = function FilledButton(_ref) {
     _useState2 = _slicedToArray(_useState, 2),
     hovered = _useState2[0],
     setHovered = _useState2[1];
-  var textStyle = (0, _styles.textStyles)();
+  var _useWindowDimensions = (0, _reactNative.useWindowDimensions)(),
+    width = _useWindowDimensions.width;
+  var textStyle = (0, _styles.textStyles)(colorTheme, width);
   var buttonStyle = buttonStyles();
   var scaleAnim = (0, _react.useRef)(new _reactNative.Animated.Value(1)).current;
   var handlePressIn = function handlePressIn() {
@@ -176,8 +178,10 @@ var SegmentedButtons = exports.SegmentedButtons = function SegmentedButtons(_ref
   var _useContext2 = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext2.colorTheme,
     getHoverColor = _useContext2.getHoverColor;
+  var _useWindowDimensions2 = (0, _reactNative.useWindowDimensions)(),
+    width = _useWindowDimensions2.width;
   var buttonStyle = buttonStyles();
-  var textStyle = (0, _styles.textStyles)();
+  var textStyle = (0, _styles.textStyles)(colorTheme, width);
   var borderColor = disabled ? getHoverColor(colorTheme.onSurface, 0.12) : colorTheme.outline;
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
     style: [buttonStyle.segmentedContainer, small && buttonStyle.smallBaseContainer, grow && {

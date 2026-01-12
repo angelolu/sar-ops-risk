@@ -30,7 +30,7 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
     let styles;
 
     if (listStyle === "legacy") {
-        styles = itemStylesClassic();
+        styles = itemStylesClassic(colorTheme);
         return (
             <Animated.View style={[styles.listItemContainer, { transform: [{ scale: scaleAnim }] }]}>
                 <Pressable
@@ -55,7 +55,7 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
             </Animated.View>
         );
     } else {
-        styles = itemStyles();
+        styles = itemStyles(colorTheme);
         return (
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                 <Pressable
@@ -81,8 +81,7 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
     }
 }
 
-const itemStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const itemStyles = (colorTheme) => {
 
     return StyleSheet.create({
         row: {
@@ -122,8 +121,7 @@ const itemStyles = () => {
     });
 }
 
-const itemStylesClassic = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const itemStylesClassic = (colorTheme) => {
 
     return StyleSheet.create({
         listItemContainer: {

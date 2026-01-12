@@ -45,7 +45,7 @@ const WebDownloadBanner = () => {
 
 export default function App() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const styles = appStyles();
+    const styles = appStyles(colorTheme);
     const [modalHeight, setmodalHeight] = useState(1000);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedEntry, setSelectedEntry] = useState(<></>);
@@ -154,8 +154,7 @@ export default function App() {
     );
 }
 
-const appStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const appStyles = (colorTheme) => {
 
     return StyleSheet.create({
         background: {
@@ -192,8 +191,8 @@ const appStyles = () => {
 }
 
 function HelpInfo({ subject }) {
-    const styles = riskStyles();
     const { colorTheme } = useContext(ThemeContext);
+    const styles = riskStyles(colorTheme);
     if (subject === "overview") return (
         <View style={styles.content}>
             <View style={styles.section}>
@@ -461,8 +460,7 @@ function HelpInfo({ subject }) {
     return (<></>);
 }
 
-const riskStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const riskStyles = (colorTheme) => {
 
     return StyleSheet.create({
         container: {

@@ -10,10 +10,10 @@ import { RxDBContext } from '../components/RxDBContext';
 import { getAsyncStorageData, getElapsedTimeString, getSimpleDateString, saveAsyncStorageData } from '../components/helperFunctions';
 
 export default function App() {
-    const styles = pageStyles();
-    const textStyle = textStyles();
     const { colorTheme, colorScheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
     const { createFile, getFiles, deleteFile, restartSync, replicationStatus } = useContext(RxDBContext)
     const { isAuthenticated, waitForFirebaseReady, currentUser, signOut, signInWithGoogle } = useFirebase();
 
@@ -289,9 +289,7 @@ export default function App() {
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
+const pageStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
         background: {

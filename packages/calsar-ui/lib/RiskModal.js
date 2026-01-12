@@ -23,8 +23,9 @@ function RiskModal(_ref) {
     colorTheme = _useContext.colorTheme;
   var insets = (0, _reactNativeSafeAreaContext.useSafeAreaInsets)();
   var _useWindowDimensions = (0, _reactNative.useWindowDimensions)(),
-    screenHeight = _useWindowDimensions.height;
-  var textStyle = (0, _styles.textStyles)();
+    screenHeight = _useWindowDimensions.height,
+    width = _useWindowDimensions.width;
+  var textStyle = (0, _styles.textStyles)(colorTheme, width);
 
   // 1. Constrain height so ScrollView has a boundary to scroll within
   var modalMaxHeight = screenHeight - insets.top - 60;

@@ -32,8 +32,8 @@ export const PlanningPanel = ({ fileId, notifyFileUpdated, activeTeams, markers,
 
 const ListItem = ({ teams, item, notifyFileUpdated, setAssignTeamAssignment, setDeleteAssignment, markers, removeMarker, addMarker, incidents }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = pageStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, width);
 
     // Compute the text for the chip based on the teams assigned to the assignment
     let completingTeams = teams.filter(t => t?.assignment === item.id);
@@ -119,8 +119,8 @@ const AssignmentPanel = ({ fileId, notifyFileUpdated, teams, incidents = false, 
 
     const { width, height } = useWindowDimensions();
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = pageStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, width);
 
     const [assignments, setAssignments] = useState([]);
     const [deleteAssignment, setDeleteAssignment] = useState(null);
@@ -222,7 +222,8 @@ const AssignmentPanel = ({ fileId, notifyFileUpdated, teams, incidents = false, 
 
 const Chip = ({ title, onCancel, color, onPress }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     const content = (<>
         <Text style={textStyle.chipText}>{title}</Text>
@@ -262,7 +263,9 @@ const IconChip = ({ icon, onCancel, color, onPress }) => {
 }
 
 const AssignTeamAssignmentModal = ({ fileId, notifyFileUpdated, assignment, onClose, teams = [], incidents }) => {
-    const textStyle = textStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     const { createCommsQueueMessage } = useContext(RxDBContext);
 
@@ -378,8 +381,8 @@ const AssignTeamAssignmentModal = ({ fileId, notifyFileUpdated, assignment, onCl
 
 const TemplateModal = ({ fileId, notifyFileUpdated, people, isVisible, onClose }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = pageStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, width);
     const { width } = useWindowDimensions();
     const [name, setName] = useState("");
 
@@ -409,9 +412,7 @@ const TemplateModal = ({ fileId, notifyFileUpdated, people, isVisible, onClose }
     </RiskModal >);
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-
+const pageStyles = (colorTheme) => {
     return StyleSheet.create({
         standaloneCard: {
             borderRadius: 26,

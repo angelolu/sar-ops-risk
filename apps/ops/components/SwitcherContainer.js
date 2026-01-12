@@ -1,10 +1,11 @@
 import { textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 export function TabButton({ title, active, onClick }) {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
     const [focus, setFocus] = useState(false);
 
     let focusColor = active ? colorTheme.primary + Math.round(0.8 * 255).toString(16).toUpperCase() : colorTheme.primary + Math.round(0.3 * 255).toString(16).toUpperCase();
@@ -29,7 +30,7 @@ export function TabButton({ title, active, onClick }) {
 }
 
 export default function SwitcherContainer({ tabs, activeTab, setActiveTab }) {
-    const styles = pageStyles();
+    const styles = pageStyles(colorTheme);
     const { colorTheme } = useContext(ThemeContext);
     const activeTabContent = tabs.find(tab => tab.name === activeTab)?.content;
 
@@ -48,8 +49,7 @@ export default function SwitcherContainer({ tabs, activeTab, setActiveTab }) {
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const pageStyles = (colorTheme) => {
 
     return StyleSheet.create({
         background: {

@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from './ThemeContext';
@@ -19,7 +19,8 @@ export const FilledButton = ({
 }) => {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const [hovered, setHovered] = useState(false);
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
     const buttonStyle = buttonStyles();
 
     const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -138,8 +139,9 @@ export const SegmentedButtons = ({
     primary = false
 }) => {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
     const buttonStyle = buttonStyles();
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     const borderColor = disabled ? getHoverColor(colorTheme.onSurface, 0.12) : colorTheme.outline;
 

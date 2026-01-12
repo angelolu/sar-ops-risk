@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { textStyles, ThemeContext } from 'calsar-ui';
 import { PrinterContext } from './PrinterContext';
@@ -9,9 +9,10 @@ export const PrinterTabIcon = ({ saveLocation, onPress, selected = false, printT
     const { isPrinterConnected, isPrinterSupported } = useContext(PrinterContext);
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const { replicationStatus } = useContext(RxDBContext);
+    const { width } = useWindowDimensions();
     const [focus, setFocus] = useState(false);
-    const styles = buttonStyles();
-    const textStyle = textStyles();
+    const styles = buttonStyles(colorTheme, getHoverColor);
+    const textStyle = textStyles(colorTheme, width);
 
     const [saveText, setSaveText] = useState(false);
     const [saveColor, setSaveColor] = useState(colorTheme.garAmberLight);
@@ -83,8 +84,7 @@ export const PrinterTabIcon = ({ saveLocation, onPress, selected = false, printT
     );
 };
 
-const buttonStyles = () => {
-    const { colorTheme, getHoverColor } = useContext(ThemeContext);
+const buttonStyles = (colorTheme, getHoverColor) => {
     return StyleSheet.create({
         baseContainer: {
             height: 50,

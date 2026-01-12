@@ -22,8 +22,10 @@ const OPS_TEAM_TO_NAME = {
 }
 
 export const TicketRailPanel = ({ file, teams, activeTab, filteredCommsQueue }) => {
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const [replyItem, setReplyItem] = useState(null);
 
@@ -59,8 +61,9 @@ const CommsQueueItemCard = ({ file, item, teams, activeTab, superseded, setReply
 
     const intervalRef = useRef(null);
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const [descriptionText, setDescriptionText] = useState("Loading...");
     const [elapsedTime, setElapsedTime] = useState("-");
@@ -299,8 +302,8 @@ const CommsQueueItemCard = ({ file, item, teams, activeTab, superseded, setReply
 const ReplyModal = ({ request, team, relatedItem, file, isVisible, onClose }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { createLog } = useContext(RxDBContext);
-    const textStyle = textStyles();
     const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
     const [responseMessage, setResponseMessage] = useState("");
 
     const handleClose = () => {

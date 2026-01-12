@@ -1,4 +1,4 @@
-import { FilledButton, textStyles, ThemeContext } from 'calsar-ui';
+import { textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { EditableText } from './TextInput';
@@ -6,8 +6,8 @@ import { EditableText } from './TextInput';
 export const InfoTab = ({ incidentInfo, editIncident }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     return (
         <View style={{
@@ -41,8 +41,10 @@ export const InfoTab = ({ incidentInfo, editIncident }) => {
 }
 
 const KeyValue = ({ title, children }) => {
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     return (<View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
         <Text style={textStyle.tertiaryText}>{title}</Text>
@@ -51,10 +53,7 @@ const KeyValue = ({ title, children }) => {
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
-
+const pageStyles = (colorTheme, width) => {
     return StyleSheet.create({
         sectionTitle: {
             color: colorTheme.onBackground,

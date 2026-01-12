@@ -14,9 +14,10 @@ import { TimerComponent } from './TimerComponent';
 import { getAsyncStorageData, resetTeamTimeout } from './helperFunctions';
 
 export const LogPanel = ({ incidentInfo, teams }) => {
-    const styles = pageStyles();
-    const textStyle = textStyles();
     const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
     const { getLogsByFileId } = useContext(RxDBContext)
     const [logs, setLogs] = useState([]);
     const [typeFilter, setTypeFilter] = useState(0);
@@ -489,9 +490,9 @@ export const LogPanel = ({ incidentInfo, teams }) => {
 }
 
 export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMarker }) => {
-    const styles = pageStyles();
     const { width, height } = useWindowDimensions();
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
+    const styles = pageStyles(colorTheme, width);
     const { createTeam } = useContext(RxDBContext)
 
     const [logTrafficTeam, setLogTrafficTeam] = useState();
@@ -598,7 +599,8 @@ const AllTeamTrafficComponent = ({ isVisible, onClose, incidentInfo }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { createLog } = useContext(RxDBContext);
 
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     const [customTextBoxText, setCustomTextBoxText] = useState("");
 
@@ -653,7 +655,7 @@ const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, updateStatus,
     const { getAssignmentsByFileId, getAssignmentById, getAssignmentsByTeamId, createAssignment, createClue, createLog, createCommsQueueMessage } = useContext(RxDBContext);
 
     const { width } = useWindowDimensions();
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     const [messageType, setMessageType] = useState(0);
     const [messageSubType, setMessageSubType] = useState(0);
@@ -1246,9 +1248,7 @@ const TaskQueueText = ({ team }) => {
     </Text>
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
+const pageStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
         sectionTitle: {

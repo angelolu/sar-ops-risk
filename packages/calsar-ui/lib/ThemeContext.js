@@ -5,12 +5,13 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.ThemeProvider = exports.ThemeContext = void 0;
+var _inter = require("@expo-google-fonts/inter");
+var _outfit = require("@expo-google-fonts/outfit");
 var _asyncStorage = _interopRequireDefault(require("@react-native-async-storage/async-storage"));
-var _react = _interopRequireWildcard(require("react"));
+var _react = require("react");
 var _reactNative = require("react-native");
 var _theme = _interopRequireDefault(require("../assets/theme.json"));
 var _jsxRuntime = require("react/jsx-runtime");
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, "default": e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t2 in e) "default" !== _t2 && {}.hasOwnProperty.call(e, _t2) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t2)) && (i.get || i.set) ? o(f, _t2, i) : f[_t2] = e[_t2]); return f; })(e, t); }
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -59,6 +60,18 @@ var extractThemeFromScheme = function extractThemeFromScheme(scheme) {
 };
 var ThemeProvider = exports.ThemeProvider = function ThemeProvider(_ref2) {
   var children = _ref2.children;
+  var _useFonts = (0, _outfit.useFonts)({
+      Outfit_600SemiBold: _outfit.Outfit_600SemiBold,
+      Outfit_500Medium: _outfit.Outfit_500Medium,
+      Outfit_400Regular: _outfit.Outfit_400Regular,
+      Inter_400Regular: _inter.Inter_400Regular,
+      Inter_500Medium: _inter.Inter_500Medium,
+      Inter_600SemiBold: _inter.Inter_600SemiBold,
+      Inter_700Bold: _inter.Inter_700Bold
+    }),
+    _useFonts2 = _slicedToArray(_useFonts, 2),
+    loaded = _useFonts2[0],
+    error = _useFonts2[1];
   var _useState = (0, _react.useState)((0, _reactNative.useColorScheme)()),
     _useState2 = _slicedToArray(_useState, 2),
     colorScheme = _useState2[0],

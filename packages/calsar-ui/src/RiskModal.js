@@ -9,8 +9,8 @@ import { textStyles } from './styles';
 export function RiskModal({ isVisible, children, onClose, title, overrideWidth }) {
     const { colorTheme } = useContext(ThemeContext);
     const insets = useSafeAreaInsets();
-    const { height: screenHeight } = useWindowDimensions();
-    const textStyle = textStyles();
+    const { height: screenHeight, width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     // 1. Constrain height so ScrollView has a boundary to scroll within
     const modalMaxHeight = screenHeight - insets.top - 60;
