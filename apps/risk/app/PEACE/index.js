@@ -30,7 +30,7 @@ const getNasarEntries = () => [
 
 export default function PEACE() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const styles = pageStyles();
+    const styles = pageStyles(colorTheme);
     const router = useRouter();
 
     const { calculate, getResult, getItemResult } = useRiskAssessment(PEACE_USCG_ASHORE_CONFIG);
@@ -220,8 +220,7 @@ export default function PEACE() {
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const pageStyles = (colorTheme) => {
 
     return StyleSheet.create({
         container: {
@@ -282,7 +281,7 @@ function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
         Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
     };
 
-    const styles = riskInputStyles();
+    const styles = riskInputStyles(colorTheme);
 
     const baseBorderColor = colorTheme.outlineVariant;
     const baseBgColor = colorTheme.surfaceContainerHigh;
@@ -327,7 +326,7 @@ function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
 
 function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = riskInputStyles();
+    const styles = riskInputStyles(colorTheme);
 
     // Unified animation value: 1 = visible, 0 = advancing (out)
     const anim = useRef(new Animated.Value(1)).current;
@@ -412,8 +411,7 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
     );
 }
 
-const riskInputStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const riskInputStyles = (colorTheme) => {
 
     return StyleSheet.create({
         container: {

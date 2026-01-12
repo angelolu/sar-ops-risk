@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.BrandingBar = BrandingBar;
-var _react = _interopRequireWildcard(require("react"));
+var _react = require("react");
 var _reactNative = require("react-native");
 var _reactNativeReanimated = _interopRequireWildcard(require("react-native-reanimated"));
 var _ThemeContext = require("./ThemeContext");
@@ -24,7 +24,9 @@ function BrandingBar(_ref) {
   var titleOpacity = (0, _reactNativeReanimated.useSharedValue)(0);
   var workmarkDisplay = (0, _reactNativeReanimated.useSharedValue)('flex');
   var titleDisplay = (0, _reactNativeReanimated.useSharedValue)('none');
-  var styles = brandingStyles();
+  var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
+    colorTheme = _useContext.colorTheme;
+  var styles = brandingStyles(colorTheme);
   var titleAnimatedStyle = (0, _reactNativeReanimated.useAnimatedStyle)(function () {
     return {
       opacity: titleOpacity.value,
@@ -161,9 +163,7 @@ function BrandingBar(_ref) {
     });
   }
 }
-var brandingStyles = function brandingStyles() {
-  var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
-    colorTheme = _useContext.colorTheme;
+var brandingStyles = function brandingStyles(colorTheme) {
   return _reactNative.StyleSheet.create({
     brandingBanner: {
       marginTop: 14,

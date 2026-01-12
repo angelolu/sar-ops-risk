@@ -8,8 +8,8 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams, mapShowing }) =>
     const { width } = useWindowDimensions();
     const { colorTheme } = useContext(ThemeContext);
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const [enabledTeams, setEnabledTeams] = useState([]);
     const [disabledTeams, setDisabledTeams] = useState([]);
@@ -97,10 +97,7 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams, mapShowing }) =>
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
-
+const pageStyles = (colorTheme, width) => {
     return StyleSheet.create({
         mainScroll: {
             paddingTop: 20,

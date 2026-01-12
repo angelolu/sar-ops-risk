@@ -67,8 +67,10 @@ var Tile = exports.Tile = function Tile(_ref) {
     isLast = _ref$isLast === void 0 ? false : _ref$isLast;
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext.colorTheme;
-  var styles = tileStyles();
-  var textStyle = (0, _styles.textStyles)();
+  var _useWindowDimensions = (0, _reactNative.useWindowDimensions)(),
+    windowWidth = _useWindowDimensions.width;
+  var styles = tileStyles(colorTheme);
+  var textStyle = (0, _styles.textStyles)(colorTheme, windowWidth);
   var textColor = textStyle.rowTitleTextPrimary.color;
   var scaleAnim = (0, _react.useRef)(new _reactNative.Animated.Value(1)).current;
   var handlePressIn = function handlePressIn() {
@@ -180,8 +182,10 @@ var VerticalTile = exports.VerticalTile = function VerticalTile(_ref3) {
     isLast = _ref3$isLast === void 0 ? false : _ref3$isLast;
   var _useContext2 = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext2.colorTheme;
-  var styles = tileStyles();
-  var textStyle = (0, _styles.textStyles)();
+  var _useWindowDimensions2 = (0, _reactNative.useWindowDimensions)(),
+    windowWidth = _useWindowDimensions2.width;
+  var styles = tileStyles(colorTheme);
+  var textStyle = (0, _styles.textStyles)(colorTheme, windowWidth);
   var scaleAnim = (0, _react.useRef)(new _reactNative.Animated.Value(1)).current;
   var handlePressIn = function handlePressIn() {
     _reactNative.Animated.spring(scaleAnim, {
@@ -338,9 +342,7 @@ var HorizontalTileGroup = exports.HorizontalTileGroup = function HorizontalTileG
     })
   });
 };
-var tileStyles = function tileStyles() {
-  var _useContext3 = (0, _react.useContext)(_ThemeContext.ThemeContext),
-    colorTheme = _useContext3.colorTheme;
+var tileStyles = function tileStyles(colorTheme) {
   return _reactNative.StyleSheet.create({
     card: {
       backgroundColor: colorTheme.surfaceContainer

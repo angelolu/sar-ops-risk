@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useContext, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { ThemeContext } from './ThemeContext';
 import { textStyles } from './styles';
@@ -12,7 +12,8 @@ import { textStyles } from './styles';
  */
 export const MaterialCard = ({ title, subtitle, children, href = "", color, noMargin = false }) => {
   const { colorTheme } = useContext(ThemeContext);
-  const textStyle = textStyles();
+  const { width } = useWindowDimensions();
+  const textStyle = textStyles(colorTheme, width);
   const styles = cardStyles();
 
   const [hovered, setHovered] = useState(false);

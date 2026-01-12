@@ -9,8 +9,9 @@ import { EditableText, TextBox } from './TextInput';
 
 const ClueCard = ({ item, teams, notifyFileUpdated, markers, removeMarker, addMarker, setChangeStateModalClue }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const { getAssignmentById } = useContext(RxDBContext);
 
@@ -102,8 +103,8 @@ export const CluePanel = ({ fileId, notifyFileUpdated, teams, incidents = false,
     const { getCluesByFileId } = useContext(RxDBContext);
     const { width } = useWindowDimensions();
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const [clues, setClues] = useState([]);
     const [changeStateModalClue, setChangeStateModalClue] = useState(null);
@@ -222,9 +223,9 @@ const ChangeStateModal = ({ notifyFileUpdated, isVisible, onClose, clue }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { createCommsQueueMessage, deleteDocument } = useContext(RxDBContext);
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
     const { width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
     const [selectedState, setSelectedState] = useState("");
     const [operatorMessage, setOperatorMessage] = useState("");
     const [deleteClue, setDeleteClue] = useState(false);
@@ -311,9 +312,7 @@ const ChangeStateModal = ({ notifyFileUpdated, isVisible, onClose, clue }) => {
     </RiskModal >);
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
+const pageStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
         standaloneCard: {

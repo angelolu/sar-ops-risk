@@ -41,7 +41,9 @@ function BackHeader(_ref2) {
     colorTheme = _useContext.colorTheme;
   var _useWindowDimensions = (0, _reactNative.useWindowDimensions)(),
     screenHeight = _useWindowDimensions.height;
-  var textStyle = (0, _styles.textStyles)();
+  var _useWindowDimensions2 = (0, _reactNative.useWindowDimensions)(),
+    width = _useWindowDimensions2.width;
+  var textStyle = (0, _styles.textStyles)(colorTheme, width);
   var activeColor = color || colorTheme.onPrimaryContainer;
   var activeBg = backgroundColor || colorTheme.primaryContainer;
   var headerMinHeight = screenHeight < 500 || minimize ? 44 : 64;

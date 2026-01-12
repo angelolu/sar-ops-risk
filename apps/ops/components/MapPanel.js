@@ -14,8 +14,9 @@ const MapPanel = ({ markers, resizeRequest, resizeDone, removeMarker }) => {
 
     const { colorTheme, colorScheme } = useContext(ThemeContext);
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, width);
 
     const [mapMarkers, setMapMarkers] = useState([]);
     const [mapItems, setMapItems] = useState([]);
@@ -351,8 +352,7 @@ function parseNATOUTM(UTMString) {
 }
 
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const pageStyles = (colorTheme) => {
 
     return StyleSheet.create({
         background: {

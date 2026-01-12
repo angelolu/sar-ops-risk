@@ -58,7 +58,9 @@ var Banner = exports.Banner = function Banner(_ref) {
     selected = _ref.selected;
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext.colorTheme;
-  var textStyle = (0, _styles.textStyles)();
+  var _useWindowDimensions = (0, _reactNative.useWindowDimensions)(),
+    width = _useWindowDimensions.width;
+  var textStyle = (0, _styles.textStyles)(colorTheme, width);
   var scaleAnim = (0, _react.useRef)(new _reactNative.Animated.Value(1)).current;
   var handlePressIn = function handlePressIn() {
     _reactNative.Animated.spring(scaleAnim, {

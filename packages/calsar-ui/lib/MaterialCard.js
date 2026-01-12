@@ -37,7 +37,9 @@ var MaterialCard = exports.MaterialCard = function MaterialCard(_ref) {
     noMargin = _ref$noMargin === void 0 ? false : _ref$noMargin;
   var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
     colorTheme = _useContext.colorTheme;
-  var textStyle = (0, _styles.textStyles)();
+  var _useWindowDimensions = (0, _reactNative.useWindowDimensions)(),
+    width = _useWindowDimensions.width;
+  var textStyle = (0, _styles.textStyles)(colorTheme, width);
   var styles = cardStyles();
   var _useState = (0, _react.useState)(false),
     _useState2 = _slicedToArray(_useState, 2),

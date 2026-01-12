@@ -1,5 +1,5 @@
 
-import React, { useContext, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import Animated, {
     Easing,
@@ -20,7 +20,8 @@ export function BrandingBar({ textColor, title, menuButton, noLogo = false }) {
     const workmarkDisplay = useSharedValue('flex');
     const titleDisplay = useSharedValue('none');
 
-    const styles = brandingStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const styles = brandingStyles(colorTheme);
 
     const titleAnimatedStyle = useAnimatedStyle(() => {
         return {
@@ -127,8 +128,7 @@ export function BrandingBar({ textColor, title, menuButton, noLogo = false }) {
     }
 }
 
-const brandingStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const brandingStyles = (colorTheme) => {
 
     return StyleSheet.create({
         brandingBanner: {

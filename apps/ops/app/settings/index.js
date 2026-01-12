@@ -8,8 +8,9 @@ import { getAsyncStorageData, saveAsyncStorageData } from '../../components/help
 export default function Settings() {
     const { colorTheme, changeColorScheme, colorScheme } = useContext(ThemeContext);
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { height, width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, width);
 
     const [appearanceState, setAppearanceState] = useState(1);
 
@@ -26,7 +27,6 @@ export default function Settings() {
         getAsyncStorageData("appearance").then((value) => { value && setAppearanceState(value) });
     }, []);
 
-    const { height, width } = useWindowDimensions();
     const baseColorScheme = useColorScheme();
 
     return (
@@ -86,8 +86,7 @@ export default function Settings() {
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const pageStyles = (colorTheme) => {
 
     return StyleSheet.create({
         background: {

@@ -7,7 +7,7 @@ import { PrinterContext } from './PrinterContext';
 export const OptionsTab = ({ setReadOnly, incidentInfo }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles();
+    const styles = pageStyles(colorTheme, width);
     const { isPrinterSupported,
         connectPrinter,
         disconnectPrinter,
@@ -95,7 +95,9 @@ export const OptionsTab = ({ setReadOnly, incidentInfo }) => {
 }
 
 const KeyValue = ({ title, children }) => {
-    const styles = pageStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const styles = pageStyles(colorTheme, width);
 
     return (<View style={{ flexDirection: "column", gap: 2 }}>
         <Text style={styles.text}>{title}</Text>
@@ -104,9 +106,7 @@ const KeyValue = ({ title, children }) => {
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
+const pageStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
         standaloneCard: {

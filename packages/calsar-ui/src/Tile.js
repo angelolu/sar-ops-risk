@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import React, { useContext, useRef } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { ThemeContext } from './ThemeContext';
 import { textStyles } from './styles';
@@ -49,8 +49,9 @@ export const Tile = ({
     isLast = false
 }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = tileStyles();
-    const textStyle = textStyles();
+    const { width: windowWidth } = useWindowDimensions();
+    const styles = tileStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, windowWidth);
     const textColor = textStyle.rowTitleTextPrimary.color;
 
     const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -129,8 +130,9 @@ export const VerticalTile = ({
     isLast = false
 }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = tileStyles();
-    const textStyle = textStyles();
+    const { width: windowWidth } = useWindowDimensions();
+    const styles = tileStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, windowWidth);
 
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -257,9 +259,7 @@ export const HorizontalTileGroup = ({ children, marginHorizontal = 20, height })
     );
 };
 
-const tileStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-
+const tileStyles = (colorTheme) => {
     return StyleSheet.create({
         card: {
             backgroundColor: colorTheme.surfaceContainer,

@@ -1,5 +1,7 @@
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, useFonts } from '@expo-google-fonts/outfit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import { Appearance, useColorScheme } from 'react-native';
 
 import themeColors from '../assets/theme.json';
@@ -22,6 +24,16 @@ const extractThemeFromScheme = (scheme) => {
 }
 
 export const ThemeProvider = ({ children }) => {
+  const [loaded, error] = useFonts({
+    Outfit_600SemiBold,
+    Outfit_500Medium,
+    Outfit_400Regular,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold
+  });
+
   const [colorScheme, setColorScheme] = useState(useColorScheme());
   const [colorTheme, setColorTheme] = useState(extractThemeFromScheme(colorScheme));
 

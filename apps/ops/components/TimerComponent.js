@@ -27,8 +27,8 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
     const { colorTheme } = useContext(ThemeContext);
     const { getLastRadioLog, getAssignmentById, createLog } = useContext(RxDBContext)
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
     const lastStartRef = useRef(team.lastStart);
     const lastTimeRemainingRef = useRef(team.lastTimeRemaining);
     const intervalRef = useRef(null);
@@ -351,7 +351,9 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
 };
 
 const SectionContainer = ({ children, maxWidth, width, justifyContent, style }) => {
-    const styles = pageStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const { width: windowWidth } = useWindowDimensions();
+    const styles = pageStyles(colorTheme, windowWidth);
     const maxWidthOverride = maxWidth ? { maxWidth: maxWidth } : {};
     const widthOverride = width ? { width: width } : {};
     const justifyContentOverride = justifyContent ? { justifyContent: justifyContent } : {};
@@ -363,9 +365,7 @@ const SectionContainer = ({ children, maxWidth, width, justifyContent, style }) 
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
+const pageStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
         wideCard: {

@@ -8,7 +8,7 @@ import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-n
 export default function RiskGainMatrix() {
     const params = useLocalSearchParams();
     const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles();
+    const styles = pageStyles(colorTheme);
     const { width, height } = useWindowDimensions();
 
     const [isLandscape, setIsLandscape] = useState(false);
@@ -322,8 +322,7 @@ export default function RiskGainMatrix() {
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const pageStyles = (colorTheme) => {
 
     return StyleSheet.create({
         container: {

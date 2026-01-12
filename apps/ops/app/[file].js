@@ -74,8 +74,8 @@ export default function OperationPage() {
 
     const printedClues = useRef([]);
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = pageStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const [activeTab, setActiveTab] = useState("");
     const [fileLoaded, setFileLoaded] = useState(0);
@@ -715,11 +715,13 @@ const KeyChild = ({ icon, children }) => {
 
 const CurrentAssignmentText = ({ team }) => {
     const { getAssignmentById } = useContext(RxDBContext);
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
 
     const [assignmentName, setAssignmentName] = useState("");
     const [loaded, setLoaded] = useState(false);
 
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     // Return a string of people who are assigned to this team, separated by commas
     useEffect(() => {
@@ -754,12 +756,14 @@ const CurrentAssignmentText = ({ team }) => {
 
 const TaskQueueText = ({ team }) => {
     const { getAssignmentById, getAssignmentsByTeamId } = useContext(RxDBContext);
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
 
     const [assignmentName, setAssignmentName] = useState("");
     const [allAssignments, setAllAssignments] = useState([]);
     const [loaded, setLoaded] = useState(false);
 
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     // Return a string of people who are assigned to this team, separated by commas
     useEffect(() => {
@@ -890,10 +894,7 @@ const AssignedEquipmentText = ({ teamId }) => {
     </Text>
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
-
+const pageStyles = (colorTheme, width) => {
     return StyleSheet.create({
         background: {
             backgroundColor: colorTheme.background,
