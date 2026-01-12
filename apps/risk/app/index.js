@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Banner, BrandingBar, FilledButton, Header, IconButton, MaterialCard, RiskModal, ShareButton, ThemeContext, Tile } from 'calsar-ui';
+import { Banner, BannerGroup, BrandingBar, FilledButton, Header, IconButton, MaterialCard, RiskModal, ThemeContext, Tile } from 'calsar-ui';
 import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useState } from 'react';
-import { Image, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View, useWindowDimensions } from 'react-native';
+import { Image, Platform, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 const ORMAOptions = require('../assets/images/orma-options.jpg');
 
@@ -58,6 +58,10 @@ export default function App() {
         {
             title: "Severity, Probability, Exposure (SPE)",
             content: <HelpInfo subject="SPE" />
+        },
+        {
+            title: "PEAACE Model",
+            content: <HelpInfo subject="PEAACE" />
         }
     ]
 
@@ -88,7 +92,7 @@ export default function App() {
                     marginRight={20}
                     title="Operational Risk Management Analysis (ORMA)"
                     subtitle="Use before the team enters the field. Considers all factors of a team’s participation in an event.">
-                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center", marginTop: 15 }}>
+                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(0) }} />
                         <FilledButton rightAlign primary text="Complete an ORMA" onPress={() => { router.navigate("/ORMA") }} />
                     </View>
@@ -96,34 +100,46 @@ export default function App() {
                 <MaterialCard
                     marginLeft={20}
                     marginRight={20}
+                    title="PEAACE"
+                    subtitle="Quickly identify risks before and during a mission." >
+                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
+                        <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(2) }} />
+                        <FilledButton rightAlign primary text="Complete a PEAACE" onPress={() => { router.navigate("/PEACE") }} />
+                    </View>
+                </MaterialCard>
+                <MaterialCard
+                    marginLeft={20}
+                    marginRight={20}
                     title="Severity, Probability, Exposure (SPE)"
                     subtitle="Use to categorize a specific risk when the situation in the field changes." >
-                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, marginTop: 15 }}>
+                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(1) }} />
                         <FilledButton rightAlign primary text="Complete a SPE" onPress={() => { router.navigate("/SPE") }} />
                     </View>
                 </MaterialCard>
-                <Text style={styles.headings}>Miscellaneous</Text>
-                <View style={styles.miscSection}>
-                    <Tile
-                        href="settings"
-                        icon={<Ionicons name="settings" size={20} color={colorTheme.primary} />}
-                        title="App settings"
-                        subtitle="Appearance, language, list style"
-                    />
-                </View>
-                <View style={styles.miscSection}>
-                    <Tile
-                        href="https://www.cal-esar.org/"
-                        icon={<Ionicons name="open-outline" size={20} color={colorTheme.primary} />}
-                        title="About CALSAR"
-                    />
-                    <Tile
-                        href="https://sites.google.com/cal-esar.org/members-only"
-                        icon={<Ionicons name="open-outline" size={20} color={colorTheme.primary} />}
-                        title="Member portal"
-                        subtitle="Requires ca-sar.org login"
-                    />
+                <View style={{ gap: 16 }}>
+                    <Text style={styles.headings}>Miscellaneous</Text>
+                    <BannerGroup marginHorizontal={20}>
+                        <Tile
+                            href="settings"
+                            icon={<Ionicons name="settings" size={20} />}
+                            title="App settings"
+                            subtitle="Appearance, language, list style"
+                        />
+                    </BannerGroup>
+                    <BannerGroup marginHorizontal={20}>
+                        <Tile
+                            href="https://www.cal-esar.org/"
+                            icon={<Ionicons name="open-outline" size={20} />}
+                            title="About CALSAR"
+                        />
+                        <Tile
+                            href="https://sites.google.com/cal-esar.org/members-only"
+                            icon={<Ionicons name="open-outline" size={20} />}
+                            title="Member portal"
+                            subtitle="Requires ca-sar.org login"
+                        />
+                    </BannerGroup>
                 </View>
                 <RiskModal
                     isVisible={isModalVisible}
@@ -159,17 +175,11 @@ const appStyles = () => {
         mainScroll: {
             paddingTop: 20,
             paddingBottom: Platform.OS === "ios" ? 40 : 20,
-            gap: 20,
-        },
-        miscSection: {
-            gap: 4,
-            borderRadius: 26,
-            overflow: 'hidden',
-            marginHorizontal: 20,
+            gap: 10,
         },
         headings: {
-            fontSize: 20,
-            color: colorTheme.onBackground,
+            color: colorTheme.onPrimaryContainer,
+            fontWeight: 'bold',
             marginLeft: 20,
             marginRight: 20
         },
@@ -184,182 +194,269 @@ const appStyles = () => {
 function HelpInfo({ subject }) {
     const styles = riskStyles();
     const { colorTheme } = useContext(ThemeContext);
-    if (subject === "ORMA") return (
-        <ScrollView
-            contentContainerStyle={styles.container}>
-            <TouchableWithoutFeedback>
-                <View style={styles.content}>
-                    <Banner
-                        backgroundColor={colorTheme.secondaryContainer}
-                        color={colorTheme.onSecondaryContainer}
-                        icon={<Ionicons name="bulb" size={24} color={colorTheme.onSecondaryContainer} />}
-                        title="ORMA is also referred to as Green-Amber-Red (GAR)" />
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>When</Text>
-                        <Text style={styles.bodyText}>ORMA is used before the team enters the field. Complete it AFTER you have all your assignment information.</Text>
+    if (subject === "overview") return (
+        <View style={styles.content}>
+            <View style={styles.section}>
+                <Text style={styles.heading}>Risk Management Process</Text>
+                <Text style={styles.bodyText}>Risk management is a continuous process that involves identifying hazards, assessing them, and developing mitigations.</Text>
+
+                <Text style={[styles.bodyText, styles.boldText, { marginTop: 10 }]}>1. Identify Hazards (Situational Awareness)</Text>
+                <Text style={styles.bodyText}>• <Text style={styles.boldText}>Gather Information</Text>: Objectives, Communications, Who's in charge.</Text>
+                <Text style={styles.bodyText}>• <Text style={styles.boldText}>Identify Hazards</Text>: Up, Down, All Around (weather, terrain, etc.), and any "Watch Out" conditions.</Text>
+
+                <Text style={[styles.bodyText, styles.boldText, { marginTop: 10 }]}>2. Assess Hazards and Develop Mitigations</Text>
+                <Text style={styles.bodyText}>Use GAR or PEAACE to systematically evaluate the identified risks and plan controls.</Text>
+
+                <Text style={[styles.bodyText, styles.boldText, { marginTop: 10 }]}>3. Decide GO / NO GO</Text>
+                <View style={{ flexDirection: 'row', gap: 10, marginVertical: 8 }}>
+                    <View style={{ flex: 1, padding: 10, backgroundColor: colorTheme.surfaceContainerHighest, borderRadius: 12 }}>
+                        <Text style={[styles.boldText, { textAlign: 'center', color: colorTheme.onSurface }]}>GAR</Text>
+                        <Text style={{ fontSize: 12, textAlign: 'center', color: colorTheme.onSurface }}>Baseline many teams know, interoperable with NPS.</Text>
                     </View>
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>Who</Text>
-                        <Text style={styles.bodyText}>ORMA considers all factors of a team’s participation in an event. Every member of the team should complete it.</Text>
-                    </View>
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>How</Text>
-                        <Text style={styles.bodyText}>Use this app, the NPS Risk app, or the GAR worksheet on the IAP (if the search is organized by CALSAR) to complete the "individual" or "finger" methods.</Text>
-                        <Image source={ORMAOptions} style={[styles.image, { aspectRatio: 863 / 540 }]} />
-                        <Text style={styles.bodyText}>Individual method:</Text>
-                        <Text style={styles.bodyText}>All team members complete the ORMA individually, then come together to discuss concerns and mitigations. This works best if every member of the team has a ORMA app.</Text>
-                        <Text style={styles.bodyText}>Finger method:</Text>
-                        <Text style={styles.bodyText}>1. Team leader reads each section out loud, including the description from the worksheet or app.</Text>
-                        <Text style={styles.bodyText}>2. Each member decides on their score in their head</Text>
-                        <Text style={styles.bodyText}>3. Team leader asks everyone to throw up their scores on their fingers</Text>
-                        <Text style={styles.bodyText}>4. The score for the worksheet is the highest score from any member. </Text>
-                        <Text style={styles.bodyText}>5. Members with the higher scores should say a few words as to why they’re concerned. Save discussions of mitigations for the end. </Text>
-                        <Text style={styles.bodyText}>6. Once all categories are complete, discuss mitigations. Saving the mitigation discussion for the end helps, as sometimes one mitigation can address multiple concerns </Text>
-                    </View>
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>Element Scoring</Text>
-                        <Text style={styles.bodyText}>Each element gets scored 1-10. 1-10 seems like a lot of resolution, so how do we actually use this? Again think GAR:</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
-                            <Banner
-                                backgroundColor='#b9f0b8'
-                                color='#002107'
-                                icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
-                                title={<><Text style={styles.boldText}>Green</Text>: 1-4. No to little concern.</>}
-                                noRadius />
-                            <Banner
-                                backgroundColor='#ffdeae'
-                                color='#281900'
-                                icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
-                                title={<><Text style={styles.boldText}>Amber</Text>: 5-7. Concerned enough we should work to mitigate risks.</>}
-                                noRadius />
-                            <Banner
-                                backgroundColor='#ffdad6'
-                                color='#410002'
-                                icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
-                                title={<><Text style={styles.boldText}>Red</Text>: 8-10. Serious concern. Major restructure or mission turn down should be considered.</>}
-                                noRadius />
-                        </View>
-                        <Text style={styles.bodyText}>Any elements in the amber range should trigger a talk about managing the risk.</Text>
-                        <Text style={styles.bodyText}>The total score should be calculated, but isn’t as important as individual elements scores.</Text>
-                        <Text style={styles.bodyText}>A large number of elements in the yellow, or a few in red are reasons to turn down an assignment unless those risks can be mitigated.</Text>
-                    </View>
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>Cool so we’re done?</Text>
-                        <Text style={styles.bodyText}>Nope! Managing risk is a task that requires constant vigilance.</Text>
-                        <Text style={styles.bodyText}>Have conditions changed in the field? Has our team dynamic changed? Is the command post still engaged? Are we using the mitigations we planned, and are they working?</Text>
+                    <View style={{ flex: 1, padding: 10, backgroundColor: colorTheme.surfaceContainerHighest, borderRadius: 12 }}>
+                        <Text style={[styles.boldText, { textAlign: 'center', color: colorTheme.onSurface }]}>PEAACE</Text>
+                        <Text style={{ fontSize: 12, textAlign: 'center', color: colorTheme.onSurface }}>GAR 2.0. Interoperable with USCG and simpler to use.</Text>
                     </View>
                 </View>
-            </TouchableWithoutFeedback>
-        </ScrollView>
+
+                <Text style={[styles.bodyText, styles.boldText, { marginTop: 10 }]}>4. Supervise and Evaluate</Text>
+                <Text style={styles.bodyText}>Are controls adequately mitigating hazards? If <Text style={styles.boldText}>NO</Text>, reassess and consider:</Text>
+                <Text style={styles.bodyText}>• <Text style={styles.boldText}>Human Factors</Text>: Experience level, Fatigue/Stress, Unsafe attitude.</Text>
+                <Text style={styles.bodyText}>• <Text style={styles.boldText}>Situation</Text>: What is changing? Are strategies/tactics working?</Text>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.heading}>GAR vs PEAACE</Text>
+                <Text style={styles.bodyText}>Both were developed by the USCG to assess and mitigate risk. PEAACE is GAR 2.0 and offers several advantages and simplifications. Many teams still use GAR for interoperability reasons.</Text>
+                <Text style={[styles.bodyText, { marginTop: 6 }]}>To complete: Discuss with either your whole team, or a representative subset. GAR/PEAACE works because it gives a voice to all members. It should be completed once all available information is known, but <Text style={styles.boldText}>before going into the field!</Text></Text>
+            </View>
+        </View>
+    );
+    if (subject === "ORMA") return (
+        <View style={styles.content}>
+            <Banner
+                backgroundColor={colorTheme.secondaryContainer}
+                color={colorTheme.onSecondaryContainer}
+                icon={<Ionicons name="bulb" size={24} color={colorTheme.onSecondaryContainer} />}
+                title="ORMA is also referred to as Green-Amber-Red (GAR)" />
+
+            <View style={styles.section}>
+                <Text style={styles.heading}>When</Text>
+                <Text style={styles.bodyText}>ORMA is used before the team enters the field. Complete it AFTER you have all your assignment information.</Text>
+            </View>
+            <View style={styles.section}>
+                <Text style={styles.heading}>Who</Text>
+                <Text style={styles.bodyText}>ORMA considers all factors of a team’s participation in an event. Every member of the team should complete it.</Text>
+            </View>
+            <View style={styles.section}>
+                <Text style={styles.heading}>How</Text>
+                <Text style={styles.bodyText}>Use this app, the NPS Risk app, or the GAR worksheet on the IAP (if the search is organized by CALSAR) to complete the "individual" or "finger" methods.</Text>
+                <Image source={ORMAOptions} style={[styles.image, { aspectRatio: 863 / 540 }]} />
+                <Text style={styles.bodyText}>Individual method:</Text>
+                <Text style={styles.bodyText}>All team members complete the assessment individually, then come together to discuss concerns and mitigations. This works best if every member of the team has this app.</Text>
+                <Text style={[styles.bodyText, { marginTop: 8 }]}>Finger method:</Text>
+                <Text style={styles.bodyText}>1. Team leader reads each section out loud, including the description.</Text>
+                <Text style={styles.bodyText}>2. Each member decides on their score in their head.</Text>
+                <Text style={styles.bodyText}>3. Team leader asks everyone to throw up their scores on their fingers.</Text>
+                <Text style={styles.bodyText}>4. The score for the worksheet is the <Text style={styles.boldText}>highest score</Text> from any member.</Text>
+                <Text style={styles.bodyText}>5. Members with the higher scores should say a few words as to why they're concerned. Save discussions of mitigations for the end.</Text>
+                <Text style={styles.bodyText}>6. Once complete, discuss mitigations. One mitigation can often address multiple concerns.</Text>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.heading}>Element Scoring</Text>
+                <Text style={styles.bodyText}>Each element gets scored 1-10. 1-10 seems like a lot of resolution, so how do we actually use this? Again think GAR:</Text>
+                <BannerGroup marginHorizontal={0}>
+                    <Banner
+                        backgroundColor='#b9f0b8'
+                        color='#002107'
+                        icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
+                        title={<><Text style={styles.boldText}>1-2</Text>: No to little concern.</>}
+                    />
+                    <Banner
+                        backgroundColor='#e6f4ea'
+                        color='#002107'
+                        icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
+                        title={<><Text style={styles.boldText}>3-4</Text>: Mild concern. Not concerning enough to require mitigation but worth drawing attention to.</>}
+                    />
+                    <Banner
+                        backgroundColor='#ffdeae'
+                        color='#281900'
+                        icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
+                        title={<><Text style={styles.boldText}>5-7</Text>: Concerning enough we should work to mitigate risks.</>}
+                    />
+                    <Banner
+                        backgroundColor='#ffdad6'
+                        color='#410002'
+                        icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
+                        title={<><Text style={styles.boldText}>8-10</Text>: Serious concern. Major restructure or mission turn down should be considered.</>}
+                    />
+                </BannerGroup>
+                <Text style={[styles.bodyText, { marginTop: 6 }]}>At the end of the GAR, you should have a consensus on: General risk level, Mitigations and controls, Risk vs Gain, and Go / No Go.</Text>
+            </View>
+        </View>
     );
     if (subject === "SPE") return (
-        <ScrollView
-            contentContainerStyle={styles.container}>
-            <TouchableWithoutFeedback>
-                <View style={styles.content}>
+        <View style={styles.content}>
+            <Banner
+                backgroundColor={colorTheme.tertiaryContainer}
+                color={colorTheme.onTertiaryContainer}
+                icon={<Ionicons name="warning" size={24} color={colorTheme.onTertiaryContainer} />}
+                title="SPE is not appropriate for assessing a whole operation and is not a tool for risk mitigation." />
+            <View style={styles.section}>
+                <Text style={styles.heading}>What is SPE?</Text>
+                <Text style={styles.bodyText}>SPE is a method to help leaders make decisions made about risky situation in the field. It's useful for assessing specific risks. For example: is it safe to rappel this cliff?</Text>
+                <BannerGroup marginHorizontal={0}>
                     <Banner
-                        backgroundColor={colorTheme.tertiaryContainer}
-                        color={colorTheme.onTertiaryContainer}
-                        icon={<Ionicons name="warning" size={24} color={colorTheme.onTertiaryContainer} />}
-                        title="SPE is not appropriate for assessing a whole operation and is not a tool for risk mitigation." />
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>What is SPE?</Text>
-                        <Text style={styles.bodyText}>SPE is a method to help leaders make decisions made about risky situation in the field. It's useful for assessing specific risks. For example: is it safe to rappel this cliff?</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
-                            <Banner
-                                title="Severity - What is the potential loss or consequence?"
-                                noRadius />
-                            <Banner
-                                title="Probability - What is the likelihood of loss or consequence?"
-                                noRadius />
-                            <Banner
-                                title="Exposure - What is the amount of time, cycles, people or equipment involved?"
-                                noRadius />
-                        </View>
-                        <Text style={styles.bodyText}>Probability is easily understood, but exposure is less obvious.</Text>
-                    </View>
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>When</Text>
-                        <Text style={styles.bodyText}>SPE is a tool that can be used at any time. Any member can request the team complete a SPE. It’s never required, but should be considered whenever the situation gets notably more complex or risky.</Text>
-                    </View>
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>How</Text>
-                        <Text style={styles.bodyText}>The team leader should use the "finger" method. Input from less experienced members should be prioritized.</Text>
-                        <Text style={styles.bodyText}>Finger method:</Text>
-                        <Text style={styles.bodyText}>1. Team leader reads each section out loud, including the description from the worksheet or app.</Text>
-                        <Text style={styles.bodyText}>2. Each member decides on their score in their head</Text>
-                        <Text style={styles.bodyText}>3. Team leader asks everyone to throw up their scores on their fingers</Text>
-                        <Text style={styles.bodyText}>4. The score for the worksheet is the highest score from any member. </Text>
-                        <Text style={styles.bodyText}>5. Members with the higher scores should say a few words as to why they’re concerned. Save discussions of mitigations for the end. </Text>
-                        <Text style={styles.bodyText}>6. Once all categories are complete, discuss mitigations. Saving the mitigation discussion for the end helps, as sometimes one mitigation can address multiple concerns </Text>
-                    </View>
-                    <View style={styles.section}>
-                        <Text style={styles.heading}>Element Scoring</Text>
-                        <Text style={styles.bodyText}>Severity is scored on a scale of 1 (none or slight) to 5 (catastrophic):</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
-                            <Banner
-                                backgroundColor='#b9f0b8'
-                                color='#002107'
-                                icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
-                                title={<><Text style={styles.boldText}>None or Slight</Text>: Discomfort or nuisance.</>}
-                                noRadius />
-                            <Banner
-                                backgroundColor='#ffdeae'
-                                color='#281900'
-                                icon={<Ionicons name="heart-circle" size={24} color="#281900" />}
-                                title={<><Text style={styles.boldText}>Minimal</Text>: First aid required.</>}
-                                noRadius />
-                            <Banner
-                                backgroundColor='#ffdeae'
-                                color='#281900'
-                                icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
-                                title={<><Text style={styles.boldText}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>}
-                                noRadius />
-                            <Banner
-                                backgroundColor='#ffdad6'
-                                color='#410002'
-                                icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
-                                title={<><Text style={styles.boldText}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>}
-                                noRadius />
-                            <Banner
-                                backgroundColor='#ffb4ab'
-                                color='#690005'
-                                icon={<Ionicons name="close-circle" size={24} color="#690005" />}
-                                title={<><Text style={styles.boldText}>Catastrophic</Text>: Death or permanent disability.</>}
-                                noRadius />
-                        </View>
-                        <Text style={styles.bodyText}>Probability is scored on a scale of 1-5.</Text>
-                        <Text style={styles.bodyText}>Exposure is scored on a scale of 1-4 with the following definitions as adopted by CALSAR:</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginVertical: 4 }}>
-                            <Banner
-                                backgroundColor='#b9f0b8'
-                                color='#002107'
-                                icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
-                                title={<><Text style={styles.boldText}>None or below average</Text>: One member of the team exposed for a short time.</>}
-                                noRadius />
-                            <Banner
-                                backgroundColor='#ffdeae'
-                                color='#281900'
-                                icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
-                                title={<><Text style={styles.boldText}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>}
-                                noRadius />
-                            <Banner
-                                backgroundColor='#ffdad6'
-                                color='#410002'
-                                icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
-                                title={<><Text style={styles.boldText}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>}
-                                noRadius />
-                            <Banner
-                                backgroundColor='#ffb4ab'
-                                color='#690005'
-                                icon={<Ionicons name="close-circle" size={24} color="#690005" />}
-                                title={<><Text style={styles.boldText}>Great</Text>: Long or repeated exposure to multiple team members.</>}
-                                noRadius />
-                        </View>
-                    </View>
-                </View>
-            </TouchableWithoutFeedback>
-        </ScrollView>
+                        title="Severity - What is the potential loss or consequence?"
+                    />
+                    <Banner
+                        title="Probability - What is the likelihood of loss or consequence?"
+                    />
+                    <Banner
+                        title="Exposure - What is the amount of time, cycles, people or equipment involved?"
+                    />
+                </BannerGroup>
+                <Text style={styles.bodyText}>Probability is easily understood, but exposure is less obvious.</Text>
+            </View>
+            <View style={styles.section}>
+                <Text style={styles.heading}>When</Text>
+                <Text style={styles.bodyText}>SPE is a tool that can be used at any time. Any member can request the team complete a SPE. It’s never required, but should be considered whenever the situation gets notably more complex or risky.</Text>
+            </View>
+            <View style={styles.section}>
+                <Text style={styles.heading}>How</Text>
+                <Text style={styles.bodyText}>The team leader should use the "finger" method. Input from less experienced members should be prioritized.</Text>
+                <Text style={styles.bodyText}>Finger method:</Text>
+                <Text style={styles.bodyText}>1. Team leader reads each section out loud, including the description from the worksheet or app.</Text>
+                <Text style={styles.bodyText}>2. Each member decides on their score in their head</Text>
+                <Text style={styles.bodyText}>3. Team leader asks everyone to throw up their scores on their fingers</Text>
+                <Text style={styles.bodyText}>4. The score for the worksheet is the highest score from any member. </Text>
+                <Text style={styles.bodyText}>5. Members with the higher scores should say a few words as to why they’re concerned. Save discussions of mitigations for the end. </Text>
+                <Text style={styles.bodyText}>6. Once all categories are complete, discuss mitigations. Saving the mitigation discussion for the end helps, as sometimes one mitigation can address multiple concerns </Text>
+            </View>
+            <View style={styles.section}>
+                <Text style={styles.heading}>Element Scoring</Text>
+                <Text style={styles.bodyText}>Severity is scored on a scale of 1 (none or slight) to 5 (catastrophic):</Text>
+                <BannerGroup marginHorizontal={0}>
+                    <Banner
+                        backgroundColor='#b9f0b8'
+                        color='#002107'
+                        icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
+                        title={<><Text style={styles.boldText}>None or Slight</Text>: Discomfort or nuisance.</>}
+                    />
+                    <Banner
+                        backgroundColor='#ffdeae'
+                        color='#281900'
+                        icon={<Ionicons name="heart-circle" size={24} color="#281900" />}
+                        title={<><Text style={styles.boldText}>Minimal</Text>: First aid required.</>}
+                    />
+                    <Banner
+                        backgroundColor='#ffdeae'
+                        color='#281900'
+                        icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
+                        title={<><Text style={styles.boldText}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>}
+                    />
+                    <Banner
+                        backgroundColor='#ffdad6'
+                        color='#410002'
+                        icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
+                        title={<><Text style={styles.boldText}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>}
+                    />
+                    <Banner
+                        backgroundColor='#ffb4ab'
+                        color='#690005'
+                        icon={<Ionicons name="close-circle" size={24} color="#690005" />}
+                        title={<><Text style={styles.boldText}>Catastrophic</Text>: Death or permanent disability.</>}
+                    />
+                </BannerGroup>
+                <Text style={styles.bodyText}>Probability is scored on a scale of 1-5.</Text>
+                <Text style={styles.bodyText}>Exposure is scored on a scale of 1-4 with the following definitions as adopted by CALSAR:</Text>
+                <BannerGroup marginHorizontal={0}>
+                    <Banner
+                        backgroundColor='#b9f0b8'
+                        color='#002107'
+                        icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
+                        title={<><Text style={styles.boldText}>None or below average</Text>: One member of the team exposed for a short time.</>}
+                    />
+                    <Banner
+                        backgroundColor='#ffdeae'
+                        color='#281900'
+                        icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
+                        title={<><Text style={styles.boldText}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>}
+                    />
+                    <Banner
+                        backgroundColor='#ffdad6'
+                        color='#410002'
+                        icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
+                        title={<><Text style={styles.boldText}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>}
+                    />
+                    <Banner
+                        backgroundColor='#ffb4ab'
+                        color='#690005'
+                        icon={<Ionicons name="close-circle" size={24} color="#690005" />}
+                        title={<><Text style={styles.boldText}>Great</Text>: Long or repeated exposure to multiple team members.</>}
+                    />
+                </BannerGroup>
+            </View>
+        </View>
+
+    );
+    if (subject === "PEAACE") return (
+        <View style={styles.content}>
+            <Banner
+                backgroundColor={colorTheme.tertiaryContainer}
+                color={colorTheme.onTertiaryContainer}
+                icon={<Ionicons name="shield-checkmark" size={24} color={colorTheme.onTertiaryContainer} />}
+                title="PEAACE is a tool to identify and mitigate risks." />
+            <View style={styles.section}>
+                <Text style={styles.heading}>What is PEAACE?</Text>
+                <Text style={styles.bodyText}>PEAACE is GAR 2.0. It offers several advantages and simplifications over the legacy model while remaining interoperable with USCG standards.</Text>
+                <BannerGroup marginHorizontal={0}>
+                    <Banner
+                        title="Planning - sufficient info? clear mission? time to plan?"
+                    />
+                    <Banner
+                        title="Event Complexity - difficulty? endurance? timelines?"
+                    />
+                    <Banner
+                        title="Assets - Crew - fitness? selection? training? supervision?"
+                    />
+                    <Banner
+                        title="Assets - Resources - appropriate boats? trucks? gear?"
+                    />
+                    <Banner
+                        title="Communications - coverage? equipment? terminology?"
+                    />
+                    <Banner
+                        title="Environment - weather? night/day? terrain?"
+                    />
+                </BannerGroup>
+            </View>
+            <View style={styles.section}>
+                <Text style={styles.heading}>Instructions</Text>
+                <Text style={styles.bodyText}>Determine the level of risk for each element based on the Low/Med/High scale. If rated Medium or High, explore controls or mitigations.</Text>
+                <Text style={[styles.bodyText, { marginTop: 6 }]}>For Medium and High, the team should discuss mitigations and the risk vs gain. Only go ahead with High risk factor missions for higher gain missions, and with leadership endorsement.</Text>
+            </View>
+            <View style={styles.section}>
+                <Text style={styles.heading}>Consensus</Text>
+                <Text style={styles.bodyText}>At the end of the PEAACE assessment you should have a consensus on:</Text>
+                <Text style={styles.bodyText}>• General risk level of the mission</Text>
+                <Text style={styles.bodyText}>• Mitigations and controls</Text>
+                <Text style={styles.bodyText}>• Risk vs Gain</Text>
+                <Text style={styles.bodyText}>• Go / No Go</Text>
+            </View>
+            <View style={styles.section}>
+                <Text style={styles.heading}>Mitigation (STAAR)</Text>
+                <Text style={styles.bodyText}>If the risk is too high, consider the STAAR model to mitigate risks:</Text>
+                <BannerGroup marginHorizontal={0}>
+                    <Banner title="Spread Out - can we increase time or distance?" />
+                    <Banner title="Transfer - update equipment, other assets, or different crews?" />
+                    <Banner title="Avoid - wait for day? wait for weather?" />
+                    <Banner title="Accept - is the gain worth the risk?" />
+                    <Banner title="Reduce - more PPE? more training?" />
+                </BannerGroup>
+            </View>
+        </View>
     );
     return (<></>);
 }
@@ -372,14 +469,15 @@ const riskStyles = () => {
 
         },
         content: {
-            padding: 20,
-            paddingTop: 0,
+            paddingBottom: 8, // Give the button shadow some "room" inside the animated view
+            paddingHorizontal: 4, // Prevents side-shadow clipping
             gap: 12
         },
         heading: {
-            fontSize: 22,
+            fontSize: 20,
             lineHeight: 28,
-            color: colorTheme.onBackground
+            color: colorTheme.onBackground,
+            fontFamily: 'Outfit_600SemiBold'
         },
         bodyText: {
             color: colorTheme.onBackground

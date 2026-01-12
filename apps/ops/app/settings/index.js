@@ -122,22 +122,3 @@ const pageStyles = () => {
         }
     });
 }
-
-const riskInputStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-
-    return StyleSheet.create({
-        container: {
-            padding: 20,
-            paddingTop: 0
-        },
-        subtitle: {
-            color: colorTheme.onSurface,
-            fontSize: 16
-        },
-        description: {
-            flex: -1,
-            flexShrink: 1
-        },
-    });
-}

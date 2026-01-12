@@ -1,8 +1,8 @@
-import { ThemeContext } from "./ThemeContext";
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, useFonts } from '@expo-google-fonts/outfit';
 import { useContext } from "react";
 import { StyleSheet, useWindowDimensions } from 'react-native';
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
-import { Outfit_400Regular, Outfit_600SemiBold, Outfit_500Medium, useFonts } from '@expo-google-fonts/outfit';
+import { ThemeContext } from "./ThemeContext";
 
 
 export const textStyles = () => {
@@ -29,7 +29,6 @@ export const textStyles = () => {
         headerText: {
             fontSize: 18,
             color: colorTheme.onPrimaryContainer,
-            flex: -1,
             fontFamily: 'Inter_500Medium'
         },
         chipText: {
@@ -48,6 +47,8 @@ export const textStyles = () => {
             fontFamily: 'Inter_400Regular'
         },
         buttonText: {
+            fontSize: 14,
+            lineHeight: 20,
             color: colorTheme.secondary,
             fontFamily: 'Inter_500Medium'
         },
