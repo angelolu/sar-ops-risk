@@ -36,7 +36,7 @@ const PeoplePanel = ({ fileId, notifyFileUpdated, teams }) => {
 
     const { width, height } = useWindowDimensions();
 
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     const [people, setPeople] = useState([]);
@@ -185,7 +185,7 @@ const EquipmentPanel = ({ fileId, notifyFileUpdated, teams }) => {
     const [deletePerson, setDeletePerson] = useState(null);
     const [assignTeamPerson, setAssignTeamPerson] = useState(null);
     const [selectedEquipment, setSelectedEquipment] = useState(null);
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     useEffect(() => {
@@ -304,7 +304,7 @@ export const TeamsPanel = ({ fileId, notifyFileUpdated, activeTeams, editTeam, i
     const { width, height } = useWindowDimensions();
     const { createTeam, removeTeam } = useContext(RxDBContext);
     const [deleteTeam, setDeleteTeam] = useState(null);
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     const handleRemoveTeam = () => {
@@ -487,7 +487,7 @@ const AddPersonModal = ({ fileId, notifyFileUpdated, person, isVisible, onClose,
 
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
     const [formData, setFormData] = useState(initialFormState);
     const [errorMessage, setErrorMessage] = useState("");
@@ -642,7 +642,7 @@ const AddEquipmentModal = ({ fileId, notifyFileUpdated, equipment, isVisible, on
 
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    // const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
     const [formData, setFormData] = useState(initialFormState);
     const [errorMessage, setErrorMessage] = useState("");
@@ -747,7 +747,7 @@ const AddEquipmentModal = ({ fileId, notifyFileUpdated, equipment, isVisible, on
 const AssignTeamPersonModal = ({ fileId, notifyFileUpdated, person, onClose, teams }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    // const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     const handleClose = () => {
@@ -775,20 +775,9 @@ const AssignTeamPersonModal = ({ fileId, notifyFileUpdated, person, onClose, tea
 }
 
 
-const pageStyles = (colorTheme, width) => {
+const getStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
-        standaloneCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-            justifyContent: 'space-between',
-            backgroundColor: colorTheme.surfaceContainer
-        },
         card: {
             borderRadius: 4,
             overflow: 'hidden',
@@ -804,7 +793,6 @@ const pageStyles = (colorTheme, width) => {
         cardContainer: {
             gap: 4,
             borderRadius: 12,
-            //borderRadius: 26,
             overflow: 'hidden'
         },
         picker: {
@@ -816,17 +804,6 @@ const pageStyles = (colorTheme, width) => {
             backgroundColor: colorTheme.surfaceContainer,
             width: "100%",
             paddingHorizontal: 8
-        },
-        wideCard: {
-            paddingHorizontal: 8,
-            paddingVertical: 8,
-            borderRadius: 6,
-            backgroundColor: colorTheme.surfaceContainer,
-            flexDirection: "column",
-        },
-        tileCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
-        },
+        }
     });
 }

@@ -8,7 +8,7 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams, mapShowing }) =>
     const { width } = useWindowDimensions();
     const { colorTheme } = useContext(ThemeContext);
 
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     const [enabledTeams, setEnabledTeams] = useState([]);
@@ -44,7 +44,7 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams, mapShowing }) =>
 
     return (
         <ScrollView
-            contentContainerStyle={[styles.mainScroll, { width: width > 600 ? width - 90 - 10 : width - 10 }]}>
+            contentContainerStyle={styles.mainScroll}>
             {activeTeams.length === 0 ?
                 <View style={{ flexDirection: "column", maxWidth: 1200, gap: 20, alignSelf: "center" }}>
                     <View style={{ flexDirection: "column", gap: 6, paddingHorizontal: 12 }}>
@@ -81,12 +81,12 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams, mapShowing }) =>
                 </View>
                 :
                 <>
-                    <View style={[styles.timerSection, { flexWrap: "wrap", flexDirection: (width > 600) ? "row" : "column", gap: 4 }]}>
+                    <View style={styles.timerSection}>
                         {enabledTeams}
                     </View>
                     {disabledTeams.length > 0 ? <>
                         <Text style={[textStyle.sectionTitleText]}>Inactive teams</Text>
-                        <View style={[styles.timerSection, { flexWrap: "wrap", flexDirection: (width > 600) ? "row" : "column", gap: 4 }]}>
+                        <View style={styles.timerSection}>
                             {disabledTeams}
                         </View>
                     </> : <></>
@@ -97,7 +97,7 @@ export const OverviewTab = ({ incidentInfo, teams, activeTeams, mapShowing }) =>
     );
 }
 
-const pageStyles = (colorTheme, width) => {
+const getStyles = (colorTheme, width) => {
     return StyleSheet.create({
         mainScroll: {
             paddingTop: 20,
@@ -105,11 +105,14 @@ const pageStyles = (colorTheme, width) => {
             paddingRight: 10,
             paddingLeft: 20,
             gap: 12,
+            width: width > 600 ? width - 90 - 10 : width - 10
         },
         timerSection: {
             gap: 4,
             borderRadius: 26,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            flexWrap: "wrap",
+            flexDirection: (width > 600) ? "row" : "column"
         },
     });
 }

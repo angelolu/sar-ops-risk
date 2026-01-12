@@ -65,7 +65,7 @@ export function RailButton({ icon, title, active, onClick, notification }) {
 
 export const AnimatedBG = ({ children, image = false, colorOnly = false, error = false, warn = false }) => {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
 
     const [errorSate, setErrorState] = useState(false);
     const [warnState, setWarnState] = useState(false);
@@ -149,7 +149,7 @@ const TAB_TO_TEAM_MAP = {
 
 export default function RailContainer({ file, tabs, activeTab, setActiveTab, readOnly = false, markers, removeMarker, teams }) {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
     const ref = useRef(null);
     const { getCommsQueueMessagesByFileId } = useContext(RxDBContext);
 
@@ -333,17 +333,9 @@ export default function RailContainer({ file, tabs, activeTab, setActiveTab, rea
     );
 }
 
-const pageStyles = (colorTheme) => {
+const getStyles = (colorTheme) => {
 
     return StyleSheet.create({
-        mainScroll: {
-            paddingTop: 20,
-            paddingBottom: 20,
-            paddingRight: 10,
-            paddingLeft: 20,
-            gap: 20,
-            alignSelf: 'center',
-        },
         image: {
             flex: 1,
             height: '100%',
@@ -362,14 +354,6 @@ const pageStyles = (colorTheme) => {
         container: {
             flex: 1,
             height: '100%',
-        },
-        text: {
-            color: colorTheme.onPrimaryContainer
-        },
-        timerSection: {
-            gap: 4,
-            borderRadius: 26,
-            overflow: 'hidden',
         },
     });
 }

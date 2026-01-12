@@ -7,7 +7,7 @@ import { PrinterContext } from './PrinterContext';
 export const OptionsTab = ({ setReadOnly, incidentInfo }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const { isPrinterSupported,
         connectPrinter,
         disconnectPrinter,
@@ -65,15 +65,15 @@ export const OptionsTab = ({ setReadOnly, incidentInfo }) => {
     return (
         <>
             {isPrinterSupported &&
-                <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 2, justifyContent: "flex-start", gap: 8 }]}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <View style={styles.printerCard}>
+                    <View style={styles.printerStatusRow}>
                         <KeyValue title="Printer status">
                             <Text style={styles.sectionBodyTextSmall}>{isPrinterConnected ? "Connected" : "Not connected"}</Text>
                         </KeyValue>
                         <FilledButton small={width <= 600} icon={isPrinterConnected ? "close" : "print-outline"} text={isPrinterConnected ? "Disconnect" : "Connect"} onPress={handleConnectPrinter} />
                     </View>
                     {isPrinterConnected && <KeyValue title="Actions">
-                        <View style={{ flexDirection: "row", gap: 12, marginTop: 8, justifyContent: "center" }}>
+                        <View style={styles.actionsRow}>
                             <FilledButton small icon="print" text={"Header"} onPress={handlePrintHeader} />
                             <FilledButton small icon="print" text={"Footer and cut"} onPress={handlePrintFooter} />
                             <FilledButton small icon="caret-up" text={"Feed"} onPress={handleFeed} />
@@ -97,7 +97,7 @@ export const OptionsTab = ({ setReadOnly, incidentInfo }) => {
 const KeyValue = ({ title, children }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
 
     return (<View style={{ flexDirection: "column", gap: 2 }}>
         <Text style={styles.text}>{title}</Text>
@@ -106,7 +106,7 @@ const KeyValue = ({ title, children }) => {
     );
 }
 
-const pageStyles = (colorTheme, width) => {
+const getStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
         standaloneCard: {
@@ -120,16 +120,35 @@ const pageStyles = (colorTheme, width) => {
             justifyContent: 'space-between',
             backgroundColor: colorTheme.surfaceContainer
         },
+        printerCard: {
+            borderRadius: 26,
+            overflow: 'hidden',
+            paddingHorizontal: 18,
+            paddingVertical: 16,
+            flexDirection: "column",
+            flexGrow: 2,
+            justifyContent: "flex-start",
+            gap: 8,
+            backgroundColor: colorTheme.surfaceContainer
+        },
+        printerStatusRow: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 8
+        },
+        actionsRow: {
+            flexDirection: "row",
+            gap: 12,
+            marginTop: 8,
+            justifyContent: "center"
+        },
         tileCard: {
             borderRadius: 26,
             overflow: 'hidden',
         },
         text: {
             fontSize: width > 600 ? 14 : 12,
-            color: colorTheme.onSurface
-        },
-        sectionBodyText: {
-            fontSize: width > 600 ? 28 : 20,
             color: colorTheme.onSurface
         },
         sectionBodyTextSmall: {

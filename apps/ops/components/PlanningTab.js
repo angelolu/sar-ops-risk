@@ -32,7 +32,7 @@ export const PlanningPanel = ({ fileId, notifyFileUpdated, activeTeams, markers,
 
 const ListItem = ({ teams, item, notifyFileUpdated, setAssignTeamAssignment, setDeleteAssignment, markers, removeMarker, addMarker, incidents }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
     const textStyle = textStyles(colorTheme, width);
 
     // Compute the text for the chip based on the teams assigned to the assignment
@@ -119,7 +119,7 @@ const AssignmentPanel = ({ fileId, notifyFileUpdated, teams, incidents = false, 
 
     const { width, height } = useWindowDimensions();
 
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
     const textStyle = textStyles(colorTheme, width);
 
     const [assignments, setAssignments] = useState([]);
@@ -381,7 +381,7 @@ const AssignTeamAssignmentModal = ({ fileId, notifyFileUpdated, assignment, onCl
 
 const TemplateModal = ({ fileId, notifyFileUpdated, people, isVisible, onClose }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
     const textStyle = textStyles(colorTheme, width);
     const { width } = useWindowDimensions();
     const [name, setName] = useState("");
@@ -412,19 +412,8 @@ const TemplateModal = ({ fileId, notifyFileUpdated, people, isVisible, onClose }
     </RiskModal >);
 }
 
-const pageStyles = (colorTheme) => {
+const getStyles = (colorTheme) => {
     return StyleSheet.create({
-        standaloneCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-            justifyContent: 'space-between',
-            backgroundColor: colorTheme.surfaceContainer
-        },
         card: {
             borderRadius: 4,
             overflow: 'hidden',
@@ -440,29 +429,7 @@ const pageStyles = (colorTheme) => {
         cardContainer: {
             gap: 4,
             borderRadius: 12,
-            //borderRadius: 26,
             overflow: 'hidden'
-        },
-        picker: {
-            height: 34,
-            outlineStyle: "solid",
-            outlineWidth: 2,
-            outlineColor: colorTheme.outline,
-            color: colorTheme.onSurface,
-            backgroundColor: colorTheme.surfaceContainer,
-            width: "100%",
-            paddingHorizontal: 8
-        },
-        wideCard: {
-            paddingHorizontal: 8,
-            paddingVertical: 8,
-            borderRadius: 6,
-            backgroundColor: colorTheme.surfaceContainer,
-            flexDirection: "column",
-        },
-        tileCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
         },
     });
 }

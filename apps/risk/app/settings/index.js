@@ -25,7 +25,7 @@ const getData = async (key) => {
 
 export default function Settings() {
     const { colorTheme, changeColorScheme, colorScheme } = useContext(ThemeContext);
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
     setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
 
     const disabledColor = colorTheme.onSurfaceVariant;
@@ -204,7 +204,7 @@ export default function Settings() {
     );
 }
 
-const pageStyles = (colorTheme) => {
+const getStyles = (colorTheme) => {
 
     return StyleSheet.create({
         background: {

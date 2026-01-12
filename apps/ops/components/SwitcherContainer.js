@@ -30,7 +30,7 @@ export function TabButton({ title, active, onClick }) {
 }
 
 export default function SwitcherContainer({ tabs, activeTab, setActiveTab }) {
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
     const { colorTheme } = useContext(ThemeContext);
     const activeTabContent = tabs.find(tab => tab.name === activeTab)?.content;
 
@@ -49,39 +49,15 @@ export default function SwitcherContainer({ tabs, activeTab, setActiveTab }) {
     );
 }
 
-const pageStyles = (colorTheme) => {
+const getStyles = (colorTheme) => {
 
     return StyleSheet.create({
-        background: {
-            backgroundColor: colorTheme.background,
-            height: '100%'
-        },
         mainScroll: {
             paddingTop: 2,
             paddingBottom: 16,
             paddingRight: 18,
             paddingLeft: 20,
             gap: 20,
-        },
-        container: {
-            flex: 1,
-            backgroundColor: colorTheme.background,
-            height: '100%',
-            alignSelf: 'center',
-            paddingHorizontal: 20,
-        },
-        text: {
-            color: colorTheme.onBackground
-        },
-        sectionTitle: {
-            color: colorTheme.onBackground,
-            fontSize: 20,
-            //fontWeight: '500',
-        },
-        timerSection: {
-            gap: 4,
-            borderRadius: 26,
-            overflow: 'hidden',
         },
     });
 }

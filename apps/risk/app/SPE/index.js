@@ -10,7 +10,7 @@ import { useRiskAssessment } from '../../hooks/useRiskAssessment';
 
 export default function SPE() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
 
     // Use the risk assessment hook
     const { calculate, getResult, getItemResult } = useRiskAssessment(SPE_CONFIG);
@@ -122,7 +122,7 @@ export default function SPE() {
     );
 }
 
-const pageStyles = (colorTheme) => {
+const getStyles = (colorTheme) => {
 
     return StyleSheet.create({
         container: {
@@ -145,7 +145,7 @@ const pageStyles = (colorTheme) => {
 
 function RiskInput({ selected, entries, onChangeValue, isAdvancing }) {
     const { colorTheme } = useContext(ThemeContext);
-    const riskStyles = riskInputStyles(colorTheme);
+    const riskStyles = getRiskInputStyles(colorTheme);
 
     // Unified animation value: 1 = visible, 0 = advancing (out)
     const anim = useRef(new Animated.Value(1)).current;
@@ -289,7 +289,7 @@ function RiskInput({ selected, entries, onChangeValue, isAdvancing }) {
     );
 }
 
-const riskInputStyles = (colorTheme) => {
+const getRiskInputStyles = (colorTheme) => {
 
     return StyleSheet.create({
         container: {

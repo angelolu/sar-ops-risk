@@ -74,7 +74,7 @@ export default function OperationPage() {
 
     const printedClues = useRef([]);
 
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     const [activeTab, setActiveTab] = useState("");
@@ -543,7 +543,7 @@ export default function OperationPage() {
                 <BackHeader
                     minimize={readOnly}
                     customTitle={
-                        <View style={[{ height: 55, flexDirection: "row", gap: 8, justifyContent: "space-between", alignItems: "center", alignSelf: "flex-end", paddingRight: 4, paddingLeft: 12, paddingBottom: 5 }, selectedHeaderItem === 1 && { backgroundColor: colorTheme.surfaceContainerHighest, borderTopLeftRadius: 12, borderTopRightRadius: 12, width: 300 }]}>
+                        <View style={[styles.headerTitleContainer, selectedHeaderItem === 1 && styles.headerTitleContainerSelected]}>
                             <EditableText onEditing={(state) => { state && setSelectedHeaderItem(1) }} disabled={readOnly} style={[textStyle.headerText]} numberOfLines={1} value={incidentInfo.fileName} defaultValue={"Untitled file"} onChangeText={(text) => editIncident({ fileName: text })} limit={50} suffix={readOnly ? "" : ""} />
                             {selectedHeaderItem === 1 && <IconButton ionicons_name={"caret-up-circle-outline"} onPress={() => { setSelectedHeaderItem(0) }} color={colorTheme.onSurface} size={24} />}
                         </View>
@@ -816,11 +816,13 @@ const TaskQueueText = ({ team }) => {
 
 const AssignedPeopleText = ({ teamId }) => {
     const { getPeopleByTeamId } = useContext(RxDBContext);
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
 
     const [assignedPeople, setAssignedPeople] = useState([]);
     const [loaded, setLoaded] = useState(false);
 
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     // Return a string of people who are assigned to this team, separated by commas
     useEffect(() => {
@@ -859,11 +861,13 @@ const AssignedPeopleText = ({ teamId }) => {
 
 const AssignedEquipmentText = ({ teamId }) => {
     const { getEquipmentByTeamId } = useContext(RxDBContext);
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
 
     const [assignedPeople, setAssignedPeople] = useState([]);
     const [loaded, setLoaded] = useState(false);
 
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     // Return a string of people who are assigned to this team, separated by commas
     useEffect(() => {
@@ -894,7 +898,7 @@ const AssignedEquipmentText = ({ teamId }) => {
     </Text>
 }
 
-const pageStyles = (colorTheme, width) => {
+const getStyles = (colorTheme, width) => {
     return StyleSheet.create({
         background: {
             backgroundColor: colorTheme.background,
@@ -925,15 +929,22 @@ const pageStyles = (colorTheme, width) => {
             borderTopLeftRadius: 20,
             backgroundColor: colorTheme.black + Math.round(0.8 * 255).toString(16).toUpperCase()
         },
-        circleFixed: {
-            position: 'absolute',
-            right: 2,
-            top: 2,
-            width: 14,
-            height: 14,
-            borderRadius: 7,
-            borderWidth: 2,
-            borderColor: colorTheme.onSurface,
+        headerTitleContainer: {
+            height: 55,
+            flexDirection: "row",
+            gap: 8,
+            justifyContent: "space-between",
+            alignItems: "center",
+            alignSelf: "flex-end",
+            paddingRight: 4,
+            paddingLeft: 12,
+            paddingBottom: 5
         },
+        headerTitleContainerSelected: {
+            backgroundColor: colorTheme.surfaceContainerHighest,
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            width: 300
+        }
     });
 }
