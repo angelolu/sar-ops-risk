@@ -1,13 +1,15 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Slider from '@react-native-community/slider';
+import { Banner, BannerGroup, FilledButton, RiskModal, ShareButton, ThemeContext } from 'calsar-ui';
 import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { useContext, useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
-import { FilledButton, ShareButton, ThemeContext, RiskModal, Banner } from 'calsar-ui';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
+import { ORMA_CONFIG } from '../../config/RiskStrategies';
+import { useRiskAssessment } from '../../hooks/useRiskAssessment';
 
 var modalDelayTimeout;
 
@@ -15,11 +17,15 @@ export default function orma() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
     const styles = pageStyles();
 
-    const minimumScore = 8;
+    // Use risk assessment hook
+    const { calculate, getResult, getItemResult } = useRiskAssessment(ORMA_CONFIG);
+
+
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedEntry, setSelectedEntry] = useState(0);
     const [entries, setEntries] = useState([]);
+    const [isAdvancing, setIsAdvancing] = useState(false);
 
     const [listStyle, setListStyle] = useState(null);
     const [explicitLanguageSet, setExplicitLanguageSet] = useState(false);
@@ -117,59 +123,12 @@ export default function orma() {
     };
 
     const onChangeValue = (value) => {
-        const updatedEntries = [...entries];
-        updatedEntries[selectedEntry].score = value;
-
-        // update score container color
-        if (listStyle === "legacy") {
-            if (value >= 1 && value <= 4) {
-                updatedEntries[selectedEntry].containerColor = '#b9f0b8';
-                colorScheme === 'dark' && (updatedEntries[selectedEntry].color = colorTheme.inverseOnSurface);
-            } else if (value >= 5 && value <= 7) {
-                updatedEntries[selectedEntry].containerColor = '#ffdeae';
-                colorScheme === 'dark' && (updatedEntries[selectedEntry].color = colorTheme.inverseOnSurface);
-            } else if (value >= 8 && value <= 10) {
-                updatedEntries[selectedEntry].containerColor = '#ffdad6';
-                colorScheme === 'dark' && (updatedEntries[selectedEntry].color = colorTheme.inverseOnSurface);
-            } else {
-                updatedEntries[selectedEntry].containerColor = colorTheme.surface;
-                updatedEntries[selectedEntry].color = colorTheme.onSurface;
-            }
-        } else {
-            if (value >= 1 && value <= 4) {
-                updatedEntries[selectedEntry].containerColor = colorTheme.garGreenDark;
-            } else if (value >= 5 && value <= 7) {
-                updatedEntries[selectedEntry].containerColor = colorTheme.garAmberDark
-            } else if (value >= 8 && value <= 10) {
-                updatedEntries[selectedEntry].containerColor = colorTheme.garRedDark;
-            } else {
-                updatedEntries[selectedEntry].containerColor = colorTheme.surfaceVariant;
-            }
-        }
-
-        setEntries(updatedEntries);
-    };
-
-    const getHeaderBackgroundColorFromScore = (value) => {
-        if (value >= minimumScore && value <= 35) {
-            return colorTheme.garGreenDark;
-        } else if (value >= 36 && value <= 60) {
-            return colorTheme.garAmberDark;
-        } else if (value >= 61 && value <= 80) {
-            return colorTheme.garRedDark;
-        }
-    };
-
-    const getHeaderTextFromScore = (value) => {
-        if (value >= minimumScore && value <= 35) {
-            return 'Low Risk';
-        } else if (value >= 36 && value <= 60) {
-            return 'Caution';
-        } else if (value >= 31 && value <= 80) {
-            return 'High Risk';
-        } else {
-            return '-';
-        }
+        const itemColors = getItemResult(value);
+        setEntries(entries.map((entry, idx) =>
+            idx === selectedEntry
+                ? { ...entry, score: value, containerColor: itemColors.containerColor, color: itemColors.contentColor || entry.color }
+                : entry
+        ));
     };
 
     const onModalClose = () => {
@@ -178,26 +137,35 @@ export default function orma() {
 
     const onNext = () => {
         if (selectedEntry === entries.length - 1) {
+            // Last item - close immediately without animation
             setIsModalVisible(false);
         } else {
-            setSelectedEntry(selectedEntry + 1);
+            // Not last item - animate to next
+            setIsAdvancing(true);
+            setTimeout(() => {
+                setSelectedEntry(selectedEntry + 1);
+                setIsAdvancing(false);
+            }, 300);
         }
     };
 
     if (explicitLanguageSet) {
         let isDone = !entries.some(entry => entry.score === 0);
         let hasAmberScore = entries.some(entry => entry.score >= 5);
-        let score = entries.reduce((acc, entry) => acc + entry.score, 0);
         setStatusBarStyle(colorScheme === 'light' ? (isDone ? "light" : "dark") : "light", true);
+
+        let score = calculate(entries);
+        let result = getResult(score);
+
         return (
             <View style={styles.container}>
                 <RiskHeader
                     sharedTransitionTag="sectionTitle"
                     title="Operational Risk Management Analysis"
-                    subtitle={isDone ? "Review this score with your team" : "Tap each element below to assign a score of 1 (for no risk) through 10 (for maximum risk)"}
+                    subtitle={isDone ? result.action : "Tap each element below to assign a score of 1 (for no risk) through 10 (for maximum risk)"}
                     complete={isDone}
-                    riskColor={getHeaderBackgroundColorFromScore(score)}
-                    riskText={score + " - " + getHeaderTextFromScore(score)}
+                    riskColor={result.color}
+                    riskText={result.label}
                     menu={isDone && <ShareButton title="ORMA Results" content={"ORMA results\nOverall score: " + score + "\n\n" + getResultString()} color="#ffffff" />}
                 />
                 {hasAmberScore && isDone &&
@@ -214,7 +182,13 @@ export default function orma() {
                     title={"Score \"" + entries[selectedEntry]?.title + "\""}
                     onClose={onModalClose}
                 >
-                    <RiskInput selected={selectedEntry} entries={entries} onChangeValue={onChangeValue} onNext={onNext} />
+                    <RiskInput
+                        selected={selectedEntry}
+                        entries={entries}
+                        onChangeValue={onChangeValue}
+                        onNext={onNext}
+                        isAdvancing={isAdvancing}
+                    />
                 </RiskModal>
             </View>
         );
@@ -234,31 +208,35 @@ export default function orma() {
                     title="Choose preferred ORMA language"
                     onClose={() => { router.back() }}
                 >
-                    <View style={{ padding: 20, paddingTop: 0 }}>
+                    <View style={{
+                        paddingBottom: 8, // Give the button shadow some "room" inside the animated view
+                        paddingHorizontal: 4, // Prevents side-shadow clipping,
+                        gap: 10
+                    }}>
                         <Text style={{ color: colorTheme.onSurface }}>Agencies use different descriptions for ORMA elements. You can change this later in Settings.</Text>
-                        <View style={{ borderRadius: 26, overflow: 'hidden', gap: 2, marginTop: 12 }}>
-                            {false && <Banner
-                                backgroundColor={colorTheme.surfaceContainerLow}
-                                color={colorTheme.onSurfaceVariant}
-                                icon={<Ionicons name="heart-circle" size={24} color={colorTheme.onSurfaceVariant} />}
-                                title="California Search and Rescue (CALSAR)"
-                                onPress={() => { saveLanguage("calsar") }}
-                                noRadius />}
+                        <BannerGroup marginHorizontal={0}>
                             <Banner
                                 backgroundColor={colorTheme.surfaceContainerLow}
                                 color={colorTheme.onSurfaceVariant}
                                 icon={<MaterialIcons name="account-balance" size={24} color={colorTheme.onSurfaceVariant} />}
-                                title="National Parks Service (NPS)"
+                                title="National Parks Service"
                                 onPress={() => { saveLanguage("nps") }}
-                                noRadius />
+                            />
+                            {false && <Banner
+                                backgroundColor={colorTheme.surfaceContainerLow}
+                                color={colorTheme.onSurfaceVariant}
+                                icon={<Ionicons name="heart-circle" size={24} color={colorTheme.onSurfaceVariant} />}
+                                title="California Search and Rescue"
+                                onPress={() => { saveLanguage("calsar") }}
+                            />}
                             <Banner
                                 backgroundColor={colorTheme.surfaceContainerLow}
                                 color={colorTheme.onSurfaceVariant}
                                 icon={<Ionicons name="fish" size={24} color={colorTheme.onSurfaceVariant} />}
                                 title="U.S. Fish & Wildlife Service"
                                 onPress={() => { saveLanguage("fws") }}
-                                noRadius />
-                        </View>
+                            />
+                        </BannerGroup>
                     </View>
                 </RiskModal>
             </View>
@@ -291,9 +269,26 @@ const pageStyles = () => {
 }
 
 
-function RiskInput({ selected, entries, onChangeValue, onNext }) {
+function RiskInput({ selected, entries, onChangeValue, onNext, isAdvancing }) {
     const { colorTheme } = useContext(ThemeContext);
     const riskStyles = riskInputStyles();
+
+    // Unified animation value: 1 = visible, 0 = advancing (out)
+    const anim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        Animated.timing(anim, {
+            toValue: isAdvancing ? 0 : 1,
+            duration: isAdvancing ? 150 : 250,
+            useNativeDriver: true,
+        }).start();
+    }, [isAdvancing, selected]);
+
+    const opacity = anim;
+    const translateY = anim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [isAdvancing ? -8 : 10, 0]
+    });
 
     let item = entries[selected];
 
@@ -362,13 +357,31 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
     }
 
     return (
-        <View style={riskStyles.container}>
+        <Animated.View
+            renderToHardwareTextureAndroid={true}
+            style={[
+                riskStyles.container,
+                { opacity, transform: [{ translateY }] }
+            ]}
+        >
             <Text style={riskStyles.subtitle}>{item.subtitle}</Text>
             <View style={riskStyles.scorebox}>
                 <Text style={[riskStyles.score, { color: getTextColor(item.score) }]}>{item.score}</Text>
                 <Text style={riskStyles.description}>{getDescriptionFromScore(item.score)}</Text>
             </View>
-            <View style={{ marginBottom: 15, }}>
+            <View style={{ marginBottom: 15, justifyContent: 'center' }}>
+                {/* Background Dots */}
+                <View style={{ flexDirection: 'row', gap: 2, position: 'absolute', width: '100%', paddingHorizontal: overridePadding, borderRadius: 99, overflow: 'hidden' }}>
+                    {/* Added paddingHorizontal offset of 16 roughly corresponds to thumb width/2 to align dots with track */}
+                    {Array.from(Array(10).keys()).map((index) => {
+                        const dotColor = index < item.score ? getBarColor(index + 1) : colorTheme.primaryContainer;
+                        return (
+                            <View key={index} style={{ backgroundColor: dotColor, height: 8, flexGrow: 1 }} />
+                        )
+                    })}
+                </View>
+
+                {/* Slider */}
                 <Slider
                     style={{ width: "100%", height: 40 }}
                     minimumValue={0}
@@ -380,17 +393,9 @@ function RiskInput({ selected, entries, onChangeValue, onNext }) {
                     onValueChange={onChangeValue}
                     step={1}
                 />
-                <View style={{ flexDirection: 'row', gap: 2, top: - 24, zIndex: -1, flex: -1, marginHorizontal: overridePadding, borderRadius: 99, overflow: 'hidden' }}>
-                    {Array.from(Array(10).keys()).map((index) => {
-                        const dotColor = index < item.score ? getBarColor(index + 1) : colorTheme.primaryContainer;
-                        return (
-                            <View key={index} style={{ backgroundColor: dotColor, height: 8, flexGrow: 1 }} />
-                        )
-                    })}
-                </View>
             </View>
             <FilledButton rightAlign primary disabled={item.score === 0} text={selected === entries.length - 1 ? "Finish" : "Next element"} onPress={onNext} style={{ alignSelf: "flex-end" }} />
-        </View>
+        </Animated.View>
     );
 }
 
@@ -399,8 +404,8 @@ const riskInputStyles = () => {
 
     return StyleSheet.create({
         container: {
-            padding: 20,
-            paddingTop: 0
+            paddingBottom: 8, // Give the button shadow some "room" inside the animated view
+            paddingHorizontal: 4, // Prevents side-shadow clipping
         },
         subtitle: {
             color: colorTheme.onSurface,
