@@ -10,7 +10,7 @@ import { EditableText, TextBox } from './TextInput';
 const ClueCard = ({ item, teams, notifyFileUpdated, markers, removeMarker, addMarker, setChangeStateModalClue }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     const { getAssignmentById } = useContext(RxDBContext);
@@ -35,8 +35,8 @@ const ClueCard = ({ item, teams, notifyFileUpdated, markers, removeMarker, addMa
 
     return (
         <View key={item.id} style={[styles.card, { backgroundColor: item.flagged ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainer }]}>
-            <View style={{ flexDirection: "row", gap: 8, alignItems: "flex-start", flexWrap: "wrap" }}>
-                <View style={{ flexDirection: "column", gap: 2, flex: 1, minWidth: 50 }}>
+            <View style={styles.headerRow}>
+                <View style={styles.headerInfo}>
                     <EditableText
                         style={[textStyle.rowTitleText]}
                         numberOfLines={2} value={item.name}
@@ -45,8 +45,8 @@ const ClueCard = ({ item, teams, notifyFileUpdated, markers, removeMarker, addMa
                         limit={20} />
                     <Text style={[textStyle.tertiaryText]}>{`Reported by ${teams.find(t => t.id === item.foundByTeamId)?.name || "unknown team"} at ${dateString}${assignmentName ? " in " + assignmentName : ""}`}</Text>
                 </View>
-                <View style={{ flexDirection: "column", gap: 2, flex: 1, minWidth: 50, alignItems: "flex-end" }}>
-                    <View style={{ flexDirection: "row", gap: 2, alignItems: "center" }}>
+                <View style={styles.headerActions}>
+                    <View style={styles.iconRow}>
                         <>{item.location && validateLocationString(item.location, false) !== null && <IconButton small ionicons_name={isInMarkerArray ? "map" : "map-outline"} onPress={() => {
                             if (isInMarkerArray) {
                                 removeMarker(item.id);
@@ -68,7 +68,7 @@ const ClueCard = ({ item, teams, notifyFileUpdated, markers, removeMarker, addMa
                     <Text style={[textStyle.tertiaryText]}>{`Clue ${item.id.slice(-5)}`}</Text>
                 </View>
             </View>
-            <View style={{ flexDirection: "row", gap: 8, minWidth: 200 }}>
+            <View style={styles.contentRow}>
                 <EditableText
                     style={[textStyle.tertiaryText]}
                     numberOfLines={2} value={item.location}
@@ -85,7 +85,7 @@ const ClueCard = ({ item, teams, notifyFileUpdated, markers, removeMarker, addMa
                     limit={1000} />
             </View>
             <View style={{ borderBottomColor: colorTheme.outlineVariant, borderBottomWidth: StyleSheet.hairlineWidth, marginVertical: 2 }} />
-            <View style={{ flexDirection: "row", gap: 8, minWidth: 200 }}>
+            <View style={styles.contentRow}>
                 <EditableText
                     style={[textStyle.text]}
                     numberOfLines={8} value={item.description}
@@ -103,7 +103,7 @@ export const CluePanel = ({ fileId, notifyFileUpdated, teams, incidents = false,
     const { getCluesByFileId } = useContext(RxDBContext);
     const { width } = useWindowDimensions();
 
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     const [clues, setClues] = useState([]);
@@ -224,7 +224,7 @@ const ChangeStateModal = ({ notifyFileUpdated, isVisible, onClose, clue }) => {
     const { createCommsQueueMessage, deleteDocument } = useContext(RxDBContext);
 
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
     const [selectedState, setSelectedState] = useState("");
     const [operatorMessage, setOperatorMessage] = useState("");
@@ -296,12 +296,7 @@ const ChangeStateModal = ({ notifyFileUpdated, isVisible, onClose, clue }) => {
                 })}
             </View>
             <Text style={[textStyle.sectionTitleText]}>Radio back</Text>
-            <TextBox textStyle={{
-                paddingVertical: 8,
-                paddingHorizontal: 8,
-                backgroundColor: colorTheme.surfaceContainerHigh,
-                width: "100%"
-            }} placeholder="Questions/instructions for radio operator to pass to find team" onChangeText={setOperatorMessage} initialValue={operatorMessage} onConfirm={() => { handleSave() }} limit={1000} />
+            <TextBox textStyle={styles.textBox} placeholder="Questions/instructions for radio operator to pass to find team" onChangeText={setOperatorMessage} initialValue={operatorMessage} onConfirm={() => { handleSave() }} limit={1000} />
         </View>
         <View style={{ padding: 20, gap: 12 }}>
             <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'space-between', alignItems: "flex-end" }}>
@@ -312,20 +307,9 @@ const ChangeStateModal = ({ notifyFileUpdated, isVisible, onClose, clue }) => {
     </RiskModal >);
 }
 
-const pageStyles = (colorTheme, width) => {
+const getStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
-        standaloneCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-            justifyContent: 'space-between',
-            backgroundColor: colorTheme.surfaceContainer
-        },
         stateColumn: {
             flex: 1,
             flexDirection: "column",
@@ -351,6 +335,35 @@ const pageStyles = (colorTheme, width) => {
             gap: 6,
             justifyContent: 'space-between',
         },
+        headerRow: {
+            flexDirection: "row",
+            gap: 8,
+            alignItems: "flex-start",
+            flexWrap: "wrap"
+        },
+        headerInfo: {
+            flexDirection: "column",
+            gap: 2,
+            flex: 1,
+            minWidth: 50
+        },
+        headerActions: {
+            flexDirection: "column",
+            gap: 2,
+            flex: 1,
+            minWidth: 50,
+            alignItems: "flex-end"
+        },
+        iconRow: {
+            flexDirection: "row",
+            gap: 2,
+            alignItems: "center"
+        },
+        contentRow: {
+            flexDirection: "row",
+            gap: 8,
+            minWidth: 200
+        },
         cardContainer: {
             gap: 8,
             paddingHorizontal: 12,
@@ -358,26 +371,11 @@ const pageStyles = (colorTheme, width) => {
             flexDirection: "column",
             flex: 1,
         },
-        picker: {
-            height: 34,
-            outlineStyle: "solid",
-            outlineWidth: 2,
-            outlineColor: colorTheme.outline,
-            color: colorTheme.onSurface,
-            backgroundColor: colorTheme.surfaceContainer,
-            width: "100%",
-            paddingHorizontal: 8
-        },
-        wideCard: {
-            paddingHorizontal: 8,
+        textBox: {
             paddingVertical: 8,
-            borderRadius: 6,
-            backgroundColor: colorTheme.surfaceContainer,
-            flexDirection: "column",
-        },
-        tileCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
+            paddingHorizontal: 8,
+            backgroundColor: colorTheme.surfaceContainerHigh,
+            width: "100%"
         },
     });
 }

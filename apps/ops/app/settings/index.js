@@ -9,7 +9,7 @@ export default function Settings() {
     const { colorTheme, changeColorScheme, colorScheme } = useContext(ThemeContext);
 
     const { height, width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
     const textStyle = textStyles(colorTheme, width);
 
     const [appearanceState, setAppearanceState] = useState(1);
@@ -86,7 +86,7 @@ export default function Settings() {
     );
 }
 
-const pageStyles = (colorTheme) => {
+const getStyles = (colorTheme) => {
 
     return StyleSheet.create({
         background: {
@@ -104,20 +104,11 @@ const pageStyles = (colorTheme) => {
             height: '100%',
             alignSelf: 'center'
         },
-        listContainer: {
-        },
         mainScroll: {
             paddingTop: 20,
             paddingBottom: 20,
             paddingHorizontal: 20,
             gap: 20,
         },
-        headings: {
-            fontSize: 22,
-            color: colorTheme.onBackground,
-        },
-        text: {
-            color: colorTheme.onBackground
-        }
     });
 }

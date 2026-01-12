@@ -6,14 +6,11 @@ import { EditableText } from './TextInput';
 export const InfoTab = ({ incidentInfo, editIncident }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     return (
-        <View style={{
-            flexDirection: "column",
-            gap: 8,
-        }}>
+        <View style={styles.container}>
             <View style={[styles.standaloneCard, { flexDirection: "column", flexGrow: 1, justifyContent: "flex-start", gap: 8 }]}>
                 <KeyValue title="Incident name" value={incidentInfo?.incidentName || "-"} >
                     <EditableText style={textStyle.rowTitleText} value={incidentInfo.incidentName} defaultValue="Tap to set" onChangeText={(text) => editIncident({ incidentName: text })} limit={50} />
@@ -43,21 +40,26 @@ export const InfoTab = ({ incidentInfo, editIncident }) => {
 const KeyValue = ({ title, children }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
-    return (<View style={{ flexDirection: "column", gap: 4, flex: 1 }}>
+    return (<View style={styles.keyValueContainer}>
         <Text style={textStyle.tertiaryText}>{title}</Text>
         {children}
     </View>
     );
 }
 
-const pageStyles = (colorTheme, width) => {
+const getStyles = (colorTheme, width) => {
     return StyleSheet.create({
-        sectionTitle: {
-            color: colorTheme.onBackground,
-            fontSize: 20,
+        container: {
+            flexDirection: "column",
+            gap: 8,
+        },
+        keyValueContainer: {
+            flexDirection: "column",
+            gap: 4,
+            flex: 1
         },
         standaloneCard: {
             borderRadius: 26,
@@ -70,18 +72,6 @@ const pageStyles = (colorTheme, width) => {
             gap: 12,
             justifyContent: 'space-between',
             backgroundColor: colorTheme.surfaceContainer
-        },
-        text: {
-            fontSize: width > 600 ? 14 : 12,
-            color: colorTheme.onSurface
-        },
-        sectionBodyText: {
-            fontSize: width > 600 ? 28 : 20,
-            color: colorTheme.onSurface
-        },
-        sectionBodyTextSmall: {
-            fontSize: width > 600 ? 20 : 16,
-            color: colorTheme.onSurface
         },
     });
 }

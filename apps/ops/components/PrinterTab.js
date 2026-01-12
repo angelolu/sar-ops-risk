@@ -9,7 +9,8 @@ import { RxDBContext } from './RxDBContext';
 export const PrinterTab = ({ incidentInfo, setPrintType, printType, printTypes, printLogHeader, printLogFooter }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { replicationStatus } = useContext(RxDBContext);
-    const styles = pageStyles(colorTheme, width);
+    const { width } = useWindowDimensions();
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
     const { isPrinterSupported,
         connectPrinter,
@@ -164,7 +165,7 @@ export const PrinterTab = ({ incidentInfo, setPrintType, printType, printTypes, 
 const KeyValue = ({ title, children, color }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     if (color) {
@@ -185,7 +186,7 @@ const KeyValue = ({ title, children, color }) => {
     }
 }
 
-const pageStyles = (colorTheme, width) => {
+const getStyles = (colorTheme, width) => {
     return StyleSheet.create({
         standaloneCard: {
             borderRadius: 26,
@@ -199,10 +200,6 @@ const pageStyles = (colorTheme, width) => {
             gap: 12,
             justifyContent: 'space-between',
             backgroundColor: colorTheme.surfaceContainer
-        },
-        tileCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
         },
         circle: {
             width: 10,

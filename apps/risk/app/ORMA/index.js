@@ -15,7 +15,7 @@ var modalDelayTimeout;
 
 export default function orma() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const styles = pageStyles(colorTheme);
+    const styles = getStyles(colorTheme);
 
     // Use risk assessment hook
     const { calculate, getResult, getItemResult } = useRiskAssessment(ORMA_CONFIG);
@@ -244,7 +244,7 @@ export default function orma() {
     }
 }
 
-const pageStyles = (colorTheme) => {
+const getStyles = (colorTheme) => {
     return StyleSheet.create({
         warningBar: {
             flexDirection: 'row',
@@ -269,7 +269,7 @@ const pageStyles = (colorTheme) => {
 
 function RiskInput({ selected, entries, onChangeValue, onNext, isAdvancing }) {
     const { colorTheme } = useContext(ThemeContext);
-    const riskStyles = riskInputStyles(colorTheme);
+    const riskStyles = getRiskInputStyles(colorTheme);
 
     // Unified animation value: 1 = visible, 0 = advancing (out)
     const anim = useRef(new Animated.Value(1)).current;
@@ -397,7 +397,7 @@ function RiskInput({ selected, entries, onChangeValue, onNext, isAdvancing }) {
     );
 }
 
-const riskInputStyles = (colorTheme) => {
+const getRiskInputStyles = (colorTheme) => {
 
     return StyleSheet.create({
         container: {

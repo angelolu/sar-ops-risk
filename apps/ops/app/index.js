@@ -12,7 +12,7 @@ import { getAsyncStorageData, getElapsedTimeString, getSimpleDateString, saveAsy
 export default function App() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
     const { createFile, getFiles, deleteFile, restartSync, replicationStatus } = useContext(RxDBContext)
     const { isAuthenticated, waitForFirebaseReady, currentUser, signOut, signInWithGoogle } = useFirebase();
@@ -289,22 +289,12 @@ export default function App() {
     );
 }
 
-const pageStyles = (colorTheme, width) => {
+const getStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
         background: {
             backgroundColor: colorTheme.background,
             height: '100%'
-        },
-        container: {
-            flex: 1,
-            flexGrow: 1,
-            flexDirection: 'column',
-            backgroundColor: colorTheme.background,
-            height: '100%',
-            alignSelf: 'center',
-            paddingHorizontal: 20,
-            gap: 12
         },
         mainScroll: {
             paddingTop: 20,
@@ -325,14 +315,6 @@ const pageStyles = (colorTheme, width) => {
             borderRadius: 26,
             overflow: 'hidden',
             backgroundColor: colorTheme.surfaceContainer
-        },
-        text: {
-            fontSize: width > 600 ? 14 : 12,
-            color: colorTheme.onSurface
-        },
-        headerText: {
-            fontSize: width > 600 ? 24 : 20,
-            color: colorTheme.onBackground
         },
         header: {
             padding: 14,

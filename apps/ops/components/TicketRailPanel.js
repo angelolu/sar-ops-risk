@@ -24,7 +24,7 @@ const OPS_TEAM_TO_NAME = {
 export const TicketRailPanel = ({ file, teams, activeTab, filteredCommsQueue }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     const [replyItem, setReplyItem] = useState(null);
@@ -62,7 +62,7 @@ const CommsQueueItemCard = ({ file, item, teams, activeTab, superseded, setReply
     const intervalRef = useRef(null);
 
     const { width } = useWindowDimensions();
-    const styles = pageStyles(colorTheme, width);
+    const styles = getStyles(colorTheme, width);
     const textStyle = textStyles(colorTheme, width);
 
     const [descriptionText, setDescriptionText] = useState("Loading...");
@@ -441,7 +441,7 @@ const ReplyModal = ({ request, team, relatedItem, file, isVisible, onClose }) =>
     </RiskModal >);
 }
 
-const pageStyles = () => {
+const getStyles = () => {
     return StyleSheet.create({
         card: {
             borderRadius: 12,
