@@ -1,11 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { ThemeContext } from 'calsar-ui';
+import { textStyles, ThemeContext } from 'calsar-ui';
 
 export default function ListItem({ onPress, title, subtitle, score, backgroundColor, color, description = "" }) {
     const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     const [listStyle, setListStyle] = useState(null);
     const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -27,10 +29,8 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
         });
     }, []);
 
-    let styles;
-
     if (listStyle === "legacy") {
-        styles = itemStylesClassic(colorTheme);
+        const styles = getStyles(colorTheme);
         return (
             <Animated.View style={[styles.listItemContainer, { transform: [{ scale: scaleAnim }] }]}>
                 <Pressable
@@ -55,7 +55,8 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
             </Animated.View>
         );
     } else {
-        styles = itemStyles(colorTheme);
+        const textStyle = textStyles(colorTheme);
+        const styles = itemStyles(colorTheme);
         return (
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                 <Pressable
@@ -68,12 +69,12 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
                         (pressed && Platform.OS !== 'android') && { backgroundColor: colorTheme.surfaceContainerHighest }
                     ]}>
                     <View style={[styles.littleBox, { backgroundColor: backgroundColor ? backgroundColor : colorTheme.surfaceVariant }]}>
-                        <Text style={[styles.score, { color: color ? color : colorTheme.white }]}>{(score && score !== 0) ? score : "-"}</Text>
+                        <Text style={[textStyle.headlineSmall, { color: color ? color : colorTheme.white, textAlign: 'center', fontWeight: 'bold' }]}>{(score && score !== 0) ? score : "-"}</Text>
                     </View>
                     <View style={styles.textColumn}>
-                        <Text style={styles.headline}>{title}</Text>
-                        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-                        {description !== "" && <Text style={{ marginTop: 4, marginLeft: 6, color: colorTheme.onSurfaceVariant }}>- {description}</Text>}
+                        <Text style={textStyle.titleLarge}>{title}</Text>
+                        {subtitle && <Text style={textStyle.bodyMedium}>{subtitle}</Text>}
+                        {description !== "" && <Text style={[textStyle.bodyMedium, { marginTop: 4, marginLeft: 6, color: colorTheme.onSurfaceVariant }]}>- {description}</Text>}
                     </View>
                 </Pressable>
             </Animated.View>
@@ -96,19 +97,7 @@ const itemStyles = (colorTheme) => {
         },
         textColumn: {
             flex: 1,
-        },
-        score: {
-            fontSize: 26,
-            fontWeight: 'bold',
-        },
-        headline: {
-            fontSize: 20,
-            color: colorTheme.onSurface
-        },
-        subtitle: {
-            fontSize: 14,
-            lineHeight: 20,
-            color: colorTheme.onSurfaceVariant
+            flexShrink: 1,
         },
         littleBox: {
             width: 56,
@@ -121,8 +110,7 @@ const itemStyles = (colorTheme) => {
     });
 }
 
-const itemStylesClassic = (colorTheme) => {
-
+const getStyles = (colorTheme) => {
     return StyleSheet.create({
         listItemContainer: {
         },

@@ -109,11 +109,10 @@ export const FilledButton = ({
                         />
                     )}
                     <Text style={[
-                        textStyle.buttonText,
+                        textStyle.labelLarge,
                         {
                             color: finalTextColor,
-                            fontWeight: '500', // REDUCED weight as requested
-                            // Flair: Extremely subtle text shadow for depth
+                            fontWeight: '500',
                             textShadowColor: 'rgba(0, 0, 0, 0.05)',
                             textShadowOffset: { width: 0, height: 0.5 },
                             textShadowRadius: 0.5,
@@ -188,10 +187,10 @@ export const SegmentedButtons = ({
                                 />
                             )}
                             <Text style={[
-                                textStyle.buttonText,
+                                textStyle.labelLarge,
                                 {
                                     color: itemTextColor,
-                                    fontWeight: isSelected ? '500' : '400', // REDUCED
+                                    fontWeight: isSelected ? '500' : '400',
                                     fontSize: small ? 12 : 14
                                 }
                             ]}>

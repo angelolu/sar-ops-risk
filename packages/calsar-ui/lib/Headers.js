@@ -74,7 +74,7 @@ function BackHeader(_ref2) {
         }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
           style: styles.titleZone,
           children: customTitle ? customTitle : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-            style: [textStyle.headerText, {
+            style: [textStyle.titleLarge, {
               color: activeColor
             }],
             numberOfLines: 2,
@@ -96,7 +96,7 @@ function BackHeader(_ref2) {
           backgroundColor: backgroundColor || colorTheme.tertiaryContainer
         }],
         children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-          style: [styles.subtitleText, {
+          style: [textStyle.bodyMedium, {
             color: color || colorTheme.onTertiaryContainer
           }],
           children: subtitle
@@ -132,7 +132,5 @@ var styles = _reactNative.StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20
   },
-  subtitleText: {
-    fontSize: 14
-  }
+  subtitleText: {}
 });

@@ -6,15 +6,11 @@ export const textStyles = (colorTheme, width) => {
     // Use Outfit if size is over 20
 
     return StyleSheet.create({
+        // Custom / Legacy Styles (Review for deprecation)
         text: {
             fontSize: 14,
             color: colorTheme.onSurface,
             fontFamily: 'Inter_400Regular'
-        },
-        headerText: {
-            fontSize: 18,
-            color: colorTheme.onPrimaryContainer,
-            fontFamily: 'Inter_500Medium'
         },
         chipText: {
             fontSize: 12,
@@ -30,12 +26,6 @@ export const textStyles = (colorTheme, width) => {
             fontSize: 14,
             color: colorTheme.onSurfaceVariant,
             fontFamily: 'Inter_400Regular'
-        },
-        buttonText: {
-            fontSize: 14,
-            lineHeight: 20,
-            color: colorTheme.secondary,
-            fontFamily: 'Inter_500Medium'
         },
         cardTitleText: {
             fontSize: 20,
@@ -88,6 +78,7 @@ export const textStyles = (colorTheme, width) => {
             color: colorTheme.onBackground,
             fontFamily: 'Outfit_600SemiBold'
         },
+
         // MD3 Typography Scale
         displayLarge: {
             fontFamily: 'Outfit_400Regular',
@@ -132,7 +123,7 @@ export const textStyles = (colorTheme, width) => {
             color: colorTheme.onSurface,
         },
         titleLarge: {
-            fontFamily: 'Inter_400Regular',
+            fontFamily: 'Outfit_500Medium',
             fontSize: 22,
             lineHeight: 28,
             letterSpacing: 0,

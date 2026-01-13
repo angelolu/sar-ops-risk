@@ -1,11 +1,11 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Slider from '@react-native-community/slider';
-import { Banner, BannerGroup, FilledButton, RiskModal, ShareButton, ThemeContext } from 'calsar-ui';
+import { Banner, BannerGroup, FilledButton, RiskModal, ShareButton, ThemeContext, textStyles } from 'calsar-ui';
 import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
 import { ORMA_CONFIG } from '../../config/RiskStrategies';
@@ -62,7 +62,7 @@ export default function orma() {
                 setExplicitLanguageSet(true);
                 setEntries([
                     { title: "Supervision", subtitle: "Leadership and supervision are actively engaged, involved, and accessible for all teams and personnel. There is a clear chain of command.", score: 0 },
-                    { title: "Planning", subtitle: "There is adequate information and proper planning time. JHA’s are current and have been reviewed and signed by all levels. All required equipment, training, and PPE has been provided.", score: 0 },
+                    { title: "Planning", subtitle: "There is adequate information and proper planning time. JHAs are current and have been reviewed and signed by all levels. All required equipment, training, and PPE has been provided.", score: 0 },
                     { title: "Contingency Resources", subtitle: "Local emergency services can be contacted, available, and respond to the worksite in a reasonable amount of time. Examples: Do you have an emergency evacuation plan?", score: 0 },
                     { title: "Communication", subtitle: "There is established two-way communication throughout the area of operations. Radios should always be your primary means of communication. You should know your area of coverage.", score: 0 },
                     { title: "Team Selection", subtitle: "Level of individual training and experiences. Cohesiveness and atmosphere that values input/self-critique.", score: 0 },
@@ -74,14 +74,14 @@ export default function orma() {
             case "fws":
                 setExplicitLanguageSet(true);
                 setEntries([
-                    { title: "Supervision", subtitle: "Leadership and Supervisors are actively engaged, involved and accessible for all teams and personnel. There is a clear chain of command", score: 0 },
+                    { title: "Supervision", subtitle: "Leadership and supervisors are actively engaged, involved and accessible for all teams and personnel. There is a clear chain of command", score: 0 },
                     { title: "Planning", subtitle: "There is adequate information and proper planning time. JHAs are current and have been reviewed and signed by all levels. All required equipment, training and PPE had been provided.", score: 0 },
-                    { title: "Contingency Resources", subtitle: "Local emergency services can be contacted, available and respond in a reasonable amount of time. Has an emergency Evacuation Plan been prepared and is crewed briefed?", score: 0 },
-                    { title: "Communication", subtitle: "There is established Two-Way Radio (VHF or Emergency Dispatch) communication throughout the area of operation. EPIRB/PLB, GPS-linked, Satellite Phone, Position/Location Resources (e.g., AIS, Chart Plotters, Mobile Apps)", score: 0 },
+                    { title: "Contingency Resources", subtitle: "Local emergency services can be contacted, available and respond in a reasonable amount of time. Has an emergency evacuation plan been prepared and is crewed briefed?", score: 0 },
+                    { title: "Communication", subtitle: "There is established two-way radio (VHF or emergency dispatch) communication throughout the area of operation. EPIRB/PLB, GPS-linked, satellite phone, position/location resources (e.g., AIS, chart plotters, mobile apps)", score: 0 },
                     { title: "Team Selection", subtitle: "Level of individual training, qualifications, experience, familiarity with area of operations and equipment. Cohesiveness and atmosphere that values input and self-critique.", score: 0 },
-                    { title: "Team Fitness", subtitle: "This includes physical and mental fitness. Team members are rested, engaged and overall moral is good. The team is mindful and has a high degree of situational awareness. Illness, Medications, Stress, Alcohol, Fatigue & Food, Emotion, Rehydration (IMSAFER)", score: 0 },
-                    { title: "Environment", subtitle: "Weather Forecast & Advisories, Wind, Seas, Tides, Depths, Currents, River Discharge, Debris/Ice, Surf, Rocks, Reefs, Traffic, Uncharted Water, Remoteness, Security (personnel and/or equipment)", score: 0 },
-                    { title: "Task Complexity", subtitle: "Severity, probability, and exposure of mishap. The potential for incident that would tax the current team level. (New Location or Operation, Route Complexity, Vessel Maneuverability, Time Constraints, Task Load, Number of People &/or Organizations Involved)", score: 0 },
+                    { title: "Team Fitness", subtitle: "This includes physical and mental fitness. Team members are rested, engaged and overall moral is good. The team is mindful and has a high degree of situational awareness.", score: 0 },
+                    { title: "Environment", subtitle: "Weather forecast & advisories, wind, seas, tides, depths, currents, river discharge, debris/ice, surf, rocks, reefs, traffic, uncharted water, remoteness, security (personnel and/or equipment)", score: 0 },
+                    { title: "Task Complexity", subtitle: "Severity, probability, and exposure of mishap. The potential for incident that would tax the current team level.", score: 0 },
                 ]);
                 break;
             case 'calsar':
@@ -89,7 +89,7 @@ export default function orma() {
             default:
                 setEntries([
                     { title: "Supervision", subtitle: "Leadership and supervision are actively engaged, involved, and accessible for all teams and personnel. There is a clear chain of command.", score: 0 },
-                    { title: "Planning", subtitle: "There is adequate information and proper planning time. JHA’s are current and have been reviewed and signed by all levels. All required equipment, training, and PPE has been provided.", score: 0 },
+                    { title: "Planning", subtitle: "There is adequate information and proper planning time. JHAs are current and have been reviewed and signed by all levels. All required equipment, training, and PPE has been provided.", score: 0 },
                     { title: "Contingency Resources", subtitle: "Local emergency services can be contacted, available, and respond to the worksite in a reasonable amount of time. Examples: Do you have an emergency evacuation plan?", score: 0 },
                     { title: "Communication", subtitle: "There is established two-way communication throughout the area of operations. Radios should always be your primary means of communication. You should know your area of coverage.", score: 0 },
                     { title: "Team Selection", subtitle: "Level of individual training and experiences. Cohesiveness and atmosphere that values input/self-critique.", score: 0 },
@@ -267,9 +267,12 @@ const getStyles = (colorTheme) => {
 }
 
 
-function RiskInput({ selected, entries, onChangeValue, onNext, isAdvancing }) {
+const RiskInput = ({ selected, entries, onChangeValue, onNext, isAdvancing }) => {
     const { colorTheme } = useContext(ThemeContext);
     const riskStyles = getRiskInputStyles(colorTheme);
+
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     // Unified animation value: 1 = visible, 0 = advancing (out)
     const anim = useRef(new Animated.Value(1)).current;
@@ -362,10 +365,10 @@ function RiskInput({ selected, entries, onChangeValue, onNext, isAdvancing }) {
                 { opacity, transform: [{ translateY }] }
             ]}
         >
-            <Text style={riskStyles.subtitle}>{item.subtitle}</Text>
+            <Text style={textStyle.bodyMedium}>{item.subtitle}</Text>
             <View style={riskStyles.scorebox}>
-                <Text style={[riskStyles.score, { color: getTextColor(item.score) }]}>{item.score}</Text>
-                <Text style={riskStyles.description}>{getDescriptionFromScore(item.score)}</Text>
+                <Text style={[textStyle.displayMedium, riskStyles.score, { color: getTextColor(item.score) }]}>{item.score}</Text>
+                <Text style={[textStyle.bodyMedium, riskStyles.description]}>{getDescriptionFromScore(item.score)}</Text>
             </View>
             <View style={{ marginBottom: 15, justifyContent: 'center' }}>
                 {/* Background Dots */}
@@ -404,10 +407,6 @@ const getRiskInputStyles = (colorTheme) => {
             paddingBottom: 8, // Give the button shadow some "room" inside the animated view
             paddingHorizontal: 4, // Prevents side-shadow clipping
         },
-        subtitle: {
-            color: colorTheme.onSurface,
-            fontSize: 16
-        },
         scorebox: {
             flexDirection: "row",
             gap: 20,
@@ -415,7 +414,7 @@ const getRiskInputStyles = (colorTheme) => {
             alignItems: 'center'
         },
         score: {
-            fontSize: 40,
+            fontSize: 38,
             width: 50,
             textAlign: "center",
             fontWeight: 'bold',

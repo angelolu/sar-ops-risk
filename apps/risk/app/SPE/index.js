@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Banner, BannerGroup, RiskModal, ShareButton, ThemeContext } from 'calsar-ui';
+import { Banner, BannerGroup, RiskModal, ShareButton, ThemeContext, textStyles } from 'calsar-ui';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
 import { SPE_CONFIG } from '../../config/RiskStrategies';
@@ -147,6 +147,9 @@ function RiskInput({ selected, entries, onChangeValue, isAdvancing }) {
     const { colorTheme } = useContext(ThemeContext);
     const riskStyles = getRiskInputStyles(colorTheme);
 
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
+
     // Unified animation value: 1 = visible, 0 = advancing (out)
     const anim = useRef(new Animated.Value(1)).current;
 
@@ -177,42 +180,42 @@ function RiskInput({ selected, entries, onChangeValue, isAdvancing }) {
                 { opacity, transform: [{ translateY }] }
             ]}
         >
-            <Text style={riskStyles.subtitle}>{item.subtitle}</Text>
+            <Text style={textStyle.bodyMedium}>{item.subtitle}</Text>
             {item.title === "Severity" && <BannerGroup marginHorizontal={0}>
                 <Banner
                     backgroundColor={item.score === 1 ? '#b9f0b8' : disabledBackgroundColor}
                     color={item.score === 1 ? '#002107' : disabledColor}
                     icon={<Ionicons name="remove-circle" size={24} color={item.score === 1 ? '#002107' : disabledColor} />}
-                    title={<><Text style={item.score === 1 && riskStyles.boldText}>None or Slight</Text>: Discomfort or nuisance.</>}
-                    onPress={() => { onChangeValue(1, <><Text style={item.score === 1 && riskStyles.boldText}>None or Slight</Text>: Discomfort or nuisance.</>) }}
+                    title={<><Text style={item.score === 1 && { fontWeight: 'bold' }}>None or Slight</Text>: Discomfort or nuisance.</>}
+                    onPress={() => { onChangeValue(1, <><Text style={item.score === 1 && { fontWeight: 'bold' }}>None or Slight</Text>: Discomfort or nuisance.</>) }}
                 />
                 <Banner
                     backgroundColor={item.score === 2 ? '#ffdeae' : disabledBackgroundColor}
                     color={item.score === 2 ? '#281900' : disabledColor}
                     icon={<Ionicons name="heart-circle" size={24} color={item.score === 2 ? '#281900' : disabledColor} />}
-                    title={<><Text style={item.score === 2 && riskStyles.boldText}>Minimal</Text>: First aid required.</>}
-                    onPress={() => { onChangeValue(2, <><Text style={item.score === 2 && riskStyles.boldText}>Minimal</Text>: First aid required.</>) }}
+                    title={<><Text style={item.score === 2 && { fontWeight: 'bold' }}>Minimal</Text>: First aid required.</>}
+                    onPress={() => { onChangeValue(2, <><Text style={item.score === 2 && { fontWeight: 'bold' }}>Minimal</Text>: First aid required.</>) }}
                 />
                 <Banner
                     backgroundColor={item.score === 3 ? '#ffdeae' : disabledBackgroundColor}
                     color={item.score === 3 ? '#281900' : disabledColor}
                     icon={<Ionicons name="alert-circle" size={24} color={item.score === 3 ? '#281900' : disabledColor} />}
-                    title={<><Text style={item.score === 3 && riskStyles.boldText}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>}
-                    onPress={() => { onChangeValue(3, <><Text style={item.score === 3 && riskStyles.boldText}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>) }}
+                    title={<><Text style={item.score === 3 && { fontWeight: 'bold' }}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>}
+                    onPress={() => { onChangeValue(3, <><Text style={item.score === 3 && { fontWeight: 'bold' }}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>) }}
                 />
                 <Banner
                     backgroundColor={item.score === 4 ? '#ffdad6' : disabledBackgroundColor}
                     color={item.score === 4 ? '#410002' : disabledColor}
                     icon={<Ionicons name="stop-circle" size={24} color={item.score === 4 ? '#410002' : disabledColor} />}
-                    title={<><Text style={item.score === 4 && riskStyles.boldText}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>}
-                    onPress={() => { onChangeValue(4, <><Text style={item.score === 4 && riskStyles.boldText}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>) }}
+                    title={<><Text style={item.score === 4 && { fontWeight: 'bold' }}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>}
+                    onPress={() => { onChangeValue(4, <><Text style={item.score === 4 && { fontWeight: 'bold' }}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>) }}
                 />
                 <Banner
                     backgroundColor={item.score === 5 ? '#ffb4ab' : disabledBackgroundColor}
                     color={item.score === 5 ? '#690005' : disabledColor}
                     icon={<Ionicons name="close-circle" size={24} color={item.score === 5 ? '#690005' : disabledColor} />}
-                    title={<><Text style={item.score === 5 && riskStyles.boldText}>Catastrophic</Text>: Death or permanent disability.</>}
-                    onPress={() => { onChangeValue(5, <><Text style={item.score === 5 && riskStyles.boldText}>Catastrophic</Text>: Death or permanent disability.</>) }}
+                    title={<><Text style={item.score === 5 && { fontWeight: 'bold' }}>Catastrophic</Text>: Death or permanent disability.</>}
+                    onPress={() => { onChangeValue(5, <><Text style={item.score === 5 && { fontWeight: 'bold' }}>Catastrophic</Text>: Death or permanent disability.</>) }}
                 />
             </BannerGroup>}
             {item.title === "Probability" && <BannerGroup marginHorizontal={0}>
@@ -220,68 +223,68 @@ function RiskInput({ selected, entries, onChangeValue, isAdvancing }) {
                     backgroundColor={item.score === 1 ? '#b9f0b8' : disabledBackgroundColor}
                     color={item.score === 1 ? '#002107' : disabledColor}
                     icon={<Ionicons name="remove-circle" size={24} color={item.score === 1 ? '#002107' : disabledColor} />}
-                    title={<><Text style={item.score === 1 && riskStyles.boldText}>Impossible/Remote</Text></>}
-                    onPress={() => { onChangeValue(1, <><Text style={item.score === 1 && riskStyles.boldText}>Impossible/Remote</Text></>) }}
+                    title={<><Text style={item.score === 1 && { fontWeight: 'bold' }}>Impossible/Remote</Text></>}
+                    onPress={() => { onChangeValue(1, <><Text style={item.score === 1 && { fontWeight: 'bold' }}>Impossible/Remote</Text></>) }}
                 />
                 <Banner
                     backgroundColor={item.score === 2 ? '#ffdeae' : disabledBackgroundColor}
                     color={item.score === 2 ? '#281900' : disabledColor}
                     icon={<Ionicons name="heart-circle" size={24} color={item.score === 2 ? '#281900' : disabledColor} />}
-                    title={<><Text style={item.score === 2 && riskStyles.boldText}>Unlikely under normal conditions</Text></>}
-                    onPress={() => { onChangeValue(2, <><Text style={item.score === 2 && riskStyles.boldText}>Unlikely under normal conditions</Text></>) }}
+                    title={<><Text style={item.score === 2 && { fontWeight: 'bold' }}>Unlikely under normal conditions</Text></>}
+                    onPress={() => { onChangeValue(2, <><Text style={item.score === 2 && { fontWeight: 'bold' }}>Unlikely under normal conditions</Text></>) }}
                 />
                 <Banner
                     backgroundColor={item.score === 3 ? '#ffdeae' : disabledBackgroundColor}
                     color={item.score === 3 ? '#281900' : disabledColor}
                     icon={<Ionicons name="alert-circle" size={24} color={item.score === 3 ? '#281900' : disabledColor} />}
-                    title={<><Text style={item.score === 3 && riskStyles.boldText}>About 50/50</Text></>}
-                    onPress={() => { onChangeValue(3, <><Text style={item.score === 3 && riskStyles.boldText}>About 50/50</Text></>) }}
+                    title={<><Text style={item.score === 3 && { fontWeight: 'bold' }}>About 50/50</Text></>}
+                    onPress={() => { onChangeValue(3, <><Text style={item.score === 3 && { fontWeight: 'bold' }}>About 50/50</Text></>) }}
                 />
                 <Banner
                     backgroundColor={item.score === 4 ? '#ffdad6' : disabledBackgroundColor}
                     color={item.score === 4 ? '#410002' : disabledColor}
                     icon={<Ionicons name="stop-circle" size={24} color={item.score === 4 ? '#410002' : disabledColor} />}
-                    title={<><Text style={item.score === 4 && riskStyles.boldText}>Greater than 50%</Text></>}
-                    onPress={() => { onChangeValue(4, <><Text style={item.score === 4 && riskStyles.boldText}>Greater than 50%</Text></>) }}
+                    title={<><Text style={item.score === 4 && { fontWeight: 'bold' }}>Greater than 50%</Text></>}
+                    onPress={() => { onChangeValue(4, <><Text style={item.score === 4 && { fontWeight: 'bold' }}>Greater than 50%</Text></>) }}
                 />
                 <Banner
                     backgroundColor={item.score === 5 ? '#ffb4ab' : disabledBackgroundColor}
                     color={item.score === 5 ? '#690005' : disabledColor}
                     icon={<Ionicons name="close-circle" size={24} color={item.score === 5 ? '#690005' : disabledColor} />}
-                    title={<><Text style={item.score === 5 && riskStyles.boldText}>Likely to happen</Text></>}
-                    onPress={() => { onChangeValue(5, <><Text style={item.score === 5 && riskStyles.boldText}>Likely to happen</Text></>) }}
+                    title={<><Text style={item.score === 5 && { fontWeight: 'bold' }}>Likely to happen</Text></>}
+                    onPress={() => { onChangeValue(5, <><Text style={item.score === 5 && { fontWeight: 'bold' }}>Likely to happen</Text></>) }}
                 />
             </BannerGroup>}
             {item.title === "Exposure" && <>
-                <Text style={{ paddingVertical: 8, color: colorTheme.onSurface }}>These definitions are used by CALSAR. Your agency may have different definitions based on risk tolerance and activity type. </Text>
+                <Text style={[textStyle.bodyMedium, { paddingVertical: 8, color: colorTheme.onSurface }]}>These definitions are used by CALSAR. Your agency may have different definitions based on risk tolerance and activity type. </Text>
                 <BannerGroup marginHorizontal={0}>
                     <Banner
                         backgroundColor={item.score === 1 ? '#b9f0b8' : disabledBackgroundColor}
                         color={item.score === 1 ? '#002107' : disabledColor}
                         icon={<Ionicons name="remove-circle" size={24} color={item.score === 1 ? '#002107' : disabledColor} />}
-                        title={<><Text style={item.score === 1 && riskStyles.boldText}>None or below average</Text>: One member of the team exposed for a short time.</>}
-                        onPress={() => { onChangeValue(1, <><Text style={item.score === 1 && riskStyles.boldText}>None or below average</Text>: One member of the team exposed for a short time.</>) }}
+                        title={<><Text style={item.score === 1 && { fontWeight: 'bold' }}>None or below average</Text>: One member of the team exposed for a short time.</>}
+                        onPress={() => { onChangeValue(1, <><Text style={item.score === 1 && { fontWeight: 'bold' }}>None or below average</Text>: One member of the team exposed for a short time.</>) }}
                     />
                     <Banner
                         backgroundColor={item.score === 2 ? '#ffdeae' : disabledBackgroundColor}
                         color={item.score === 2 ? '#281900' : disabledColor}
                         icon={<Ionicons name="alert-circle" size={24} color={item.score === 2 ? '#281900' : disabledColor} />}
-                        title={<><Text style={item.score === 2 && riskStyles.boldText}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>}
-                        onPress={() => { onChangeValue(2, <><Text style={item.score === 2 && riskStyles.boldText}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>) }}
+                        title={<><Text style={item.score === 2 && { fontWeight: 'bold' }}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>}
+                        onPress={() => { onChangeValue(2, <><Text style={item.score === 2 && { fontWeight: 'bold' }}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>) }}
                     />
                     <Banner
                         backgroundColor={item.score === 3 ? '#ffdad6' : disabledBackgroundColor}
                         color={item.score === 3 ? '#410002' : disabledColor}
                         icon={<Ionicons name="stop-circle" size={24} color={item.score === 3 ? '#410002' : disabledColor} />}
-                        title={<><Text style={item.score === 3 && riskStyles.boldText}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>}
-                        onPress={() => { onChangeValue(3, <><Text style={item.score === 3 && riskStyles.boldText}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>) }}
+                        title={<><Text style={item.score === 3 && { fontWeight: 'bold' }}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>}
+                        onPress={() => { onChangeValue(3, <><Text style={item.score === 3 && { fontWeight: 'bold' }}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>) }}
                     />
                     <Banner
                         backgroundColor={item.score === 4 ? '#ffb4ab' : disabledBackgroundColor}
                         color={item.score === 4 ? '#690005' : disabledColor}
                         icon={<Ionicons name="close-circle" size={24} color={item.score === 4 ? '#690005' : disabledColor} />}
-                        title={<><Text style={item.score === 4 && riskStyles.boldText}>Great</Text>: Long or repeated exposure to multiple team members.</>}
-                        onPress={() => { onChangeValue(4, <><Text style={item.score === 4 && riskStyles.boldText}>Great</Text>: Long or repeated exposure to multiple team members.</>) }}
+                        title={<><Text style={item.score === 4 && { fontWeight: 'bold' }}>Great</Text>: Long or repeated exposure to multiple team members.</>}
+                        onPress={() => { onChangeValue(4, <><Text style={item.score === 4 && { fontWeight: 'bold' }}>Great</Text>: Long or repeated exposure to multiple team members.</>) }}
                     />
                 </BannerGroup>
             </>}
@@ -297,16 +300,9 @@ const getRiskInputStyles = (colorTheme) => {
             paddingHorizontal: 4, // Prevents side-shadow clipping
             gap: 10
         },
-        subtitle: {
-            color: colorTheme.onSurface,
-            fontSize: 16
-        },
         description: {
             flex: -1,
             flexShrink: 1
-        },
-        boldText: {
-            fontWeight: 'bold',
         },
     });
 }
