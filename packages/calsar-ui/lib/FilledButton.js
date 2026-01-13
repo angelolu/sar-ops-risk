@@ -141,7 +141,7 @@ var FilledButton = exports.FilledButton = function FilledButton(_ref) {
           size: small ? 16 : 18,
           color: finalTextColor
         }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-          style: [textStyle.buttonText, {
+          style: [textStyle.labelLarge, {
             color: finalTextColor,
             fontWeight: '500',
             // REDUCED weight as requested
@@ -224,7 +224,7 @@ var SegmentedButtons = exports.SegmentedButtons = function SegmentedButtons(_ref
             size: small ? 16 : 18,
             color: itemTextColor
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-            style: [textStyle.buttonText, {
+            style: [textStyle.labelLarge, {
               color: itemTextColor,
               fontWeight: isSelected ? '500' : '400',
               // REDUCED

@@ -9,15 +9,11 @@ var textStyles = exports.textStyles = function textStyles(colorTheme, width) {
   // Use Outfit if size is over 20
 
   return _reactNative.StyleSheet.create({
+    // Custom / Legacy Styles (Review for deprecation)
     text: {
       fontSize: 14,
       color: colorTheme.onSurface,
       fontFamily: 'Inter_400Regular'
-    },
-    headerText: {
-      fontSize: 18,
-      color: colorTheme.onPrimaryContainer,
-      fontFamily: 'Inter_500Medium'
     },
     chipText: {
       fontSize: 12,
@@ -33,12 +29,6 @@ var textStyles = exports.textStyles = function textStyles(colorTheme, width) {
       fontSize: 14,
       color: colorTheme.onSurfaceVariant,
       fontFamily: 'Inter_400Regular'
-    },
-    buttonText: {
-      fontSize: 14,
-      lineHeight: 20,
-      color: colorTheme.secondary,
-      fontFamily: 'Inter_500Medium'
     },
     cardTitleText: {
       fontSize: 20,
@@ -135,7 +125,7 @@ var textStyles = exports.textStyles = function textStyles(colorTheme, width) {
       color: colorTheme.onSurface
     },
     titleLarge: {
-      fontFamily: 'Inter_400Regular',
+      fontFamily: 'Outfit_500Medium',
       fontSize: 22,
       lineHeight: 28,
       letterSpacing: 0,

@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Banner, BannerGroup, FilledButton, RiskModal, ShareButton, ThemeContext } from 'calsar-ui';
+import { Banner, BannerGroup, FilledButton, RiskModal, ShareButton, ThemeContext, textStyles } from 'calsar-ui';
 import { useRouter } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import ItemList from '../../components/ItemList';
 import RiskHeader from '../../components/RiskHeader';
 import { PEACE_USCG_ASHORE_CONFIG } from '../../config/RiskStrategies';
@@ -13,19 +13,19 @@ import { useRiskAssessment } from '../../hooks/useRiskAssessment';
 const getAshoreEntries = () => [
     { title: "Planning", subtitle: "Enough time and information to conduct thorough pre-mission planning. Consider: B-0 response, completeness of mission information and of on-scene details.", score: 0, description: "" },
     { title: "Event", subtitle: "Refers to mission complexity. Consider: non-standard mission profile, coordinating multi-agency/nationality, language barriers, not performed often, etc.", score: 0, description: "" },
-    { title: "Asset - Crew", subtitle: "Proper number and skill set for the mission. Consider: time at unit, familiarity w/OP area, fatigue, u/w time, crew selection, adequate supervision, etc.", score: 0, description: "" },
+    { title: "Asset - Crew", subtitle: "Proper number and skill set for the mission. Consider: time at unit, familiarity w/ op area, fatigue, u/w time, crew selection, adequate supervision, etc.", score: 0, description: "" },
     { title: "Asset - Cutter/Boat Resources", subtitle: "Proper number and operational characteristics for mission. Consider: operational thresholds/limitations, status of equipment, etc.", score: 0, description: "" },
     { title: "Communications/Supervision", subtitle: "Ability to maintain comms throughout mission. Consider: availability/quality of internal w/command and external w/customer.", score: 0, description: "" },
     { title: "Environment", subtitle: "External conditions surrounding mission. Consider: weather, night/day, sea state, currents, water temp, air temp, visibility, etc.", score: 0, description: "" },
 ];
 
 const getNasarEntries = () => [
-    { title: "Planning", subtitle: "Enough time and information to conduct thorough pre-mission planning", score: 0, description: "" },
+    { title: "Planning", subtitle: "Enough time and information to conduct thorough pre-mission planning.", score: 0, description: "" },
     { title: "Event", subtitle: "Mission complexity, standard or nonstandard, working with unfamiliar teams, etc.", score: 0, description: "" },
-    { title: "Asset — Crew", subtitle: "Proper number, skill, leadership experience and rest or fatigue level", score: 0, description: "" },
-    { title: "Asset — Equipment", subtitle: "Vehicles, personal and team gear and personal protective equipment that is mission-ready", score: 0, description: "" },
-    { title: "Communications and Supervision", subtitle: "Ability to maintain communications and span of control throughout the incident", score: 0, description: "" },
-    { title: "Environment", subtitle: "Weather, terrain, snow, night or day and wildlife", score: 0, description: "" },
+    { title: "Asset — Crew", subtitle: "Proper number, skill, leadership experience and rest or fatigue level.", score: 0, description: "" },
+    { title: "Asset — Equipment", subtitle: "Vehicles, personal and team gear and personal protective equipment that is mission-ready.", score: 0, description: "" },
+    { title: "Communications and Supervision", subtitle: "Ability to maintain communications and span of control throughout the incident.", score: 0, description: "" },
+    { title: "Environment", subtitle: "Weather, terrain, snow, night or day and wildlife.", score: 0, description: "" },
 ];
 
 export default function PEACE() {
@@ -164,7 +164,7 @@ export default function PEACE() {
         <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
             <RiskHeader
                 sharedTransitionTag="sectionTitle"
-                title="PEAACE Tool"
+                title="PEAACE Risk"
                 subtitle={isDone ? result.action : "Tap each element below to assign a risk score"}
                 riskText={isDone ? result.label : ''}
                 riskColor={isDone ? result.color : colorTheme.surfaceContainer}
@@ -271,6 +271,8 @@ const getStyles = (colorTheme) => {
 
 function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
@@ -312,6 +314,7 @@ function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
                     {emoji}
                 </Text>
                 <Text style={[
+                    textStyle.labelLarge,
                     styles.emojiLabel,
                     {
                         color: colorTheme.onSurface,
@@ -327,6 +330,8 @@ function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
 function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
     const { colorTheme } = useContext(ThemeContext);
     const styles = getRiskInputStyles(colorTheme);
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     // Unified animation value: 1 = visible, 0 = advancing (out)
     const anim = useRef(new Animated.Value(1)).current;
@@ -369,7 +374,7 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
                 { opacity, transform: [{ translateY }] }
             ]}
         >
-            <Text style={styles.subtitle}>{item.subtitle}</Text>
+            <Text style={textStyle.bodyMedium}>{item.subtitle}</Text>
 
             <View style={styles.inputContainer}>
                 {mode === 'emoji' ? (
@@ -400,7 +405,7 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
                                 backgroundColor={item.score === opt.value ? colorTheme.primaryContainer : colorTheme.surfaceContainerLow}
                                 color={colorTheme.onSurface}
                                 icon={<Text style={{ fontSize: 20 }}>{opt.emoji}</Text>}
-                                title={<><Text style={styles.boldText}>{opt.label}</Text>: {opt.desc}</>}
+                                title={<><Text style={{ fontWeight: 'bold' }}>{opt.label}</Text>: {opt.desc}</>}
                                 onPress={() => onChangeValue(opt.value, opt.label)}
                             />
                         ))}
@@ -417,11 +422,6 @@ const getRiskInputStyles = (colorTheme) => {
         container: {
             paddingBottom: 8, // Give the button shadow some "room" inside the animated view
             paddingHorizontal: 4, // Prevents side-shadow clipping
-        },
-        subtitle: {
-            color: colorTheme.onSurface,
-            fontSize: 16,
-            paddingBottom: 10
         },
         inputContainer: {
             marginTop: 10
@@ -461,8 +461,5 @@ const getRiskInputStyles = (colorTheme) => {
             fontSize: 12,
             textAlign: 'center'
         },
-        boldText: {
-            fontWeight: 'bold'
-        }
     });
 }

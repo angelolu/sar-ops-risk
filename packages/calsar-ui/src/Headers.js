@@ -61,7 +61,7 @@ export function BackHeader({
                             customTitle
                         ) : (
                             <Text
-                                style={[textStyle.headerText, { color: activeColor }]}
+                                style={[textStyle.titleLarge, { color: activeColor }]}
                                 numberOfLines={2}
                                 adjustsFontSizeToFit
                             >
@@ -80,7 +80,7 @@ export function BackHeader({
 
                 {subtitle && (
                     <View style={[styles.subtitleContainer, { backgroundColor: backgroundColor || colorTheme.tertiaryContainer }]}>
-                        <Text style={[styles.subtitleText, { color: color || colorTheme.onTertiaryContainer }]}>
+                        <Text style={[textStyle.bodyMedium, { color: color || colorTheme.onTertiaryContainer }]}>
                             {subtitle}
                         </Text>
                     </View>
@@ -116,6 +116,5 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     subtitleText: {
-        fontSize: 14,
     },
 });

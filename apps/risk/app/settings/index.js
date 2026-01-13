@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BackHeader, Banner, BannerGroup, HorizontalTileGroup, ThemeContext, VerticalTile } from 'calsar-ui';
+import { BackHeader, Banner, BannerGroup, HorizontalTileGroup, ThemeContext, VerticalTile, textStyles } from 'calsar-ui';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useEffect, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
@@ -25,7 +25,9 @@ const getData = async (key) => {
 
 export default function Settings() {
     const { colorTheme, changeColorScheme, colorScheme } = useContext(ThemeContext);
+    const { height, width } = useWindowDimensions();
     const styles = getStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, width);
     setStatusBarStyle(colorScheme === 'light' ? "dark" : "light", true);
 
     const disabledColor = colorTheme.onSurfaceVariant;
@@ -65,7 +67,6 @@ export default function Settings() {
         getData("language-peace").then((value) => { value && setLanguagePeaceState(value) });
     }, []);
 
-    const { height, width } = useWindowDimensions();
     const baseColorScheme = useColorScheme();
 
     return (
@@ -123,21 +124,21 @@ export default function Settings() {
                             backgroundColor={languageState === "nps" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={languageState === "nps" ? colorTheme.primary : disabledColor}
                             icon={<MaterialIcons name="account-balance" size={24} color={languageState === "nps" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={languageState === "nps" && styles.boldText}>National Parks Service</Text> (NPS)</>}
+                            title={<><Text style={languageState === "nps" && { fontWeight: 'bold' }}>National Parks Service</Text> (NPS)</>}
                             onPress={() => { saveLanguage("nps") }}
                         />
                         {false && <Banner
                             backgroundColor={languageState === "calsar" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={languageState === "calsar" ? colorTheme.primary : disabledColor}
                             icon={<Ionicons name="heart-circle" size={24} color={languageState === "calsar" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={languageState === "calsar" && styles.boldText}>California Search and Rescue</Text> (CALSAR)</>}
+                            title={<><Text style={languageState === "calsar" && { fontWeight: 'bold' }}>California Search and Rescue</Text> (CALSAR)</>}
                             onPress={() => { saveLanguage("calsar") }}
                         />}
                         <Banner
                             backgroundColor={languageState === "fws" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={languageState === "fws" ? colorTheme.primary : disabledColor}
                             icon={<Ionicons name="fish" size={24} color={languageState === "fws" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={languageState === "fws" && styles.boldText}>U.S. Fish & Wildlife Service</Text></>}
+                            title={<><Text style={languageState === "fws" && { fontWeight: 'bold' }}>U.S. Fish & Wildlife Service</Text></>}
                             onPress={() => { saveLanguage("fws") }}
                         />
                     </BannerGroup>
@@ -149,14 +150,14 @@ export default function Settings() {
                             backgroundColor={languagePeaceState === "nasar" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={languagePeaceState === "nasar" ? colorTheme.primary : disabledColor}
                             icon={<Ionicons name="walk" size={24} color={languagePeaceState === "nasar" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={languagePeaceState === "nasar" && styles.boldText}>NASAR</Text></>}
+                            title={<><Text style={languagePeaceState === "nasar" && { fontWeight: 'bold' }}>NASAR</Text></>}
                             onPress={() => { saveLanguagePeace("nasar") }}
                         />
                         <Banner
                             backgroundColor={languagePeaceState === "uscg" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={languagePeaceState === "uscg" ? colorTheme.primary : disabledColor}
                             icon={<Ionicons name="boat" size={24} color={languagePeaceState === "uscg" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={languagePeaceState === "uscg" && styles.boldText}>USCG Ashore</Text></>}
+                            title={<><Text style={languagePeaceState === "uscg" && { fontWeight: 'bold' }}>USCG Ashore</Text></>}
                             onPress={() => { saveLanguagePeace("uscg") }}
                         />
                     </BannerGroup>
@@ -168,14 +169,14 @@ export default function Settings() {
                             backgroundColor={peaceInputState === "emoji" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={peaceInputState === "emoji" ? colorTheme.primary : disabledColor}
                             icon={<MaterialCommunityIcons name="emoticon-happy-outline" size={24} color={peaceInputState === "emoji" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={peaceInputState === "emoji" && styles.boldText}>Emoji</Text></>}
+                            title={<><Text style={peaceInputState === "emoji" && { fontWeight: 'bold' }}>Emoji</Text></>}
                             onPress={() => { savePeaceInput("emoji") }}
                         />
                         <Banner
                             backgroundColor={peaceInputState === "text" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={peaceInputState === "text" ? colorTheme.primary : disabledColor}
                             icon={<MaterialCommunityIcons name="format-list-bulleted" size={24} color={peaceInputState === "text" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={peaceInputState === "text" && styles.boldText}>Text</Text> with descriptions</>}
+                            title={<><Text style={peaceInputState === "text" && { fontWeight: 'bold' }}>Text</Text> with descriptions</>}
                             onPress={() => { savePeaceInput("text") }}
                         />
                     </BannerGroup>
@@ -187,14 +188,14 @@ export default function Settings() {
                             backgroundColor={listStyleState === "new" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={listStyleState === "new" ? colorTheme.primary : disabledColor}
                             icon={<Ionicons name="heart-circle" size={24} color={listStyleState === "new" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={listStyleState === "new" && styles.boldText}>New</Text></>}
+                            title={<><Text style={listStyleState === "new" && { fontWeight: 'bold' }}>New</Text></>}
                             onPress={() => { saveListStyle("new") }}
                         />
                         <Banner
                             backgroundColor={listStyleState === "legacy" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
                             color={listStyleState === "legacy" ? colorTheme.primary : disabledColor}
                             icon={<MaterialIcons name="account-balance" size={24} color={listStyleState === "legacy" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={listStyleState === "legacy" && styles.boldText}>Legacy</Text> (NPS Risk)</>}
+                            title={<><Text style={listStyleState === "legacy" && { fontWeight: 'bold' }}>Legacy</Text> (NPS Risk)</>}
                             onPress={() => { saveListStyle("legacy") }}
                         />
                     </BannerGroup>
@@ -224,9 +225,6 @@ const getStyles = (colorTheme) => {
         },
         listContainer: {
             gap: 8
-        },
-        boldText: {
-            fontWeight: 'bold',
         },
         mainScroll: {
             paddingTop: 20,
