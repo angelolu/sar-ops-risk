@@ -10,7 +10,7 @@ export default function ItemList({ items, onSelect = () => { } }) {
             vertical
             showsVerticalScrollIndicator={true}
             data={items}
-            contentContainerStyle={Platform.OS === 'web' && { maxWidth: 800, alignSelf: 'center' }}
+            contentContainerStyle={[Platform.OS === 'web' && { maxWidth: 800, alignSelf: 'center' }]}
             ItemSeparatorComponent={ItemSeparatorComponent}
             renderItem={({ item, index }) => (
                 <ListItem
@@ -23,6 +23,8 @@ export default function ItemList({ items, onSelect = () => { } }) {
                     backgroundColor={item?.containerColor}
                     color={item?.color}
                     description={item?.description}
+                    first={index === 0}
+                    last={index === items.length - 1}
                 />
             )}
         />

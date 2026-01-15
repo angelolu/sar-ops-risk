@@ -4,7 +4,7 @@ import { Animated, Platform, Pressable, StyleSheet, Text, useWindowDimensions, V
 
 import { textStyles, ThemeContext } from 'calsar-ui';
 
-export default function ListItem({ onPress, title, subtitle, score, backgroundColor, color, description = "" }) {
+export default function ListItem({ onPress, title, subtitle, score, backgroundColor, color, description = "", round = false, first = false, last = false }) {
     const { colorTheme } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
     const textStyle = textStyles(colorTheme, width);
@@ -66,7 +66,9 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
                     onPress={onPress}
                     style={({ pressed }) => [
                         styles.row,
-                        (pressed && Platform.OS !== 'android') && { backgroundColor: colorTheme.surfaceContainerHighest }
+                        (pressed && Platform.OS !== 'android') && { backgroundColor: colorTheme.surfaceContainerHighest },
+                        first && { borderTopRightRadius: 20, borderTopLeftRadius: 20, overflow: "hidden" },
+                        last && { borderBottomLeftRadius: 20, borderBottomRightRadius: 20, overflow: "hidden" }
                     ]}>
                     <View style={[styles.littleBox, { backgroundColor: backgroundColor ? backgroundColor : colorTheme.surfaceVariant }]}>
                         <Text style={[textStyle.headlineSmall, { color: color ? color : colorTheme.white, textAlign: 'center', fontWeight: 'bold' }]}>{(score && score !== 0) ? score : "-"}</Text>

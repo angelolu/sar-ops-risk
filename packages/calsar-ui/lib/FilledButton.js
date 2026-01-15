@@ -144,8 +144,6 @@ var FilledButton = exports.FilledButton = function FilledButton(_ref) {
           style: [textStyle.labelLarge, {
             color: finalTextColor,
             fontWeight: '500',
-            // REDUCED weight as requested
-            // Flair: Extremely subtle text shadow for depth
             textShadowColor: 'rgba(0, 0, 0, 0.05)',
             textShadowOffset: {
               width: 0,
@@ -227,7 +225,6 @@ var SegmentedButtons = exports.SegmentedButtons = function SegmentedButtons(_ref
             style: [textStyle.labelLarge, {
               color: itemTextColor,
               fontWeight: isSelected ? '500' : '400',
-              // REDUCED
               fontSize: small ? 12 : 14
             }],
             children: item

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { BackHeader, IconButton, textStyles, ThemeContext } from 'calsar-ui';
+import { BackHeader, IconButton, TabContainer, textStyles, ThemeContext } from 'calsar-ui';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { getAuth } from 'firebase/auth';
@@ -20,7 +20,6 @@ import { PrinterTabIcon } from '../components/PrinterTabIcon';
 import RailContainer, { AnimatedBG } from '../components/RailContainer';
 import { ResourcesPanel, TeamsPanel } from '../components/RespondersTab';
 import { RxDBContext } from '../components/RxDBContext';
-import TabContainer from '../components/TabContainer';
 import { EditableText } from '../components/TextInput';
 
 const pollUntilFileReady = (fileId) => {
@@ -566,7 +565,7 @@ export default function OperationPage() {
                 {width > 600 ?
                     <RailContainer file={incidentInfo} readOnly={readOnly} tabs={tabs} activeTab={activeTab} setActiveTab={handleSetActiveTab} markers={markers} removeMarker={handleRemoveMarker} teams={activeTeams} />
                     :
-                    <TabContainer readOnly={readOnly} tabs={tabs} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
+                    <TabContainer readOnly={readOnly} items={tabs.map(t => ({ ...t, id: t.name, label: t.name, hidden: t.bottom }))} selectedId={activeTab} onSelect={handleSetActiveTab} />
                 }
                 {selectedHeaderItem === 1 &&
                     <View style={styles.floatingBackground}>
@@ -634,7 +633,7 @@ export default function OperationPage() {
             {width > 600 ?
                 <RailContainer tabs={loadingTab} activeTab={"Loading"} setActiveTab={() => { }} />
                 :
-                <TabContainer tabs={loadingTab} activeTab={"Loading"} setActiveTab={() => { }} />
+                <TabContainer items={loadingTab.map(t => ({ ...t, id: t.name, label: t.name, hidden: t.bottom }))} selectedId={"Loading"} onSelect={() => { }} />
             }
         </View >
     }

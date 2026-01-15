@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Banner, BannerGroup, FilledButton, RiskModal, ShareButton, ThemeContext, textStyles } from 'calsar-ui';
+import { Banner, BannerGroup, FilledButton, MaterialCard, RiskModal, ShareButton, TabContainer, ThemeContext, textStyles } from 'calsar-ui';
 import { useRouter } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import ItemList from '../../components/ItemList';
+import RiskGainGrid, { MATRIX_CONTENT } from '../../components/RiskGainGrid';
 import RiskHeader from '../../components/RiskHeader';
 import { PEACE_USCG_ASHORE_CONFIG } from '../../config/RiskStrategies';
 import { useRiskAssessment } from '../../hooks/useRiskAssessment';
@@ -30,19 +31,28 @@ const getNasarEntries = () => [
 
 export default function PEACE() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const styles = getStyles(colorTheme);
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
     const router = useRouter();
 
     const { calculate, getResult, getItemResult } = useRiskAssessment(PEACE_USCG_ASHORE_CONFIG);
 
     const [isModalVisible, setIsModalVisible] = useState(true);
+    const [isGainModalVisible, setIsGainModalVisible] = useState(false);
+
+    // Modes
     const [selectedEntry, setSelectedEntry] = useState(0);
     const [inputMode, setInputMode] = useState("emoji");
+    const [gain, setGain] = useState(null); // 'Low', 'Medium', 'High'
+    const [activeTab, setActiveTab] = useState('risk');
+
     const [entries, setEntries] = useState(getAshoreEntries());
-
-
     const [language, setLanguage] = useState(null);
     const [explicitLanguageSet, setExplicitLanguageSet] = useState(false);
+    const [isAdvancing, setIsAdvancing] = useState(false);
+
+    const isLargeScreen = width > 1250;
+    const styles = getStyles(colorTheme, isLargeScreen);
 
     useEffect(() => {
         AsyncStorage.getItem("peace-input-mode").then((value) => {
@@ -61,18 +71,8 @@ export default function PEACE() {
             AsyncStorage.setItem("language-peace", JSON.stringify(lang));
             setEntries(lang === 'nasar' ? getNasarEntries() : getAshoreEntries());
             setSelectedEntry(0);
+            setIsModalVisible(true);
         }
-    }
-
-    const getResultString = () => {
-        return entries.map(item => `${item.title}\nScore: ${getScoreLabel(item.score)}\n`).join('\n');
-    }
-
-    const getScoreLabel = (score) => {
-        if (score === 1) return "Low Risk";
-        if (score === 2) return "Medium Risk";
-        if (score === 3) return "High Risk";
-        return "Not Scored";
     }
 
     const onItemSelect = (index) => {
@@ -80,8 +80,7 @@ export default function PEACE() {
         setIsModalVisible(true);
     };
 
-    const [isAdvancing, setIsAdvancing] = useState(false);
-
+    // Risk Input Handler
     const onChangeValue = (value, description) => {
         const itemColors = getItemResult(value);
         setEntries(entries.map((entry, idx) =>
@@ -91,86 +90,133 @@ export default function PEACE() {
         ));
 
         if (selectedEntry < entries.length - 1) {
-            // Not last item - animate to next
-            // Snap to selection faster (150ms), then begin movement
-            setTimeout(() => {
-                setIsAdvancing(true);
-            }, 150);
-
-            // Overall cycle time reduced to 550ms for snappier feel
+            setTimeout(() => { setIsAdvancing(true); }, 150);
             setTimeout(() => {
                 setSelectedEntry(selectedEntry + 1);
                 setIsAdvancing(false);
             }, 550);
         } else {
-            // Last item - close immediately without animation
+            // Last item rated
             setIsModalVisible(false);
+
+            // If Large Screen, auto-transition to Gain if it is not completed
+            if (isLargeScreen && !gain) {
+                setTimeout(() => {
+                    setIsGainModalVisible(true);
+                }, 200);
+            }
         }
     };
 
-    const onModalClose = () => {
-        setIsModalVisible(false);
-    };
+    const handleGainSelect = (selectedGain) => {
+        setGain(selectedGain);
+        setIsGainModalVisible(false);
+        if (!isLargeScreen && activeTab !== 'gain') {
+            setActiveTab('gain');
+        }
+    }
 
+    // Calculations
     let isDone = !entries.some(entry => entry.score === 0);
     setStatusBarStyle(colorScheme === 'light' ? (isDone ? "light" : "dark") : "light", true);
 
     let score = calculate(entries);
     let result = getResult(score);
 
-    if (!explicitLanguageSet) {
-        return (
-            <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
-                <RiskHeader
-                    title="PEAACE Model"
-                    score={0}
-                    subtitle="Select a language to continue"
-                    complete={false}
-                />
-                <RiskModal
-                    isVisible={true}
-                    title="Choose PEAACE Language"
-                    onClose={() => router.back()}
-                >
-                    <View style={{
-                        paddingBottom: 8, // Give the button shadow some "room" inside the animated view
-                        paddingHorizontal: 4, // Prevents side-shadow clipping,
-                        gap: 10
-                    }}>
-                        <Text style={{ color: colorTheme.onSurface, marginBottom: 15 }}>Different agencies use different definitions. You can change this later in Settings.</Text>
-                        <BannerGroup marginHorizontal={0}>
-                            <Banner
-                                backgroundColor={colorTheme.surfaceContainerLow}
-                                color={colorTheme.onSurfaceVariant}
-                                icon={<Ionicons name="walk" size={24} color={colorTheme.onSurfaceVariant} />}
-                                title="NASAR"
-                                onPress={() => updateLanguage('nasar')}
-                            />
-                            <Banner
-                                backgroundColor={colorTheme.surfaceContainerLow}
-                                color={colorTheme.onSurfaceVariant}
-                                icon={<Ionicons name="boat" size={24} color={colorTheme.onSurfaceVariant} />}
-                                title="USCG Ashore"
-                                onPress={() => updateLanguage('uscg')}
-                            />
-                        </BannerGroup>
-                    </View>
-                </RiskModal>
-            </View>
-        )
+    // Tab Handler
+    const handleTabSelect = (id) => {
+        if (id === 'gain') {
+            if (!gain) {
+                setIsGainModalVisible(true);
+            } else if (activeTab === "gain") {
+                setIsGainModalVisible(true);
+            }
+        }
+
+        if (id === 'risk' && !isDone) {
+            // Find first unrated
+            const firstUnrated = entries.findIndex(e => e.score === 0);
+            if (firstUnrated !== -1) {
+                setSelectedEntry(firstUnrated);
+                setIsModalVisible(true);
+            } else {
+                // If somehow all rated but !isDone (logic mismatch?), fallback:
+                setIsModalVisible(true);
+            }
+        }
+
+        setActiveTab(id);
     }
 
-    return (
-        <View style={Platform.OS === 'web' ? styles.containerWeb : styles.container}>
-            <RiskHeader
-                sharedTransitionTag="sectionTitle"
-                title="PEAACE Risk"
-                subtitle={isDone ? result.action : "Tap each element below to assign a risk score"}
-                riskText={isDone ? result.label : ''}
-                riskColor={isDone ? result.color : colorTheme.surfaceContainer}
-                complete={isDone}
-                menu={isDone && <ShareButton title="PEAACE Results" content={"PEAACE results\nOverall Status: " + result.label + "\n" + getResultString()} color="#ffffff" />}
-            />
+    // Determine Highlighted Cell content
+    const getCellContent = () => {
+        if (!isDone || !gain) return null;
+
+        const risk = result.label.toLowerCase();
+        const g = gain.toLowerCase();
+
+        if (risk.includes('low')) {
+            return MATRIX_CONTENT.lowRisk;
+        } else if (risk.includes('medium')) {
+            if (g === 'low') return MATRIX_CONTENT.medRiskStrict;
+            return MATRIX_CONTENT.medRisk;
+        } else if (risk.includes('high')) {
+            if (g === 'low') return MATRIX_CONTENT.turnDown;
+            return MATRIX_CONTENT.highRisk;
+        }
+        return null;
+    }
+
+    const getCombinedResult = () => {
+        if (!isDone) return { label: 'PEAACE risk assessment', color: colorTheme.surfaceContainer };
+
+        // Ensure sentence case: "Low risk"
+        let riskLabel = result.label || '';
+        // Assuming result.label usually comes as "Low Risk", "Medium Risk".
+
+        riskLabel = riskLabel.toLowerCase();
+        // capitalize first letter
+        riskLabel = riskLabel.charAt(0).toUpperCase() + riskLabel.slice(1);
+
+        if (!gain) return { label: riskLabel, color: result.color };
+
+        const gainLabel = `${gain.toLowerCase()} gain`;
+
+        let color = result.color;
+        // Specific warning color for Medium Risk + Low Gain
+        if (riskLabel.toLowerCase().includes('medium') && gain === 'Low') {
+            color = '#ba1a1a';
+        }
+
+        return {
+            label: `${riskLabel}, ${gainLabel}`,
+            color: color
+        };
+    };
+
+    const combinedResult = getCombinedResult();
+
+    const getShareContent = () => {
+        let content = "PEAACE Results\n";
+        content += `Overall Status: ${combinedResult.label}\n\n`;
+        content += entries.map(item => `${item.title}: ${getScoreLabel(item.score)}`).join('\n');
+        if (gain) {
+            content += `\n\nGain Determination: ${gain}`;
+        }
+        return content;
+    }
+
+    const getScoreLabel = (score) => {
+        if (score === 1) return "Low";
+        if (score === 2) return "Medium";
+        if (score === 3) return "High";
+        return "Not Scored";
+    }
+
+    // -- Views --
+
+    const RiskView = (
+        <View style={{ flex: 1 }}>
             <ItemList
                 items={entries.map(e => {
                     let scoreDisplay = 0;
@@ -189,85 +235,190 @@ export default function PEACE() {
                 })}
                 onSelect={onItemSelect}
             />
-            {isDone && (
-                <View style={styles.bottomBar}>
-                    <FilledButton
-                        primary
-                        icon="grid-outline"
-                        text="Analyze Risk vs Gain"
-                        onPress={() => router.push({
-                            pathname: "/PEACE/RiskGainMatrix",
-                            params: { riskLevel: result.label }
-                        })}
-                        style={{ paddingHorizontal: 16 }}
-                    />
+        </View>
+    );
+
+    const GainView = (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10, gap: 10 }}>
+            {/* Controls */}
+            <View style={{ maxWidth: 400, width: '100%', justifyContent: isLargeScreen ? 'space-between' : 'flex-end', flexDirection: 'row', alignSelf: 'center' }}>
+                {isLargeScreen && (
+                    <Text style={[textStyle.headlineSmall, { paddingVertical: 6 }]}>Gain Assessment</Text>
+                )}
+                <FilledButton
+                    tonal
+                    small
+                    rightAlign
+                    icon="expand-outline"
+                    text="Full matrix view"
+                    onPress={() => router.push({ pathname: '/PEACE/full_matrix', params: { riskLevel: isDone ? result.label : null, gainLevel: gain } })}
+                />
+            </View>
+
+            {/* Matrix */}
+            <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
+                <RiskGainGrid
+                    riskLevel={isDone ? result.label : null}
+                    gainLevel={gain}
+                    onGainHeaderPress={() => setIsGainModalVisible(true)}
+                    isLandscape={false}
+                />
+            </View>
+
+            {/* Result Card */}
+            {isDone && gain && (
+                <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
+                    <MaterialCard title="Assessment results" noMargin>
+                        <Text style={[textStyle.bodyMedium]}>{getCellContent()}</Text>
+                    </MaterialCard>
                 </View>
             )}
-            <RiskModal
-                isVisible={isModalVisible}
-                title={entries[selectedEntry].title}
-                onClose={onModalClose}
-            >
-                <RiskInput
-                    item={entries[selectedEntry]}
-                    mode={inputMode}
-                    onChangeValue={onChangeValue}
-                    language={language}
-                    isAdvancing={isAdvancing}
+
+            {/* Definitions */}
+            <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
+                <MaterialCard title="Gain definitions" noMargin>
+                    <View>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>Low Gain:</Text> Routine training, PR, property recovery or evidence search. Use for low-risk conditions only.</Text>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>Medium Gain:</Text> Stable patient or environment, noncritical injury or protecting significant property.</Text>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>High Gain:</Text> Lifesaving opportunity, immediate threat to life or preventing permanent injury.</Text>
+                    </View>
+                </MaterialCard>
+            </View>
+
+            <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
+                <MaterialCard title="Mitigation models (STAAR)" noMargin>
+                    <View>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 6 }]}>If risks need to be mitigated, consider the STAAR model:</Text>
+                        <View style={styles.staarContainer}>
+                            <Text style={textStyle.bodyMedium}>• <Text style={{ fontWeight: 'bold' }}>S</Text>pread Out</Text>
+                            <Text style={textStyle.bodyMedium}>• <Text style={{ fontWeight: 'bold' }}>T</Text>ransfer</Text>
+                            <Text style={textStyle.bodyMedium}>• <Text style={{ fontWeight: 'bold' }}>A</Text>void</Text>
+                            <Text style={textStyle.bodyMedium}>• <Text style={{ fontWeight: 'bold' }}>A</Text>ccept</Text>
+                            <Text style={textStyle.bodyMedium}>• <Text style={{ fontWeight: 'bold' }}>R</Text>educe</Text>
+                        </View>
+                    </View>
+                </MaterialCard>
+            </View>
+
+            <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
+                <MaterialCard title="Team consensus" noMargin>
+                    <View>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 6 }]}>Before going into the field, the team should have a consensus on:</Text>
+                        <View style={styles.staarContainer}>
+                            <Text style={textStyle.bodyMedium}>• General risk level of the mission</Text>
+                            <Text style={textStyle.bodyMedium}>• Mitigations and controls</Text>
+                            <Text style={textStyle.bodyMedium}>• Risk vs Gain</Text>
+                            <Text style={textStyle.bodyMedium}>• <Text style={{ fontWeight: 'bold' }}>Go / No Go Decision</Text></Text>
+                        </View>
+                    </View>
+                </MaterialCard>
+            </View>
+        </ScrollView>
+    );
+
+    if (!explicitLanguageSet) {
+        return (
+            <View style={styles.container}>
+                <RiskHeader title="PEAACE model" score={0} subtitle="Select a language to continue" complete={false} />
+                <RiskModal isVisible={true} title="Choose PEAACE language" onClose={() => router.back()}>
+                    <View style={{ paddingBottom: 8, paddingHorizontal: 4, gap: 10 }}>
+                        <Text style={{ color: colorTheme.onSurface, marginBottom: 15 }}>Different agencies use different definitions. You can change this later in Settings.</Text>
+                        <BannerGroup marginHorizontal={0}>
+                            <Banner backgroundColor={colorTheme.surfaceContainerLow} color={colorTheme.onSurfaceVariant} icon={<Ionicons name="walk" size={24} color={colorTheme.onSurfaceVariant} />} title="NASAR" onPress={() => updateLanguage('nasar')} />
+                            <Banner backgroundColor={colorTheme.surfaceContainerLow} color={colorTheme.onSurfaceVariant} icon={<Ionicons name="boat" size={24} color={colorTheme.onSurfaceVariant} />} title="USCG Ashore" onPress={() => updateLanguage('uscg')} />
+                        </BannerGroup>
+                    </View>
+                </RiskModal>
+            </View>
+        )
+    }
+
+    return (
+        <View style={styles.container}>
+            <RiskHeader
+                sharedTransitionTag="sectionTitle"
+                title="PEAACE Tool"
+                subtitle={isDone ? (gain ? "Review mitigations and controls to make a go/no go decision" : "Select gain to complete analysis") : "Start by assigning each element a risk score"}
+                riskText={combinedResult.label}
+                riskColor={combinedResult.color}
+                complete={isDone}
+                menu={isDone && <ShareButton title="PEAACE results" content={getShareContent()} color="#ffffff" />}
+            />
+
+            {isLargeScreen ? (
+                <View style={{ flexDirection: 'row', flex: 1, justifyContent: "center", gap: 20 }}>
+                    <View style={{ backgroundColor: colorTheme.surfaceContainerLow, paddingHorizontal: 25 }}>
+                        <Text style={[textStyle.headlineSmall, { paddingVertical: 16 }]}>Risk Identification</Text>
+                        {RiskView}
+                    </View>
+                    <View style={{ backgroundColor: colorTheme.surfaceContainerLow, paddingHorizontal: 25 }}>
+                        {GainView}
+                    </View>
+                </View>
+            ) : (
+                <TabContainer
+                    items={[
+                        { id: 'risk', label: 'Risk', icon: 'list', content: RiskView },
+                        { id: 'gain', label: 'Gain Assessment', icon: 'grid', content: GainView }
+                    ]}
+                    selectedId={activeTab}
+                    onSelect={handleTabSelect}
                 />
+            )}
+
+            {/* Risk Assignment Modal */}
+            <RiskModal isVisible={isModalVisible} title={entries[selectedEntry]?.title} onClose={() => setIsModalVisible(false)}>
+                <RiskInput item={entries[selectedEntry]} mode={inputMode} onChangeValue={onChangeValue} language={language} isAdvancing={isAdvancing} />
+            </RiskModal>
+
+            {/* Gain Assignment Modal */}
+            <RiskModal isVisible={isGainModalVisible} title="Rate Gain" onClose={() => setIsGainModalVisible(false)}>
+                <GainInput onSelect={handleGainSelect} currentGain={gain} />
             </RiskModal>
         </View>
     );
 }
 
-const getStyles = (colorTheme) => {
+function GainInput({ onSelect, currentGain }) {
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
+    const options = [
+        { value: 'Low', label: 'Low Gain', desc: 'Routine training, PR, property recovery or evidence search. Use for low-risk conditions only.' },
+        { value: 'Medium', label: 'Medium Gain', desc: 'Stable patient or environment, noncritical injury or protecting significant property.' },
+        { value: 'High', label: 'High Gain', desc: 'Lifesaving opportunity, immediate threat to life or preventing permanent injury.' }
+    ];
 
-    return StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: colorTheme.background,
-            height: '100%'
-        },
-        containerWeb: {
-            flex: 1,
-            backgroundColor: colorTheme.background,
-            height: '100%',
-        },
-        warningBar: {
-            flexDirection: 'row',
-            gap: 10,
-            paddingHorizontal: 20,
-            paddingVertical: 10,
-            backgroundColor: colorTheme.tertiaryFixed,
-            alignItems: 'center'
-        },
-        warningText: {
-            flex: -1,
-            color: colorTheme.onTertiaryFixed,
-            flexShrink: 1
-        },
-        bottomBar: {
-            position: "absolute",
-            bottom: 30, // Distance from the bottom of the screen
-            right: 20,  // Distance from the right edge
-            // Remove backgroundColor if you want it to be invisible/floating
-            // backgroundColor: 'transparent',
-
-            // Elevation (Shadows)
-            ...Platform.select({
-                ios: {
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 4.65,
-                },
-                android: {
-                    elevation: 8,
-                },
-            }),
-        }
-    });
+    return (
+        <View style={{ gap: 16 }}>
+            <Text style={[textStyle.bodyMedium]}>Select the potential level of gain for this task</Text>
+            <BannerGroup marginHorizontal={0}>
+                {options.map((opt) => (
+                    <Banner
+                        key={opt.value}
+                        backgroundColor={currentGain === opt.value ? colorTheme.primaryContainer : colorTheme.surfaceContainerLow}
+                        color={colorTheme.onSurface}
+                        icon={<Ionicons name={currentGain === opt.value ? "radio-button-on" : "radio-button-off"} size={24} color={colorTheme.primary} />}
+                        title={<><Text style={{ fontWeight: 'bold' }}>{opt.label}</Text>: {opt.desc}</>}
+                        onPress={() => onSelect(opt.value)}
+                    />
+                ))}
+            </BannerGroup>
+        </View>
+    );
 }
+
+const getStyles = (colorTheme, isLargeScreen) => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colorTheme.background,
+        height: '100%'
+    },
+    staarContainer: {
+        marginLeft: 10,
+        marginTop: 4
+    },
+});
 
 function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
@@ -275,53 +426,19 @@ function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
     const textStyle = textStyles(colorTheme, width);
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
-    const handlePressIn = () => {
-        Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true, speed: 20 }).start();
-    };
-
-    const handlePressOut = () => {
-        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
-    };
-
+    const handlePressIn = () => { Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true, speed: 20 }).start(); };
+    const handlePressOut = () => { Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start(); };
     const styles = getRiskInputStyles(colorTheme);
-
     const baseBorderColor = colorTheme.outlineVariant;
     const baseBgColor = colorTheme.surfaceContainerHigh;
     const selectedBg = activeColor ? getHoverColor(activeColor, 0.15) : colorTheme.secondaryContainer;
     const selectedBorder = activeColor || colorTheme.primary;
 
     return (
-        <Animated.View style={[
-            styles.emojiButton,
-            {
-                backgroundColor: selected ? selectedBg : baseBgColor,
-                borderColor: selected ? selectedBorder : baseBorderColor,
-                borderWidth: 2,
-                transform: [{ scale: scaleAnim }]
-            }
-        ]}>
-            <Pressable
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                onPress={onPress}
-                android_ripple={{ color: colorTheme.surfaceContainerHighest, borderless: false }}
-                style={styles.emojiPressable}
-            >
-                <Text
-                    style={styles.emoji}
-                    allowFontScaling={false}
-                >
-                    {emoji}
-                </Text>
-                <Text style={[
-                    textStyle.labelLarge,
-                    styles.emojiLabel,
-                    {
-                        color: colorTheme.onSurface,
-                        fontWeight: selected ? '600' : '400',
-                        opacity: selected ? 1 : 0.7
-                    }
-                ]}>{label}</Text>
+        <Animated.View style={[styles.emojiButton, { backgroundColor: selected ? selectedBg : baseBgColor, borderColor: selected ? selectedBorder : baseBorderColor, borderWidth: 2, transform: [{ scale: scaleAnim }] }]}>
+            <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={onPress} android_ripple={{ color: colorTheme.surfaceContainerHighest, borderless: false }} style={styles.emojiPressable}>
+                <Text style={styles.emoji} allowFontScaling={false}>{emoji}</Text>
+                <Text style={[textStyle.labelLarge, styles.emojiLabel, { color: colorTheme.onSurface, fontWeight: selected ? '400' : '400', opacity: selected ? 1 : 0.7 }]}>{label}</Text>
             </Pressable>
         </Animated.View>
     );
@@ -332,30 +449,14 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
     const styles = getRiskInputStyles(colorTheme);
     const { width } = useWindowDimensions();
     const textStyle = textStyles(colorTheme, width);
-
-    // Unified animation value: 1 = visible, 0 = advancing (out)
     const anim = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
-        Animated.timing(anim, {
-            toValue: isAdvancing ? 0 : 1,
-            duration: isAdvancing ? 150 : 250,
-            useNativeDriver: true,
-        }).start();
-
-        // If we've just landed on a new item, ensure we start from the "bottom"
-        if (!isAdvancing) {
-            // We can't easily reset an interpolated value mid-animation without logic,
-            // but for this simple snappy transition, the timing block above is sufficient.
-        }
+        Animated.timing(anim, { toValue: isAdvancing ? 0 : 1, duration: isAdvancing ? 150 : 250, useNativeDriver: true }).start();
     }, [isAdvancing, item.title]);
 
     const opacity = anim;
-    const translateY = anim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [isAdvancing ? -8 : 10, 0]
-    });
-
+    const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [isAdvancing ? -8 : 10, 0] });
     const options = language === 'nasar' ? [
         { value: 1, emoji: '👍', label: 'Low Risk', desc: 'Minimal concern' },
         { value: 2, emoji: '✊', label: 'Medium Risk', desc: 'Caution warranted' },
@@ -367,15 +468,8 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
     ];
 
     return (
-        <Animated.View
-            renderToHardwareTextureAndroid={true}
-            style={[
-                styles.container,
-                { opacity, transform: [{ translateY }] }
-            ]}
-        >
+        <Animated.View renderToHardwareTextureAndroid={true} style={[styles.container, { opacity, transform: [{ translateY }] }]}>
             <Text style={textStyle.bodyMedium}>{item.subtitle}</Text>
-
             <View style={styles.inputContainer}>
                 {mode === 'emoji' ? (
                     <View style={styles.emojiRow}>
@@ -384,30 +478,15 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
                             if (opt.value === 1) activeColor = colorTheme.garGreenDark;
                             else if (opt.value === 2) activeColor = colorTheme.garAmberDark;
                             else if (opt.value === 3) activeColor = colorTheme.garRedDark;
-
                             return (
-                                <EmojiButton
-                                    key={opt.value}
-                                    emoji={opt.emoji}
-                                    label={opt.label}
-                                    selected={item.score === opt.value}
-                                    activeColor={activeColor}
-                                    onPress={() => onChangeValue(opt.value, "")}
-                                />
+                                <EmojiButton key={opt.value} emoji={opt.emoji} label={opt.label} selected={item.score === opt.value} activeColor={activeColor} onPress={() => onChangeValue(opt.value, "")} />
                             )
                         })}
                     </View>
                 ) : (
                     <BannerGroup marginHorizontal={0}>
                         {options.map((opt) => (
-                            <Banner
-                                key={opt.value}
-                                backgroundColor={item.score === opt.value ? colorTheme.primaryContainer : colorTheme.surfaceContainerLow}
-                                color={colorTheme.onSurface}
-                                icon={<Text style={{ fontSize: 20 }}>{opt.emoji}</Text>}
-                                title={<><Text style={{ fontWeight: 'bold' }}>{opt.label}</Text>: {opt.desc}</>}
-                                onPress={() => onChangeValue(opt.value, opt.label)}
-                            />
+                            <Banner key={opt.value} backgroundColor={item.score === opt.value ? colorTheme.primaryContainer : colorTheme.surfaceContainerLow} color={colorTheme.onSurface} icon={<Text style={{ fontSize: 20 }}>{opt.emoji}</Text>} title={<><Text style={{ fontWeight: 'bold' }}>{opt.label}</Text>: {opt.desc}</>} onPress={() => onChangeValue(opt.value, opt.label)} />
                         ))}
                     </BannerGroup>
                 )}
@@ -416,50 +495,12 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
     );
 }
 
-const getRiskInputStyles = (colorTheme) => {
-
-    return StyleSheet.create({
-        container: {
-            paddingBottom: 8, // Give the button shadow some "room" inside the animated view
-            paddingHorizontal: 4, // Prevents side-shadow clipping
-        },
-        inputContainer: {
-            marginTop: 10
-        },
-        emojiRow: {
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            gap: 10
-        },
-        emojiButton: {
-            height: 125,
-            borderRadius: 50,
-            flexBasis: 0,
-            flexGrow: 1,
-            // Removed overflow:hidden on Android to prevent ripple/shadow clipping glitches
-            backgroundColor: colorTheme.surfaceContainerHigh,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.1,
-            shadowRadius: 3,
-            elevation: 1,
-        },
-        emojiPressable: {
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 10,
-            borderRadius: 50, // Ensure ripple/press state stays circular
-        },
-        emoji: {
-            fontSize: 40,
-            marginBottom: 5,
-            textAlign: 'center',
-            backgroundColor: 'transparent', // Android stability fix
-        },
-        emojiLabel: {
-            fontSize: 12,
-            textAlign: 'center'
-        },
-    });
-}
+const getRiskInputStyles = (colorTheme) => StyleSheet.create({
+    container: { paddingBottom: 8, paddingHorizontal: 4 },
+    inputContainer: { marginTop: 10 },
+    emojiRow: { flexDirection: 'row', justifyContent: 'space-around', gap: 10 },
+    emojiButton: { height: 125, borderRadius: 50, flexBasis: 0, flexGrow: 1, backgroundColor: colorTheme.surfaceContainerHigh, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 1 },
+    emojiPressable: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 10, borderRadius: 50 },
+    emoji: { fontSize: 40, marginBottom: 5, textAlign: 'center', backgroundColor: 'transparent' },
+    emojiLabel: { fontSize: 12, textAlign: 'center' },
+});

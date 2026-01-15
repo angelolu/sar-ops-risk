@@ -195,6 +195,7 @@ function HelpInfo({ subject }) {
     const { width } = useWindowDimensions();
     const textStyle = textStyles(colorTheme, width);
     const styles = getRiskStyles(colorTheme);
+
     if (subject === "overview") return (
         <View style={styles.content}>
             <View style={styles.section}>
@@ -251,11 +252,11 @@ function HelpInfo({ subject }) {
             </View>
             <View style={styles.section}>
                 <Text style={textStyle.titleLarge}>How</Text>
-                <Text style={textStyle.bodyMedium}>Use this app, the NPS Risk app, or the GAR worksheet on the IAP (if the search is organized by CALSAR) to complete the "individual" or "finger" methods.</Text>
+                <Text style={textStyle.bodyMedium}>Use this app, the NPS Risk app, or the GAR worksheet on the IAP (if the search is organized by CALSAR) to complete the <Text style={{ fontWeight: 'bold' }}>Individual method</Text> or <Text style={{ fontWeight: 'bold' }}>Finger method</Text>.</Text>
                 <Image source={ORMAOptions} style={[styles.image, { aspectRatio: 863 / 540 }]} />
-                <Text style={textStyle.bodyMedium}>Individual method:</Text>
+                <Text style={[textStyle.bodyMedium, { fontWeight: 'bold' }]}>Individual method:</Text>
                 <Text style={textStyle.bodyMedium}>All team members complete the assessment individually, then come together to discuss concerns and mitigations. This works best if every member of the team has this app.</Text>
-                <Text style={[textStyle.bodyMedium, { marginTop: 8 }]}>Finger method:</Text>
+                <Text style={[textStyle.bodyMedium, { marginTop: 8, fontWeight: 'bold' }]}>Finger method:</Text>
                 <Text style={textStyle.bodyMedium}>1. Team leader reads each section out loud, including the description.</Text>
                 <Text style={textStyle.bodyMedium}>2. Each member decides on their score in their head.</Text>
                 <Text style={textStyle.bodyMedium}>3. Team leader asks everyone to throw up their scores on their fingers.</Text>
@@ -326,8 +327,8 @@ function HelpInfo({ subject }) {
             </View>
             <View style={styles.section}>
                 <Text style={textStyle.titleLarge}>How</Text>
-                <Text style={textStyle.bodyMedium}>The team leader should use the "finger" method. Input from less experienced members should be prioritized.</Text>
-                <Text style={textStyle.bodyMedium}>Finger method:</Text>
+                <Text style={textStyle.bodyMedium}>The team leader should use the <Text style={{ fontWeight: 'bold' }}>Finger method</Text>. Input from less experienced members should be prioritized.</Text>
+                <Text style={[textStyle.bodyMedium, { fontWeight: 'bold' }]}>Finger method:</Text>
                 <Text style={textStyle.bodyMedium}>1. Team leader reads each section out loud, including the description from the worksheet or app.</Text>
                 <Text style={textStyle.bodyMedium}>2. Each member decides on their score in their head</Text>
                 <Text style={textStyle.bodyMedium}>3. Team leader asks everyone to throw up their scores on their fingers</Text>
@@ -477,9 +478,10 @@ const getRiskStyles = (colorTheme) => {
             gap: 6
         },
         image: {
-            height: undefined,
+            height: "auto",
             width: "100%",
-            resizeMode: 'contain',
+            resizeMode: 'stretch',
+            marginBottom: "10px"
         },
     });
 }
