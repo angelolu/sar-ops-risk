@@ -75,6 +75,12 @@ Object.defineProperty(exports, "ShareButton", {
     return _ShareButton.ShareButton;
   }
 });
+Object.defineProperty(exports, "TabContainer", {
+  enumerable: true,
+  get: function get() {
+    return _TabContainer.TabContainer;
+  }
+});
 Object.defineProperty(exports, "ThemeContext", {
   enumerable: true,
   get: function get() {
@@ -122,3 +128,4 @@ var _ShareButton = require("./ShareButton");
 var _styles = require("./styles");
 var _ThemeContext = require("./ThemeContext");
 var _Tile = require("./Tile");
+var _TabContainer = require("./TabContainer");

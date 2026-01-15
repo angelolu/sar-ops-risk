@@ -10,5 +10,7 @@ import { textStyles } from './styles'
 import { ThemeContext, ThemeProvider } from './ThemeContext'
 import { HorizontalTileGroup, Tile, VerticalTile, VerticalTileGroup } from './Tile'
 
-export { BackHeader, Banner, BannerGroup, BrandingBar, FilledButton, Header, HorizontalTileGroup, IconButton, MaterialCard, RiskModal, SegmentedButtons, ShareButton, textStyles, ThemeContext, ThemeProvider, Tile, VerticalTile, VerticalTileGroup }
+import { TabContainer } from './TabContainer'
+
+export { BackHeader, Banner, BannerGroup, BrandingBar, FilledButton, Header, HorizontalTileGroup, IconButton, MaterialCard, RiskModal, SegmentedButtons, ShareButton, TabContainer, textStyles, ThemeContext, ThemeProvider, Tile, VerticalTile, VerticalTileGroup }
 
