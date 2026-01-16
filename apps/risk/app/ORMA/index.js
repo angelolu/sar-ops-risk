@@ -126,7 +126,7 @@ export default function orma() {
         const itemColors = getItemResult(value);
         setEntries(entries.map((entry, idx) =>
             idx === selectedEntry
-                ? { ...entry, score: value, containerColor: itemColors.containerColor, color: itemColors.contentColor || entry.color }
+                ? { ...entry, score: value, backgroundColor: itemColors.backgroundColor, color: itemColors.color || entry.color }
                 : entry
         ));
     };

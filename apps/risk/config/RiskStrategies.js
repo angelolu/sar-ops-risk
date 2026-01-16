@@ -44,14 +44,14 @@ export const SPE_CONFIG = {
     },
 
     itemEvaluator: (score) => {
-        if (!score) return {};
-        // Item colors based on score
-        if (score === 1) return { containerColorToken: 'garGreenLight', contentColorToken: 'garGreenDarkContrast' }; // #b9f0b8, #002107
-        if (score === 2) return { containerColorToken: 'garAmberLight', contentColorToken: 'garAmberDarkContrast' }; // #ffdeae, #281900
-        if (score === 3) return { containerColorToken: 'garAmberLight', contentColorToken: 'garAmberDarkContrast' }; // #ffdeae, #281900
-        if (score === 4) return { containerColorToken: 'garRedLight', contentColorToken: 'garRedDarkContrast' };     // #ffdad6, #410002
-        if (score === 5) return { containerColorToken: 'garRedContainer', contentColorToken: 'garRedContainerContrast' }; // #ffb4ab, #690005
-        return { containerColorToken: 'surfaceVariant', contentColorToken: 'onSurfaceVariant' };
+        if (!score) return { backgroundColor: '#454840', color: '#f0f2ea' }; // Default neutral
+        // 5-Color Scale for SPE with explicit High Contrast colors
+        if (score === 1) return { backgroundColor: '#b9f0b8', color: '#002107' }; // Green
+        if (score === 2) return { backgroundColor: '#f0e68c', color: '#281900' }; // Lime -> Khaki
+        if (score === 3) return { backgroundColor: '#ffdeae', color: '#281900' }; // Amber
+        if (score === 4) return { backgroundColor: '#ffb59c', color: '#410002' }; // Orange
+        if (score === 5) return { backgroundColor: '#ff897d', color: '#410002' }; // Red
+        return { backgroundColor: '#454840', color: '#f0f2ea' };
     }
 };
 
@@ -89,13 +89,13 @@ export const ORMA_CONFIG = {
         if (!score) return {};
         // Item colors based on score ranges
         if (score >= 1 && score <= 4) {
-            return { containerColorToken: 'garGreenDark', contentColorToken: 'white' };
+            return { backgroundColor: 'garGreenDark', color: 'white' };
         } else if (score >= 5 && score <= 7) {
-            return { containerColorToken: 'garAmberDark', contentColorToken: 'black' };
+            return { backgroundColor: 'garAmberDark', color: 'black' };
         } else if (score >= 8 && score <= 10) {
-            return { containerColorToken: 'garRedDark', contentColorToken: 'white' };
+            return { backgroundColor: 'garRedDark', color: 'white' };
         } else {
-            return { containerColorToken: 'surfaceVariant', contentColorToken: 'onSurfaceVariant' };
+            return { backgroundColor: 'surfaceVariant', color: 'onSurfaceVariant' };
         }
     }
 };
@@ -135,10 +135,10 @@ export const PEACE_USCG_ASHORE_CONFIG = {
 
     itemEvaluator: (score) => {
         if (!score) return {};
-        if (score === 1) return { containerColorToken: 'garGreenLight', contentColorToken: 'garGreenDarkContrast' };
-        if (score === 2) return { containerColorToken: 'garAmberLight', contentColorToken: 'garAmberDarkContrast' };
-        if (score === 3) return { containerColorToken: 'garRedLight', contentColorToken: 'garRedDarkContrast' };
-        return { containerColorToken: 'surfaceVariant', contentColorToken: 'onSurfaceVariant' };
+        if (score === 1) return { backgroundColor: 'garGreenLight', color: 'garGreenDarkContrast' };
+        if (score === 2) return { backgroundColor: 'garAmberLight', color: 'garAmberDarkContrast' };
+        if (score === 3) return { backgroundColor: 'garRedLight', color: 'garRedDarkContrast' };
+        return { backgroundColor: 'surfaceVariant', color: 'onSurfaceVariant' };
     },
 
     settings: {

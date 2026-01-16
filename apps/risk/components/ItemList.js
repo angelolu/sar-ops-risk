@@ -20,7 +20,7 @@ export default function ItemList({ items, onSelect = () => { } }) {
                     title={item.title}
                     subtitle={item.subtitle}
                     score={item.score}
-                    backgroundColor={item?.containerColor}
+                    backgroundColor={item?.backgroundColor}
                     color={item?.color}
                     description={item?.description}
                     first={index === 0}

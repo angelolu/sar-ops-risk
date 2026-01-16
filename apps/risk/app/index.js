@@ -88,8 +88,6 @@ export default function App() {
                 contentContainerStyle={styles.mainScroll}>
                 {Platform.OS === 'web' && <WebDownloadBanner />}
                 <MaterialCard
-                    marginLeft={20}
-                    marginRight={20}
                     title="Operational Risk Management Analysis (ORMA)"
                     subtitle="Use before the team enters the field. Considers all factors of a team’s participation in an event.">
                     <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
@@ -98,8 +96,6 @@ export default function App() {
                     </View>
                 </MaterialCard>
                 <MaterialCard
-                    marginLeft={20}
-                    marginRight={20}
                     title="PEAACE"
                     subtitle="Quickly identify risks before and during a mission." >
                     <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
@@ -108,8 +104,6 @@ export default function App() {
                     </View>
                 </MaterialCard>
                 <MaterialCard
-                    marginLeft={20}
-                    marginRight={20}
                     title="Severity, Probability, Exposure (SPE)"
                     subtitle="Use to categorize a specific risk when the situation in the field changes." >
                     <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
@@ -252,7 +246,7 @@ function HelpInfo({ subject }) {
             </View>
             <View style={styles.section}>
                 <Text style={textStyle.titleLarge}>How</Text>
-                <Text style={textStyle.bodyMedium}>Use this app, the NPS Risk app, or the GAR worksheet on the IAP (if the search is organized by CALSAR) to complete the <Text style={{ fontWeight: 'bold' }}>Individual method</Text> or <Text style={{ fontWeight: 'bold' }}>Finger method</Text>.</Text>
+                <Text style={textStyle.bodyMedium}>Use this app or the worksheet in the IAP (if provided) to complete the <Text style={{ fontWeight: 'bold' }}>Individual method</Text> or <Text style={{ fontWeight: 'bold' }}>Finger method</Text>.</Text>
                 <Image source={ORMAOptions} style={[styles.image, { aspectRatio: 863 / 540 }]} />
                 <Text style={[textStyle.bodyMedium, { fontWeight: 'bold' }]}>Individual method:</Text>
                 <Text style={textStyle.bodyMedium}>All team members complete the assessment individually, then come together to discuss concerns and mitigations. This works best if every member of the team has this app.</Text>
@@ -343,32 +337,32 @@ function HelpInfo({ subject }) {
                     <Banner
                         backgroundColor='#b9f0b8'
                         color='#002107'
-                        icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
-                        title={<><Text style={textStyle.titleMedium}>None or Slight</Text>: Discomfort or nuisance.</>}
+                        icon={<Ionicons name="checkmark-circle" size={24} color="#002107" />}
+                        title={<><Text style={{ fontWeight: 'bold', color: '#002107' }}>None or Slight</Text>: Discomfort or nuisance.</>}
+                    />
+                    <Banner
+                        backgroundColor='#f0e68c'
+                        color='#281900'
+                        icon={<Ionicons name="bandage" size={24} color="#281900" />}
+                        title={<><Text style={{ fontWeight: 'bold', color: '#281900' }}>Minimal</Text>: First aid required.</>}
                     />
                     <Banner
                         backgroundColor='#ffdeae'
                         color='#281900'
-                        icon={<Ionicons name="heart-circle" size={24} color="#281900" />}
-                        title={<><Text style={textStyle.titleMedium}>Minimal</Text>: First aid required.</>}
+                        icon={<Ionicons name="warning" size={24} color="#281900" />}
+                        title={<><Text style={{ fontWeight: 'bold', color: '#281900' }}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>}
                     />
                     <Banner
-                        backgroundColor='#ffdeae'
-                        color='#281900'
-                        icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
-                        title={<><Text style={textStyle.titleMedium}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>}
-                    />
-                    <Banner
-                        backgroundColor='#ffdad6'
+                        backgroundColor='#ffb59c'
                         color='#410002'
-                        icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
-                        title={<><Text style={textStyle.titleMedium}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>}
+                        icon={<Ionicons name="alert-circle" size={24} color="#410002" />}
+                        title={<><Text style={{ fontWeight: 'bold', color: '#410002' }}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>}
                     />
                     <Banner
-                        backgroundColor='#ffb4ab'
-                        color='#690005'
-                        icon={<Ionicons name="close-circle" size={24} color="#690005" />}
-                        title={<><Text style={textStyle.titleMedium}>Catastrophic</Text>: Death or permanent disability.</>}
+                        backgroundColor='#ff897d'
+                        color='#410002'
+                        icon={<Ionicons name="skull" size={24} color="#410002" />}
+                        title={<><Text style={{ fontWeight: 'bold', color: '#410002' }}>Catastrophic</Text>: Death or permanent disability.</>}
                     />
                 </BannerGroup>
                 <Text style={textStyle.bodyMedium}>Probability is scored on a scale of 1-5.</Text>
@@ -377,26 +371,26 @@ function HelpInfo({ subject }) {
                     <Banner
                         backgroundColor='#b9f0b8'
                         color='#002107'
-                        icon={<Ionicons name="remove-circle" size={24} color="#002107" />}
-                        title={<><Text style={textStyle.titleMedium}>None or below average</Text>: One member of the team exposed for a short time.</>}
+                        icon={<Ionicons name="checkmark-circle" size={24} color="#002107" />}
+                        title={<><Text style={{ fontWeight: 'bold', color: '#002107' }}>None or below average</Text>: One member of the team exposed for a short time.</>}
+                    />
+                    <Banner
+                        backgroundColor='#f0e68c'
+                        color='#281900'
+                        icon={<Ionicons name="people" size={24} color="#281900" />}
+                        title={<><Text style={{ fontWeight: 'bold', color: '#281900' }}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>}
                     />
                     <Banner
                         backgroundColor='#ffdeae'
                         color='#281900'
-                        icon={<Ionicons name="alert-circle" size={24} color="#281900" />}
-                        title={<><Text style={textStyle.titleMedium}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>}
+                        icon={<Ionicons name="timer" size={24} color="#281900" />}
+                        title={<><Text style={{ fontWeight: 'bold', color: '#281900' }}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>}
                     />
                     <Banner
-                        backgroundColor='#ffdad6'
+                        backgroundColor='#ffb59c'
                         color='#410002'
-                        icon={<Ionicons name="stop-circle" size={24} color="#410002" />}
-                        title={<><Text style={textStyle.titleMedium}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>}
-                    />
-                    <Banner
-                        backgroundColor='#ffb4ab'
-                        color='#690005'
-                        icon={<Ionicons name="close-circle" size={24} color="#690005" />}
-                        title={<><Text style={textStyle.titleMedium}>Great</Text>: Long or repeated exposure to multiple team members.</>}
+                        icon={<Ionicons name="warning" size={24} color="#410002" />}
+                        title={<><Text style={{ fontWeight: 'bold', color: '#410002' }}>Great</Text>: Long or repeated exposure to multiple team members.</>}
                     />
                 </BannerGroup>
             </View>

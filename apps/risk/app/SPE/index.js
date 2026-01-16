@@ -40,7 +40,7 @@ export default function SPE() {
         const itemColors = getItemResult(value);
         setEntries(entries.map((entry, idx) =>
             idx === selectedEntry
-                ? { ...entry, score: value, containerColor: itemColors.containerColor, color: itemColors.contentColor, description }
+                ? { ...entry, score: value, backgroundColor: itemColors.backgroundColor, color: itemColors.color, description }
                 : entry
         ));
 
@@ -49,13 +49,13 @@ export default function SPE() {
             // Snap to selection faster (150ms), then begin movement
             setTimeout(() => {
                 setIsAdvancing(true);
-            }, 150);
+            }, 100);
 
-            // Overall cycle time 550ms for consistency with PEACE
+            // Overall cycle time 350ms for consistency with PEACE
             setTimeout(() => {
                 setSelectedEntry(selectedEntry + 1);
                 setIsAdvancing(false);
-            }, 550);
+            }, 350);
         } else {
             // Last item - close immediately without animation
             setIsModalVisible(false);
@@ -183,108 +183,108 @@ function RiskInput({ selected, entries, onChangeValue, isAdvancing }) {
             <Text style={textStyle.bodyMedium}>{item.subtitle}</Text>
             {item.title === "Severity" && <BannerGroup marginHorizontal={0}>
                 <Banner
-                    backgroundColor={item.score === 1 ? '#b9f0b8' : disabledBackgroundColor}
-                    color={item.score === 1 ? '#002107' : disabledColor}
-                    icon={<Ionicons name="remove-circle" size={24} color={item.score === 1 ? '#002107' : disabledColor} />}
+                    backgroundColor={item.score === 1 ? SPE_CONFIG.itemEvaluator(1).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 1 ? SPE_CONFIG.itemEvaluator(1).color : disabledColor}
+                    icon={<Ionicons name="checkmark-circle" size={24} color={item.score === 1 ? SPE_CONFIG.itemEvaluator(1).color : disabledColor} />}
                     title={<><Text style={item.score === 1 && { fontWeight: 'bold' }}>None or Slight</Text>: Discomfort or nuisance.</>}
-                    onPress={() => { onChangeValue(1, <><Text style={item.score === 1 && { fontWeight: 'bold' }}>None or Slight</Text>: Discomfort or nuisance.</>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(1, <><Text style={{ fontWeight: 'bold' }}>None or Slight</Text>: Discomfort or nuisance.</>) }}
                 />
                 <Banner
-                    backgroundColor={item.score === 2 ? '#ffdeae' : disabledBackgroundColor}
-                    color={item.score === 2 ? '#281900' : disabledColor}
-                    icon={<Ionicons name="heart-circle" size={24} color={item.score === 2 ? '#281900' : disabledColor} />}
+                    backgroundColor={item.score === 2 ? SPE_CONFIG.itemEvaluator(2).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 2 ? SPE_CONFIG.itemEvaluator(2).color : disabledColor}
+                    icon={<Ionicons name="bandage" size={24} color={item.score === 2 ? SPE_CONFIG.itemEvaluator(2).color : disabledColor} />}
                     title={<><Text style={item.score === 2 && { fontWeight: 'bold' }}>Minimal</Text>: First aid required.</>}
-                    onPress={() => { onChangeValue(2, <><Text style={item.score === 2 && { fontWeight: 'bold' }}>Minimal</Text>: First aid required.</>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(2, <><Text style={{ fontWeight: 'bold' }}>Minimal</Text>: First aid required.</>) }}
                 />
                 <Banner
-                    backgroundColor={item.score === 3 ? '#ffdeae' : disabledBackgroundColor}
-                    color={item.score === 3 ? '#281900' : disabledColor}
-                    icon={<Ionicons name="alert-circle" size={24} color={item.score === 3 ? '#281900' : disabledColor} />}
+                    backgroundColor={item.score === 3 ? SPE_CONFIG.itemEvaluator(3).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 3 ? SPE_CONFIG.itemEvaluator(3).color : disabledColor}
+                    icon={<Ionicons name="warning" size={24} color={item.score === 3 ? SPE_CONFIG.itemEvaluator(3).color : disabledColor} />}
                     title={<><Text style={item.score === 3 && { fontWeight: 'bold' }}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>}
-                    onPress={() => { onChangeValue(3, <><Text style={item.score === 3 && { fontWeight: 'bold' }}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(3, <><Text style={{ fontWeight: 'bold' }}>Significant</Text>: IWI/searcher leaves the field early (e.g., urgent care type of medical visit).</>) }}
                 />
                 <Banner
-                    backgroundColor={item.score === 4 ? '#ffdad6' : disabledBackgroundColor}
-                    color={item.score === 4 ? '#410002' : disabledColor}
-                    icon={<Ionicons name="stop-circle" size={24} color={item.score === 4 ? '#410002' : disabledColor} />}
+                    backgroundColor={item.score === 4 ? SPE_CONFIG.itemEvaluator(4).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 4 ? SPE_CONFIG.itemEvaluator(4).color : disabledColor}
+                    icon={<Ionicons name="alert-circle" size={24} color={item.score === 4 ? SPE_CONFIG.itemEvaluator(4).color : disabledColor} />}
                     title={<><Text style={item.score === 4 && { fontWeight: 'bold' }}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>}
-                    onPress={() => { onChangeValue(4, <><Text style={item.score === 4 && { fontWeight: 'bold' }}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(4, <><Text style={{ fontWeight: 'bold' }}>Major</Text>: IWI with &gt; 1 week recovery (e.g., emergency room type of medical visit).</>) }}
                 />
                 <Banner
-                    backgroundColor={item.score === 5 ? '#ffb4ab' : disabledBackgroundColor}
-                    color={item.score === 5 ? '#690005' : disabledColor}
-                    icon={<Ionicons name="close-circle" size={24} color={item.score === 5 ? '#690005' : disabledColor} />}
+                    backgroundColor={item.score === 5 ? SPE_CONFIG.itemEvaluator(5).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 5 ? SPE_CONFIG.itemEvaluator(5).color : disabledColor}
+                    icon={<Ionicons name="skull" size={24} color={item.score === 5 ? SPE_CONFIG.itemEvaluator(5).color : disabledColor} />}
                     title={<><Text style={item.score === 5 && { fontWeight: 'bold' }}>Catastrophic</Text>: Death or permanent disability.</>}
-                    onPress={() => { onChangeValue(5, <><Text style={item.score === 5 && { fontWeight: 'bold' }}>Catastrophic</Text>: Death or permanent disability.</>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(5, <><Text style={{ fontWeight: 'bold' }}>Catastrophic</Text>: Death or permanent disability.</>) }}
                 />
             </BannerGroup>}
             {item.title === "Probability" && <BannerGroup marginHorizontal={0}>
                 <Banner
-                    backgroundColor={item.score === 1 ? '#b9f0b8' : disabledBackgroundColor}
-                    color={item.score === 1 ? '#002107' : disabledColor}
-                    icon={<Ionicons name="remove-circle" size={24} color={item.score === 1 ? '#002107' : disabledColor} />}
+                    backgroundColor={item.score === 1 ? SPE_CONFIG.itemEvaluator(1).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 1 ? SPE_CONFIG.itemEvaluator(1).color : disabledColor}
+                    icon={<Ionicons name="checkmark-circle" size={24} color={item.score === 1 ? SPE_CONFIG.itemEvaluator(1).color : disabledColor} />}
                     title={<><Text style={item.score === 1 && { fontWeight: 'bold' }}>Impossible/Remote</Text></>}
-                    onPress={() => { onChangeValue(1, <><Text style={item.score === 1 && { fontWeight: 'bold' }}>Impossible/Remote</Text></>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(1, <><Text style={{ fontWeight: 'bold' }}>Impossible/Remote</Text></>) }}
                 />
                 <Banner
-                    backgroundColor={item.score === 2 ? '#ffdeae' : disabledBackgroundColor}
-                    color={item.score === 2 ? '#281900' : disabledColor}
-                    icon={<Ionicons name="heart-circle" size={24} color={item.score === 2 ? '#281900' : disabledColor} />}
+                    backgroundColor={item.score === 2 ? SPE_CONFIG.itemEvaluator(2).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 2 ? SPE_CONFIG.itemEvaluator(2).color : disabledColor}
+                    icon={<Ionicons name="thumbs-up" size={24} color={item.score === 2 ? SPE_CONFIG.itemEvaluator(2).color : disabledColor} />}
                     title={<><Text style={item.score === 2 && { fontWeight: 'bold' }}>Unlikely under normal conditions</Text></>}
-                    onPress={() => { onChangeValue(2, <><Text style={item.score === 2 && { fontWeight: 'bold' }}>Unlikely under normal conditions</Text></>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(2, <><Text style={{ fontWeight: 'bold' }}>Unlikely under normal conditions</Text></>) }}
                 />
                 <Banner
-                    backgroundColor={item.score === 3 ? '#ffdeae' : disabledBackgroundColor}
-                    color={item.score === 3 ? '#281900' : disabledColor}
-                    icon={<Ionicons name="alert-circle" size={24} color={item.score === 3 ? '#281900' : disabledColor} />}
+                    backgroundColor={item.score === 3 ? SPE_CONFIG.itemEvaluator(3).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 3 ? SPE_CONFIG.itemEvaluator(3).color : disabledColor}
+                    icon={<Ionicons name="help-circle" size={24} color={item.score === 3 ? SPE_CONFIG.itemEvaluator(3).color : disabledColor} />}
                     title={<><Text style={item.score === 3 && { fontWeight: 'bold' }}>About 50/50</Text></>}
-                    onPress={() => { onChangeValue(3, <><Text style={item.score === 3 && { fontWeight: 'bold' }}>About 50/50</Text></>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(3, <><Text style={{ fontWeight: 'bold' }}>About 50/50</Text></>) }}
                 />
                 <Banner
-                    backgroundColor={item.score === 4 ? '#ffdad6' : disabledBackgroundColor}
-                    color={item.score === 4 ? '#410002' : disabledColor}
-                    icon={<Ionicons name="stop-circle" size={24} color={item.score === 4 ? '#410002' : disabledColor} />}
+                    backgroundColor={item.score === 4 ? SPE_CONFIG.itemEvaluator(4).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 4 ? SPE_CONFIG.itemEvaluator(4).color : disabledColor}
+                    icon={<Ionicons name="trending-up" size={24} color={item.score === 4 ? SPE_CONFIG.itemEvaluator(4).color : disabledColor} />}
                     title={<><Text style={item.score === 4 && { fontWeight: 'bold' }}>Greater than 50%</Text></>}
-                    onPress={() => { onChangeValue(4, <><Text style={item.score === 4 && { fontWeight: 'bold' }}>Greater than 50%</Text></>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(4, <><Text style={{ fontWeight: 'bold' }}>Greater than 50%</Text></>) }}
                 />
                 <Banner
-                    backgroundColor={item.score === 5 ? '#ffb4ab' : disabledBackgroundColor}
-                    color={item.score === 5 ? '#690005' : disabledColor}
-                    icon={<Ionicons name="close-circle" size={24} color={item.score === 5 ? '#690005' : disabledColor} />}
+                    backgroundColor={item.score === 5 ? SPE_CONFIG.itemEvaluator(5).backgroundColor : disabledBackgroundColor}
+                    color={item.score === 5 ? SPE_CONFIG.itemEvaluator(5).color : disabledColor}
+                    icon={<Ionicons name="alert-circle" size={24} color={item.score === 5 ? SPE_CONFIG.itemEvaluator(5).color : disabledColor} />}
                     title={<><Text style={item.score === 5 && { fontWeight: 'bold' }}>Likely to happen</Text></>}
-                    onPress={() => { onChangeValue(5, <><Text style={item.score === 5 && { fontWeight: 'bold' }}>Likely to happen</Text></>) }}
+                    onPress={() => { !isAdvancing && onChangeValue(5, <><Text style={{ fontWeight: 'bold' }}>Likely to happen</Text></>) }}
                 />
             </BannerGroup>}
             {item.title === "Exposure" && <>
                 <Text style={[textStyle.bodyMedium, { paddingVertical: 8, color: colorTheme.onSurface }]}>These definitions are used by CALSAR. Your agency may have different definitions based on risk tolerance and activity type. </Text>
                 <BannerGroup marginHorizontal={0}>
                     <Banner
-                        backgroundColor={item.score === 1 ? '#b9f0b8' : disabledBackgroundColor}
-                        color={item.score === 1 ? '#002107' : disabledColor}
-                        icon={<Ionicons name="remove-circle" size={24} color={item.score === 1 ? '#002107' : disabledColor} />}
+                        backgroundColor={item.score === 1 ? SPE_CONFIG.itemEvaluator(1).backgroundColor : disabledBackgroundColor}
+                        color={item.score === 1 ? SPE_CONFIG.itemEvaluator(1).color : disabledColor}
+                        icon={<Ionicons name="checkmark-circle" size={24} color={item.score === 1 ? SPE_CONFIG.itemEvaluator(1).color : disabledColor} />}
                         title={<><Text style={item.score === 1 && { fontWeight: 'bold' }}>None or below average</Text>: One member of the team exposed for a short time.</>}
-                        onPress={() => { onChangeValue(1, <><Text style={item.score === 1 && { fontWeight: 'bold' }}>None or below average</Text>: One member of the team exposed for a short time.</>) }}
+                        onPress={() => { !isAdvancing && onChangeValue(1, <><Text style={{ fontWeight: 'bold' }}>None or below average</Text>: One member of the team exposed for a short time.</>) }}
                     />
                     <Banner
-                        backgroundColor={item.score === 2 ? '#ffdeae' : disabledBackgroundColor}
-                        color={item.score === 2 ? '#281900' : disabledColor}
-                        icon={<Ionicons name="alert-circle" size={24} color={item.score === 2 ? '#281900' : disabledColor} />}
+                        backgroundColor={item.score === 2 ? SPE_CONFIG.itemEvaluator(2).backgroundColor : disabledBackgroundColor}
+                        color={item.score === 2 ? SPE_CONFIG.itemEvaluator(2).color : disabledColor}
+                        icon={<Ionicons name="people" size={24} color={item.score === 2 ? SPE_CONFIG.itemEvaluator(2).color : disabledColor} />}
                         title={<><Text style={item.score === 2 && { fontWeight: 'bold' }}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>}
-                        onPress={() => { onChangeValue(2, <><Text style={item.score === 2 && { fontWeight: 'bold' }}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>) }}
+                        onPress={() => { !isAdvancing && onChangeValue(2, <><Text style={{ fontWeight: 'bold' }}>Average</Text>: More than one member exposed for a short time, or one member exposed for a longer time.</>) }}
                     />
                     <Banner
-                        backgroundColor={item.score === 3 ? '#ffdad6' : disabledBackgroundColor}
-                        color={item.score === 3 ? '#410002' : disabledColor}
-                        icon={<Ionicons name="stop-circle" size={24} color={item.score === 3 ? '#410002' : disabledColor} />}
+                        backgroundColor={item.score === 3 ? SPE_CONFIG.itemEvaluator(3).backgroundColor : disabledBackgroundColor}
+                        color={item.score === 3 ? SPE_CONFIG.itemEvaluator(3).color : disabledColor}
+                        icon={<Ionicons name="timer" size={24} color={item.score === 3 ? SPE_CONFIG.itemEvaluator(3).color : disabledColor} />}
                         title={<><Text style={item.score === 3 && { fontWeight: 'bold' }}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>}
-                        onPress={() => { onChangeValue(3, <><Text style={item.score === 3 && { fontWeight: 'bold' }}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>) }}
+                        onPress={() => { !isAdvancing && onChangeValue(3, <><Text style={{ fontWeight: 'bold' }}>Above average</Text>: One or more members exposed multiple times, or for long periods.</>) }}
                     />
                     <Banner
-                        backgroundColor={item.score === 4 ? '#ffb4ab' : disabledBackgroundColor}
-                        color={item.score === 4 ? '#690005' : disabledColor}
-                        icon={<Ionicons name="close-circle" size={24} color={item.score === 4 ? '#690005' : disabledColor} />}
+                        backgroundColor={item.score === 4 ? SPE_CONFIG.itemEvaluator(4).backgroundColor : disabledBackgroundColor}
+                        color={item.score === 4 ? SPE_CONFIG.itemEvaluator(4).color : disabledColor}
+                        icon={<Ionicons name="warning" size={24} color={item.score === 4 ? SPE_CONFIG.itemEvaluator(4).color : disabledColor} />}
                         title={<><Text style={item.score === 4 && { fontWeight: 'bold' }}>Great</Text>: Long or repeated exposure to multiple team members.</>}
-                        onPress={() => { onChangeValue(4, <><Text style={item.score === 4 && { fontWeight: 'bold' }}>Great</Text>: Long or repeated exposure to multiple team members.</>) }}
+                        onPress={() => { !isAdvancing && onChangeValue(4, <><Text style={{ fontWeight: 'bold' }}>Great</Text>: Long or repeated exposure to multiple team members.</>) }}
                     />
                 </BannerGroup>
             </>}
