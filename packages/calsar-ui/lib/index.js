@@ -15,6 +15,12 @@ Object.defineProperty(exports, "Banner", {
     return _Banner.Banner;
   }
 });
+Object.defineProperty(exports, "BannerGroup", {
+  enumerable: true,
+  get: function get() {
+    return _Banner.BannerGroup;
+  }
+});
 Object.defineProperty(exports, "BrandingBar", {
   enumerable: true,
   get: function get() {
@@ -31,6 +37,12 @@ Object.defineProperty(exports, "Header", {
   enumerable: true,
   get: function get() {
     return _Headers.Header;
+  }
+});
+Object.defineProperty(exports, "HorizontalTileGroup", {
+  enumerable: true,
+  get: function get() {
+    return _Tile.HorizontalTileGroup;
   }
 });
 Object.defineProperty(exports, "IconButton", {
@@ -63,6 +75,12 @@ Object.defineProperty(exports, "ShareButton", {
     return _ShareButton.ShareButton;
   }
 });
+Object.defineProperty(exports, "TabContainer", {
+  enumerable: true,
+  get: function get() {
+    return _TabContainer.TabContainer;
+  }
+});
 Object.defineProperty(exports, "ThemeContext", {
   enumerable: true,
   get: function get() {
@@ -81,20 +99,33 @@ Object.defineProperty(exports, "Tile", {
     return _Tile.Tile;
   }
 });
+Object.defineProperty(exports, "VerticalTile", {
+  enumerable: true,
+  get: function get() {
+    return _Tile.VerticalTile;
+  }
+});
+Object.defineProperty(exports, "VerticalTileGroup", {
+  enumerable: true,
+  get: function get() {
+    return _Tile.VerticalTileGroup;
+  }
+});
 Object.defineProperty(exports, "textStyles", {
   enumerable: true,
   get: function get() {
     return _styles.textStyles;
   }
 });
+var _Banner = require("./Banner");
+var _Branding = require("./Branding");
 var _FilledButton = require("./FilledButton");
+var _Headers = require("./Headers");
 var _IconButton = require("./IconButton");
+var _MaterialCard = require("./MaterialCard");
+var _RiskModal = require("./RiskModal");
 var _ShareButton = require("./ShareButton");
+var _styles = require("./styles");
 var _ThemeContext = require("./ThemeContext");
 var _Tile = require("./Tile");
-var _MaterialCard = require("./MaterialCard");
-var _Banner = require("./Banner");
-var _Headers = require("./Headers");
-var _Branding = require("./Branding");
-var _RiskModal = require("./RiskModal");
-var _styles = require("./styles");
+var _TabContainer = require("./TabContainer");

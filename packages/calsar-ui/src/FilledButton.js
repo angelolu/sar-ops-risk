@@ -1,159 +1,253 @@
-import { useContext, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useContext, useRef, useState } from 'react';
+import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from './ThemeContext';
 import { textStyles } from './styles';
 
-
-export const FilledButton = ({ text, onPress, small = false, icon = false, disabled = false, destructive = false, primary = false, rightAlign = false, backgroundColor, selected = false }) => {
+export const FilledButton = ({
+    text,
+    onPress,
+    small = false,
+    icon = false,
+    disabled = false,
+    destructive = false,
+    primary = false,
+    rightAlign = false,
+    backgroundColor,
+    selected = false
+}) => {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
-    const [focus, setFocus] = useState(false);
-    const textStyle = textStyles();
+    const [hovered, setHovered] = useState(false);
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
     const buttonStyle = buttonStyles();
 
-    const disabledFun = () => { };
+    const scaleAnim = useRef(new Animated.Value(1)).current;
 
-    const buttonColors = {
-        disabled: getHoverColor(colorTheme.onSurface, 0.3),
-        default: focus ? getHoverColor(colorTheme.surfaceContainerHigh) : "transparent",
-        primary: focus ? getHoverColor(colorTheme.primary) : colorTheme.primary,
-        selected: focus ? getHoverColor(colorTheme.secondary) : colorTheme.secondary,
-        destructive: focus ? getHoverColor(colorTheme.error, 0.1) : "transparent",
+    const handlePressIn = () => {
+        if (disabled) return;
+        Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true, speed: 20 }).start();
     };
 
-    const textColors = {
-        disabled: getHoverColor(colorTheme.surface),
-        default: colorTheme.secondary,
-        primary: colorTheme.onPrimary,
-        selected: colorTheme.onSecondary,
-        destructive: colorTheme.error,
+    const handlePressOut = () => {
+        if (disabled) return;
+        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
     };
+
+    // Standard MD3 Dynamic Color Logic
+    const colors = {
+        // Sharpened disabled state: Use higher contrast, less blur (no opacity)
+        disabledBg: colorTheme.surfaceContainerLow,
+        disabledText: colorTheme.outline,
+
+        primaryBg: hovered ? getHoverColor(colorTheme.primary, 0.9) : colorTheme.primary,
+        onPrimary: colorTheme.onPrimary,
+
+        tonalBg: hovered ? colorTheme.secondaryContainer : colorTheme.surfaceContainerHigh,
+        onTonal: colorTheme.onSecondaryContainer,
+
+        selectedBg: colorTheme.secondary,
+        onSelected: colorTheme.onSecondary,
+
+        destructiveText: colorTheme.error,
+        destructiveBg: hovered ? getHoverColor(colorTheme.error, 0.1) : 'transparent',
+    };
+
+    let finalBg = backgroundColor || colors.tonalBg;
+    let finalTextColor = colors.onTonal;
+    let finalBorderColor = 'transparent';
+    let finalBorderWidth = 0;
+
+    if (disabled) {
+        finalBg = colors.disabledBg;
+        finalTextColor = colors.disabledText;
+    } else if (selected) {
+        finalBg = colors.selectedBg;
+        finalTextColor = colors.onSelected;
+    } else if (primary) {
+        finalBg = colors.primaryBg;
+        finalTextColor = colors.onPrimary;
+    } else if (destructive) {
+        finalBg = colors.destructiveBg;
+        finalTextColor = colors.destructiveText;
+        finalBorderColor = colorTheme.error;
+        finalBorderWidth = 1;
+    } else {
+        finalBg = colors.tonalBg;
+        finalTextColor = colors.onTonal;
+    }
 
     return (
-        <View style={[
+        <Animated.View style={[
             buttonStyle.baseContainer,
             small && buttonStyle.smallBaseContainer,
-            rightAlign && { alignSelf: 'flex-end', },
+            rightAlign && { alignSelf: 'flex-end' },
             {
-                backgroundColor: (selected ? buttonColors.selected : disabled ? buttonColors.disabled : primary ? buttonColors.primary : destructive ? buttonColors.destructive : buttonColors.default),
-                outlineStyle: "solid",
-                outlineWidth: 2,
-                outlineColor: (destructive ? textColors.destructive : disabled ? buttonColors.disabled : primary ? buttonColors.primary : textColors.default),
-            },
-            backgroundColor && { backgroundColor: backgroundColor }]}>
+                backgroundColor: finalBg,
+                borderColor: finalBorderColor,
+                borderWidth: finalBorderWidth,
+                transform: [{ scale: scaleAnim }],
+                flexShrink: 0,
+            }
+        ]}>
             <Pressable
-                onHoverIn={() => { setFocus(true) }}
-                onHoverOut={() => { setFocus(false) }}
-                onPress={disabled ? disabledFun : onPress}
-                android_ripple={disabled || { color: colorTheme.surfaceContainerHigh }}
-                style={[buttonStyle.pressable, small && buttonStyle.smallPressable]}>
-                <View style={{ flexDirection: 'row', gap: 12, alignItems: "center" }}>
-                    {icon && <Ionicons name={icon} size={small ? 16 : 20} color={(disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default)} />}
+                onHoverIn={() => setHovered(true)}
+                onHoverOut={() => setHovered(false)}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                onPress={disabled ? () => { } : onPress}
+                android_ripple={{ color: colorTheme.surfaceContainerHighest }}
+                style={[buttonStyle.pressable, small && buttonStyle.smallPressable]}
+            >
+                <View style={{ flexDirection: 'row', gap: 8, alignItems: "center" }}>
+                    {icon && (
+                        <Ionicons
+                            name={icon}
+                            size={small ? 16 : 18}
+                            color={finalTextColor}
+                        />
+                    )}
                     <Text style={[
-                        textStyle.buttonText,
-                        { color: (selected ? textColors.selected : disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default) }
-                    ]}>{text}</Text>
+                        textStyle.labelLarge,
+                        {
+                            color: finalTextColor,
+                            fontWeight: '500',
+                            textShadowColor: 'rgba(0, 0, 0, 0.05)',
+                            textShadowOffset: { width: 0, height: 0.5 },
+                            textShadowRadius: 0.5,
+                        }
+                    ]}>
+                        {text}
+                    </Text>
                 </View>
-            </Pressable >
-        </View >
+            </Pressable>
+        </Animated.View>
     );
 };
 
-export const SegmentedButtons = ({ items, selected, onPress, noCheck = false, small = false, grow = false, disabled = false, destructive = false, primary = false }) => {
+export const SegmentedButtons = ({
+    items,
+    selected,
+    onPress,
+    noCheck = false,
+    small = false,
+    grow = false,
+    disabled = false,
+    destructive = false,
+    primary = false
+}) => {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
-    const [focusArray, setFocusArray] = useState(Array(items.length).fill(false));
+    const { width } = useWindowDimensions();
     const buttonStyle = buttonStyles();
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
-    const getButtonBGTheme = (focus, colorTheme) => {
-        const buttonColors = {
-            disabled: getHoverColor(colorTheme.onSurface, 0.3),
-            default: focus ? getHoverColor(colorTheme.surfaceContainerHigh) : "transparent",
-            primary: focus ? getHoverColor(colorTheme.primary) : colorTheme.primary,
-            destructive: focus ? getHoverColor(colorTheme.error, 0.1) : "transparent",
-        };
-
-        return ({
-            backgroundColor: buttonColors.default
-        });
-    }
-
-    const textColors = {
-        disabled: getHoverColor(colorTheme.secondary, 0.4),
-        default: colorTheme.secondary,
-        primary: colorTheme.onPrimary,
-        destructive: colorTheme.error,
-    };
+    const borderColor = disabled ? getHoverColor(colorTheme.onSurface, 0.12) : colorTheme.outline;
 
     return (
         <View style={[
-            buttonStyle.baseContainer,
+            buttonStyle.segmentedContainer,
             small && buttonStyle.smallBaseContainer,
-            {
-                flexDirection: "row",
-                flexWrap: "wrap",
-                outlineStyle: "solid",
-                height: "auto",
-                outlineWidth: 2,
-                outlineColor: disabled ? textColors.disabled : (destructive ? textColors.destructive : textColors.default),
-            },
-            grow && {
-                width: "100%"
-            }
+            grow && { width: "100%" },
+            { borderColor, borderWidth: 1 }
         ]}>
-            {items.map((item, i) => (
-                <Pressable
-                    key={item}
-                    onHoverIn={() => { disabled ? () => { } : setFocusArray(prev => prev.map((value, x) => (x === i) ? true : value)) }}
-                    onHoverOut={() => { disabled ? () => { } : setFocusArray(prev => prev.map((value, x) => (x === i) ? false : value)) }}
-                    onPress={disabled ? () => { } : () => onPress(i)}
-                    android_ripple={disabled || { color: colorTheme.surfaceContainerHigh }}
-                    style={[
-                        buttonStyle.pressable,
-                        small && buttonStyle.smallPressable,
-                        getButtonBGTheme(focusArray[i], colorTheme),
-                        (i === selected && { backgroundColor: getHoverColor(colorTheme.secondaryContainer) }),
-                        { outlineStyle: "solid", outlineWidth: 1, outlineColor: disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default },
-                        grow && {
-                            flexGrow: 1,
-                        }
-                    ]}>
-                    <View style={{ flexDirection: 'row', gap: 12, alignItems: "center" }}>
-                        {i === selected && !noCheck && <Ionicons name="checkmark" size={small ? 16 : 20} color={disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default} />}
-                        <Text style={[
-                            textStyle.buttonText,
-                            { color: disabled ? textColors.disabled : primary ? textColors.primary : destructive ? textColors.destructive : textColors.default }
-                        ]} >{item}</Text>
-                    </View>
-                </Pressable >
-            ))
-            }
-        </View >
+            {items.map((item, i) => {
+                const isSelected = i === selected;
+                const isFirst = i === 0;
+
+                const itemBg = isSelected
+                    ? colorTheme.secondaryContainer
+                    : 'transparent';
+
+                const itemTextColor = isSelected
+                    ? colorTheme.onSecondaryContainer
+                    : (disabled ? colorTheme.outline : colorTheme.onSurface);
+
+                return (
+                    <Pressable
+                        key={item}
+                        onPress={disabled ? () => { } : () => onPress(i)}
+                        android_ripple={{ color: colorTheme.surfaceContainerHighest }}
+                        style={({ pressed }) => [
+                            buttonStyle.segmentedItem,
+                            grow && { flex: 1 },
+                            {
+                                backgroundColor: isSelected ? itemBg : (pressed ? colorTheme.surfaceContainerLow : 'transparent'),
+                                borderLeftWidth: isFirst ? 0 : 0.5,
+                                borderColor: colorTheme.outlineVariant,
+                            }
+                        ]}
+                    >
+                        <View style={{ flexDirection: 'row', gap: 6, alignItems: "center", justifyContent: 'center' }}>
+                            {isSelected && !noCheck && (
+                                <Ionicons
+                                    name="checkmark"
+                                    size={small ? 16 : 18}
+                                    color={itemTextColor}
+                                />
+                            )}
+                            <Text style={[
+                                textStyle.labelLarge,
+                                {
+                                    color: itemTextColor,
+                                    fontWeight: isSelected ? '500' : '400',
+                                    fontSize: small ? 12 : 14
+                                }
+                            ]}>
+                                {item}
+                            </Text>
+                        </View>
+                    </Pressable>
+                );
+            })}
+        </View>
     );
-}
+};
 
 const buttonStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
     return StyleSheet.create({
         baseContainer: {
-            height: 40,
-            borderRadius: 20,
+            height: 48,
+            borderRadius: 24,
             overflow: 'hidden',
+            justifyContent: 'center',
+            ...Platform.select({
+                ios: {
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 3,
+                },
+                android: {
+                    elevation: 1,
+                }
+            })
         },
         smallBaseContainer: {
-            height: 34,
-            borderRadius: 17,
+            height: 38,
+            borderRadius: 19,
         },
-        pressable: {
-            height: 40,
+        segmentedContainer: {
+            height: 48,
+            borderRadius: 24,
+            flexDirection: 'row',
+            overflow: 'hidden',
+        },
+        segmentedItem: {
+            flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingHorizontal: 24
+            paddingHorizontal: 12,
+            height: '100%',
+        },
+        pressable: {
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 24,
         },
         smallPressable: {
-            height: 34,
-            paddingHorizontal: 16
+            paddingHorizontal: 16,
         },
     });
-}
+};

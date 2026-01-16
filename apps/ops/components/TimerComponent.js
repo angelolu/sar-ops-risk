@@ -27,8 +27,8 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
     const { colorTheme } = useContext(ThemeContext);
     const { getLastRadioLog, getAssignmentById, createLog } = useContext(RxDBContext)
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
     const lastStartRef = useRef(team.lastStart);
     const lastTimeRemainingRef = useRef(team.lastTimeRemaining);
     const intervalRef = useRef(null);
@@ -166,14 +166,7 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
     if (width > 600) {
         return (
             <View style={[styles.wideCard, { backgroundColor: team.editing ? colorTheme.tertiaryContainer : (team.status === "Not in service" || team.status === "Inactive") ? colorTheme.surfaceContainerLowest : error ? colorTheme.errorContainer : team.flagged ? colorTheme.secondaryContainer : colorTheme.surfaceContainer, flexGrow: width >= 1080 ? 0 : 1, width: (readOnly && ((width - 10 - 20) / 2) - 10 >= 515) ? ((width - 10 - 20 - 90) / 2) - 10 : "100%" }]}>
-                <View style={{
-                    flexDirection: "row",
-                    gap: 12,
-                    flexWrap: "wrap",
-                    justifyContent: 'space-between',
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                }}>
+                <View style={styles.cardContent}>
                     <SectionContainer width={readOnly ? 60 : 80} maxWidth={150}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", height: "100%" }}>
                             <View style={{ justifyContent: "center", flex: 1 }}>
@@ -351,7 +344,9 @@ export const TimerComponent = ({ incidentInfo, team, teams, showLogTrafficModal,
 };
 
 const SectionContainer = ({ children, maxWidth, width, justifyContent, style }) => {
-    const styles = pageStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const { width: windowWidth } = useWindowDimensions();
+    const styles = getStyles(colorTheme, windowWidth);
     const maxWidthOverride = maxWidth ? { maxWidth: maxWidth } : {};
     const widthOverride = width ? { width: width } : {};
     const justifyContentOverride = justifyContent ? { justifyContent: justifyContent } : {};
@@ -363,9 +358,7 @@ const SectionContainer = ({ children, maxWidth, width, justifyContent, style }) 
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
+const getStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
         wideCard: {
@@ -393,6 +386,14 @@ const pageStyles = () => {
             alignItems: "center",
             flexDirection: 'row',
             gap: 8
+        },
+        cardContent: {
+            flexDirection: "row",
+            gap: 12,
+            flexWrap: "wrap",
+            justifyContent: 'space-between',
+            paddingHorizontal: 16,
+            paddingVertical: 12,
         },
     });
 }

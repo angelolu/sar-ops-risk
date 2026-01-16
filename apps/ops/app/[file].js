@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { BackHeader, IconButton, textStyles, ThemeContext } from 'calsar-ui';
+import { BackHeader, IconButton, TabContainer, textStyles, ThemeContext } from 'calsar-ui';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { getAuth } from 'firebase/auth';
@@ -20,7 +20,6 @@ import { PrinterTabIcon } from '../components/PrinterTabIcon';
 import RailContainer, { AnimatedBG } from '../components/RailContainer';
 import { ResourcesPanel, TeamsPanel } from '../components/RespondersTab';
 import { RxDBContext } from '../components/RxDBContext';
-import TabContainer from '../components/TabContainer';
 import { EditableText } from '../components/TextInput';
 
 const pollUntilFileReady = (fileId) => {
@@ -74,8 +73,8 @@ export default function OperationPage() {
 
     const printedClues = useRef([]);
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const [activeTab, setActiveTab] = useState("");
     const [fileLoaded, setFileLoaded] = useState(0);
@@ -543,8 +542,8 @@ export default function OperationPage() {
                 <BackHeader
                     minimize={readOnly}
                     customTitle={
-                        <View style={[{ height: 55, flexDirection: "row", gap: 8, justifyContent: "space-between", alignItems: "center", alignSelf: "flex-end", paddingRight: 4, paddingLeft: 12, paddingBottom: 5 }, selectedHeaderItem === 1 && { backgroundColor: colorTheme.surfaceContainerHighest, borderTopLeftRadius: 12, borderTopRightRadius: 12, width: 300 }]}>
-                            <EditableText onEditing={(state) => { state && setSelectedHeaderItem(1) }} disabled={readOnly} style={[textStyle.headerText]} numberOfLines={1} value={incidentInfo.fileName} defaultValue={"Untitled file"} onChangeText={(text) => editIncident({ fileName: text })} limit={50} suffix={readOnly ? "" : ""} />
+                        <View style={[styles.headerTitleContainer, selectedHeaderItem === 1 && styles.headerTitleContainerSelected]}>
+                            <EditableText onEditing={(state) => { state && setSelectedHeaderItem(1) }} disabled={readOnly} style={[textStyle.titleLarge]} numberOfLines={1} value={incidentInfo.fileName} defaultValue={"Untitled file"} onChangeText={(text) => editIncident({ fileName: text })} limit={50} suffix={readOnly ? "" : ""} />
                             {selectedHeaderItem === 1 && <IconButton ionicons_name={"caret-up-circle-outline"} onPress={() => { setSelectedHeaderItem(0) }} color={colorTheme.onSurface} size={24} />}
                         </View>
                     }
@@ -566,7 +565,7 @@ export default function OperationPage() {
                 {width > 600 ?
                     <RailContainer file={incidentInfo} readOnly={readOnly} tabs={tabs} activeTab={activeTab} setActiveTab={handleSetActiveTab} markers={markers} removeMarker={handleRemoveMarker} teams={activeTeams} />
                     :
-                    <TabContainer readOnly={readOnly} tabs={tabs} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
+                    <TabContainer readOnly={readOnly} items={tabs.map(t => ({ ...t, id: t.name, label: t.name, hidden: t.bottom }))} selectedId={activeTab} onSelect={handleSetActiveTab} />
                 }
                 {selectedHeaderItem === 1 &&
                     <View style={styles.floatingBackground}>
@@ -634,7 +633,7 @@ export default function OperationPage() {
             {width > 600 ?
                 <RailContainer tabs={loadingTab} activeTab={"Loading"} setActiveTab={() => { }} />
                 :
-                <TabContainer tabs={loadingTab} activeTab={"Loading"} setActiveTab={() => { }} />
+                <TabContainer items={loadingTab.map(t => ({ ...t, id: t.name, label: t.name, hidden: t.bottom }))} selectedId={"Loading"} onSelect={() => { }} />
             }
         </View >
     }
@@ -715,11 +714,13 @@ const KeyChild = ({ icon, children }) => {
 
 const CurrentAssignmentText = ({ team }) => {
     const { getAssignmentById } = useContext(RxDBContext);
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
 
     const [assignmentName, setAssignmentName] = useState("");
     const [loaded, setLoaded] = useState(false);
 
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     // Return a string of people who are assigned to this team, separated by commas
     useEffect(() => {
@@ -754,12 +755,14 @@ const CurrentAssignmentText = ({ team }) => {
 
 const TaskQueueText = ({ team }) => {
     const { getAssignmentById, getAssignmentsByTeamId } = useContext(RxDBContext);
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
 
     const [assignmentName, setAssignmentName] = useState("");
     const [allAssignments, setAllAssignments] = useState([]);
     const [loaded, setLoaded] = useState(false);
 
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     // Return a string of people who are assigned to this team, separated by commas
     useEffect(() => {
@@ -812,11 +815,13 @@ const TaskQueueText = ({ team }) => {
 
 const AssignedPeopleText = ({ teamId }) => {
     const { getPeopleByTeamId } = useContext(RxDBContext);
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
 
     const [assignedPeople, setAssignedPeople] = useState([]);
     const [loaded, setLoaded] = useState(false);
 
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     // Return a string of people who are assigned to this team, separated by commas
     useEffect(() => {
@@ -855,11 +860,13 @@ const AssignedPeopleText = ({ teamId }) => {
 
 const AssignedEquipmentText = ({ teamId }) => {
     const { getEquipmentByTeamId } = useContext(RxDBContext);
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
 
     const [assignedPeople, setAssignedPeople] = useState([]);
     const [loaded, setLoaded] = useState(false);
 
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     // Return a string of people who are assigned to this team, separated by commas
     useEffect(() => {
@@ -890,10 +897,7 @@ const AssignedEquipmentText = ({ teamId }) => {
     </Text>
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
-
+const getStyles = (colorTheme, width) => {
     return StyleSheet.create({
         background: {
             backgroundColor: colorTheme.background,
@@ -924,15 +928,22 @@ const pageStyles = () => {
             borderTopLeftRadius: 20,
             backgroundColor: colorTheme.black + Math.round(0.8 * 255).toString(16).toUpperCase()
         },
-        circleFixed: {
-            position: 'absolute',
-            right: 2,
-            top: 2,
-            width: 14,
-            height: 14,
-            borderRadius: 7,
-            borderWidth: 2,
-            borderColor: colorTheme.onSurface,
+        headerTitleContainer: {
+            height: 55,
+            flexDirection: "row",
+            gap: 8,
+            justifyContent: "space-between",
+            alignItems: "center",
+            alignSelf: "flex-end",
+            paddingRight: 4,
+            paddingLeft: 12,
+            paddingBottom: 5
         },
+        headerTitleContainerSelected: {
+            backgroundColor: colorTheme.surfaceContainerHighest,
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            width: 300
+        }
     });
 }

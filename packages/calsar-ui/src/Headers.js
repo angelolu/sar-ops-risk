@@ -1,15 +1,13 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useContext } from 'react';
-import { Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ThemeContext } from './ThemeContext';
 import { IconButton } from './IconButton';
 import { textStyles } from './styles';
+import { ThemeContext } from './ThemeContext';
 
 export function Header({ children, style }) {
     const insets = useSafeAreaInsets();
-
     return (
         <View style={[style, { paddingTop: insets.top }]}>
             {children}
@@ -17,58 +15,76 @@ export function Header({ children, style }) {
     );
 }
 
-export function BackHeader({ children, title, customTitle, subtitle, backgroundColor, color, menuButton, hideBack = false, href, minimize = false }) {
+export function BackHeader({
+    children,
+    title,
+    customTitle,
+    subtitle,
+    backgroundColor,
+    color,
+    menuButton,
+    hideBack = false,
+    href,
+    minimize = false
+}) {
     const { colorTheme } = useContext(ThemeContext);
-    const { width, height } = useWindowDimensions();
-    const textStyle = textStyles();
+    const { height: screenHeight } = useWindowDimensions();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
+
+    const activeColor = color || colorTheme.onPrimaryContainer;
+    const activeBg = backgroundColor || colorTheme.primaryContainer;
+    const headerMinHeight = (screenHeight < 500 || minimize) ? 44 : 64;
+
     return (
-        <Header style={{ backgroundColor: backgroundColor ? backgroundColor : colorTheme.primaryContainer, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
-            <View style={[styles.mainContainer]}>
-                <View style={[styles.titleRow, { justifyContent: (!menuButton && width < 600) ? "flex-start" : "space-between", minHeight: (height < 500 || minimize) ? 40 : 60 }]}>
-                    {width < 600 ?
-                        <View style={styles.leftContainer}>
-                            {hideBack ?
-                                <View></View>
-                                :
-                                <View style={styles.backButtonContainer}>
-                                    <IconButton ionicons_name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} color={color ? color : colorTheme.onPrimaryContainer} onPress={() => { href ? router.navigate(href) : router.back() }} />
-                                </View>}
-                            {customTitle ?
-                                customTitle
-                                :
-                                <Text style={[textStyle.headerText, { color: color ? color : colorTheme.onPrimaryContainer }]} adjustsFontSizeToFit={true} numberOfLines={1}>{title}</Text>
-                            }
+        <Header style={{ backgroundColor: activeBg }}>
+            <View style={styles.mainContainer}>
+                <View style={[styles.titleRow, { minHeight: headerMinHeight }]}>
+
+                    {/* LEFT ZONE: Back Button */}
+                    {!hideBack ? (
+                        <View style={styles.buttonZone}>
+                            <IconButton
+                                ionicons_name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"}
+                                color={activeColor}
+                                onPress={() => href ? router.navigate(href) : router.back()}
+                            />
                         </View>
-                        :
-                        <>
-                            {hideBack ?
-                                <View style={{ flexGrow: 1, flexBasis: 1 }}></View>
-                                :
-                                <View style={styles.backButtonContainer}>
-                                    <IconButton ionicons_name={Platform.OS === 'android' ? "arrow-back" : "chevron-back"} color={color ? color : colorTheme.onPrimaryContainer} onPress={() => { href ? router.navigate(href) : router.back() }} />
-                                </View>
-                            }
-                            {customTitle ?
-                                customTitle
-                                :
-                                <Text style={[textStyle.headerText, { color: color ? color : colorTheme.onPrimaryContainer }]} adjustsFontSizeToFit={true} numberOfLines={1}>{title}</Text>
-                            }
-                        </>
-                    }
-                    {menuButton ?
-                        <View style={[styles.menuContainer, { flexGrow: 1, flexBasis: 1, alignItems: "flex-end" }]}>
-                            {menuButton}
-                        </View>
-                        :
-                        <View style={{ flexGrow: 1, flexBasis: 1 }} />
-                    }
-                </View>
-                {children}
-                {subtitle &&
-                    <View style={[styles.subtitleContainer, { backgroundColor: backgroundColor ? backgroundColor : colorTheme.tertiaryContainer }]}>
-                        <Text style={[styles.action, { color: color ? color : colorTheme.onTertiaryContainer }]}>{subtitle}</Text>
+                    ) : (
+                        // Placeholder to maintain spacing if back is hidden
+                        <View style={styles.buttonZone} />
+                    )}
+
+                    {/* CENTER ZONE: Title */}
+                    <View style={styles.titleZone}>
+                        {customTitle ? (
+                            customTitle
+                        ) : (
+                            <Text
+                                style={[textStyle.titleLarge, { color: activeColor }]}
+                                numberOfLines={1}
+                                adjustsFontSizeToFit
+                            >
+                                {title}
+                            </Text>
+                        )}
                     </View>
-                }
+
+                    {/* RIGHT ZONE: Menu Button */}
+                    <View style={[styles.buttonZone, { alignItems: 'flex-end' }]}>
+                        {menuButton ? menuButton : <View style={{ width: 40 }} />}
+                    </View>
+                </View>
+
+                {children}
+
+                {subtitle && (
+                    <View style={[styles.subtitleContainer, { backgroundColor: backgroundColor || colorTheme.tertiaryContainer }]}>
+                        <Text style={[textStyle.bodyMedium, { color: color || colorTheme.onTertiaryContainer }]}>
+                            {subtitle}
+                        </Text>
+                    </View>
+                )}
             </View>
         </Header>
     );
@@ -76,55 +92,29 @@ export function BackHeader({ children, title, customTitle, subtitle, backgroundC
 
 const styles = StyleSheet.create({
     mainContainer: {
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
-        padding: 0,
-        justifyContent: "center"
+        overflow: 'hidden',
     },
     titleRow: {
-        paddingLeft: 6,
-        paddingRight: 12,
         flexDirection: 'row',
-        gap: 6,
         alignItems: 'center',
-        justifyContent: 'space-between',
+        paddingHorizontal: 8,
+        gap: 4,
     },
-    leftContainer: {
-        flexDirection: 'row',
-        gap: 6,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        flex: -1,
+    buttonZone: {
+        width: 48, // Fixed width for touch targets for symmetry
+        justifyContent: 'center',
+        alignItems: 'flex-start',
     },
-    subtitleContainer: {
-        paddingTop: 10,
-        paddingBottom: 10,
-    },
-    action: {
-        marginLeft: 20,
-        marginRight: 20,
-    },
-    title: {
-        fontSize: 18,
-        flex: -1,
-        fontWeight: '500'
-    },
-    backButtonContainer: {
-        width: 40,
-        height: "100%",
-        minHeight: 40,
-        borderRadius: 20,
-        overflow: 'hidden',
-        flexGrow: 1,
-        flexBasis: 1,
-        alignItems: "flex-start",
-        justifyContent: "center"
-    },
-    menuContainer: {
-    },
-    circleButton: {
+    titleZone: {
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
+        // On Web this is centered, on Android this is left-aligned
+        alignItems: Platform.OS === 'web' ? 'center' : 'flex-start',
+    },
+    subtitleContainer: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+    },
+    subtitleText: {
     },
 });

@@ -5,5 +5,21 @@
     "workspaces": [
         "apps/*",
         "packages/*"
-    ]
+    ],
+    "dependencies": {
+        "expo-linear-gradient": "~15.0.8"
+    },
+    "resolutions": {
+        "react": "19.1.0",
+        "react-dom": "19.1.0",
+        "react-is": "19.1.0",
+        "@types/react": "19.1.10",
+        "@types/react-dom": "19.1.10"
+    },
+    "scripts": {
+        "build:ui": "yarn workspace calsar-ui run transpile",
+        "risk:dev": "yarn workspace calsar-risk run start",
+        "ops:dev": "yarn workspace calsar-ops run start",
+        "prepare-all": "yarn install && yarn build:ui"
+    }
 }

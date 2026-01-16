@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { textStyles, ThemeContext } from 'calsar-ui';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, {
     Easing,
     interpolateColor,
@@ -19,7 +19,8 @@ const HikerBG = require('../assets/images/hiker.svg');
 export function RailButton({ icon, title, active, onClick, notification }) {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const [focus, setFocus] = useState(false);
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     let focusColor = active ? getHoverColor(colorTheme.secondaryFixed, 0.8) : getHoverColor(colorTheme.primary, 0.3);
     const focusTheme = (focus) ? {
@@ -64,7 +65,7 @@ export function RailButton({ icon, title, active, onClick, notification }) {
 
 export const AnimatedBG = ({ children, image = false, colorOnly = false, error = false, warn = false }) => {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
-    const styles = pageStyles();
+    const styles = getStyles(colorTheme);
 
     const [errorSate, setErrorState] = useState(false);
     const [warnState, setWarnState] = useState(false);
@@ -147,8 +148,8 @@ const TAB_TO_TEAM_MAP = {
 }
 
 export default function RailContainer({ file, tabs, activeTab, setActiveTab, readOnly = false, markers, removeMarker, teams }) {
-    const styles = pageStyles();
     const { colorTheme } = useContext(ThemeContext);
+    const styles = getStyles(colorTheme);
     const ref = useRef(null);
     const { getCommsQueueMessagesByFileId } = useContext(RxDBContext);
 
@@ -332,18 +333,9 @@ export default function RailContainer({ file, tabs, activeTab, setActiveTab, rea
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const getStyles = (colorTheme) => {
 
     return StyleSheet.create({
-        mainScroll: {
-            paddingTop: 20,
-            paddingBottom: 20,
-            paddingRight: 10,
-            paddingLeft: 20,
-            gap: 20,
-            alignSelf: 'center',
-        },
         image: {
             flex: 1,
             height: '100%',
@@ -362,14 +354,6 @@ const pageStyles = () => {
         container: {
             flex: 1,
             height: '100%',
-        },
-        text: {
-            color: colorTheme.onPrimaryContainer
-        },
-        timerSection: {
-            gap: 4,
-            borderRadius: 26,
-            overflow: 'hidden',
         },
     });
 }

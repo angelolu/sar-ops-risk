@@ -8,8 +8,9 @@ import { getAsyncStorageData, saveAsyncStorageData } from '../../components/help
 export default function Settings() {
     const { colorTheme, changeColorScheme, colorScheme } = useContext(ThemeContext);
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { height, width } = useWindowDimensions();
+    const styles = getStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, width);
 
     const [appearanceState, setAppearanceState] = useState(1);
 
@@ -26,7 +27,6 @@ export default function Settings() {
         getAsyncStorageData("appearance").then((value) => { value && setAppearanceState(value) });
     }, []);
 
-    const { height, width } = useWindowDimensions();
     const baseColorScheme = useColorScheme();
 
     return (
@@ -86,8 +86,7 @@ export default function Settings() {
     );
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const getStyles = (colorTheme) => {
 
     return StyleSheet.create({
         background: {
@@ -105,39 +104,11 @@ const pageStyles = () => {
             height: '100%',
             alignSelf: 'center'
         },
-        listContainer: {
-        },
         mainScroll: {
             paddingTop: 20,
             paddingBottom: 20,
             paddingHorizontal: 20,
             gap: 20,
-        },
-        headings: {
-            fontSize: 22,
-            color: colorTheme.onBackground,
-        },
-        text: {
-            color: colorTheme.onBackground
-        }
-    });
-}
-
-const riskInputStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-
-    return StyleSheet.create({
-        container: {
-            padding: 20,
-            paddingTop: 0
-        },
-        subtitle: {
-            color: colorTheme.onSurface,
-            fontSize: 16
-        },
-        description: {
-            flex: -1,
-            flexShrink: 1
         },
     });
 }
