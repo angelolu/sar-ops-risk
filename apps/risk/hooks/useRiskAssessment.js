@@ -1,5 +1,5 @@
-import { useContext } from 'react';
 import { ThemeContext } from 'calsar-ui';
+import { useContext } from 'react';
 
 export function useRiskAssessment(config) {
     const { colorTheme } = useContext(ThemeContext);
@@ -34,13 +34,14 @@ export function useRiskAssessment(config) {
 
         const result = config.itemEvaluator(score);
 
-        const containerColor = result.containerColorToken ? (colorTheme[result.containerColorToken] || result.containerColorToken) : undefined;
-        const contentColor = result.contentColorToken ? (colorTheme[result.contentColorToken] || result.contentColorToken) : undefined;
+        // Check if the returned string is a key in colorTheme (a token), otherwise treat as raw color
+        const backgroundColor = colorTheme[result.backgroundColor] || result.backgroundColor;
+        const color = colorTheme[result.color] || result.color;
 
         return {
             ...result,
-            containerColor,
-            contentColor
+            backgroundColor,
+            color
         }
     };
 

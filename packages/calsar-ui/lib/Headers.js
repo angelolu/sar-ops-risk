@@ -77,7 +77,7 @@ function BackHeader(_ref2) {
             style: [textStyle.titleLarge, {
               color: activeColor
             }],
-            numberOfLines: 2,
+            numberOfLines: 1,
             adjustsFontSizeToFit: true,
             children: title
           })

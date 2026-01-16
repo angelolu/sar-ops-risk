@@ -21,12 +21,12 @@ const getAshoreEntries = () => [
 ];
 
 const getNasarEntries = () => [
-    { title: "Planning", subtitle: "Enough time and information to conduct thorough pre-mission planning.", score: 0, description: "" },
-    { title: "Event", subtitle: "Mission complexity, standard or nonstandard, working with unfamiliar teams, etc.", score: 0, description: "" },
-    { title: "Asset — Crew", subtitle: "Proper number, skill, leadership experience and rest or fatigue level.", score: 0, description: "" },
-    { title: "Asset — Equipment", subtitle: "Vehicles, personal and team gear and personal protective equipment that is mission-ready.", score: 0, description: "" },
-    { title: "Communications and Supervision", subtitle: "Ability to maintain communications and span of control throughout the incident.", score: 0, description: "" },
-    { title: "Environment", subtitle: "Weather, terrain, snow, night or day and wildlife.", score: 0, description: "" },
+    { title: "Planning", subtitle: "Is the planning process rushed or based on missing information?", score: 0, description: "" },
+    { title: "Event", subtitle: "Is the mission complicated, nonstandard or involving unfamiliar teams?", score: 0, description: "" },
+    { title: "Asset — Crew", subtitle: "Is the team tired, inexperienced or lacking strong leadership or skills or the wrong size?", score: 0, description: "" },
+    { title: "Asset — Equipment", subtitle: "Are vehicles, gear or personal protective equipment missing, damaged or unsuitable for this mission?", score: 0, description: "" },
+    { title: "Communications and Supervision", subtitle: "Will it be difficult to maintain communication with command and other parties throughout the mission?", score: 0, description: "" },
+    { title: "Environment", subtitle: "Do weather, terrain, light, wildlife or other conditions make this mission dangerous?", score: 0, description: "" },
 ];
 
 export default function PEACE() {
@@ -51,7 +51,7 @@ export default function PEACE() {
     const [explicitLanguageSet, setExplicitLanguageSet] = useState(false);
     const [isAdvancing, setIsAdvancing] = useState(false);
 
-    const isLargeScreen = width > 1250;
+    const isLargeScreen = width > 800;
     const styles = getStyles(colorTheme, isLargeScreen);
 
     useEffect(() => {
@@ -85,16 +85,16 @@ export default function PEACE() {
         const itemColors = getItemResult(value);
         setEntries(entries.map((entry, idx) =>
             idx === selectedEntry
-                ? { ...entry, score: value, containerColor: itemColors.containerColor, color: itemColors.contentColor, description }
+                ? { ...entry, score: value, backgroundColor: itemColors.backgroundColor, color: itemColors.color, description }
                 : entry
         ));
 
         if (selectedEntry < entries.length - 1) {
-            setTimeout(() => { setIsAdvancing(true); }, 150);
+            setTimeout(() => { setIsAdvancing(true); }, 100);
             setTimeout(() => {
                 setSelectedEntry(selectedEntry + 1);
                 setIsAdvancing(false);
-            }, 550);
+            }, 350);
         } else {
             // Last item rated
             setIsModalVisible(false);
@@ -221,14 +221,10 @@ export default function PEACE() {
                 items={entries.map(e => {
                     let scoreDisplay = 0;
                     if (e.score > 0) {
-                        if (inputMode === 'emoji') {
-                            if (language === 'nasar') {
-                                scoreDisplay = e.score === 1 ? '👍' : e.score === 2 ? '✊' : '👎';
-                            } else {
-                                scoreDisplay = e.score === 1 ? '😀' : e.score === 2 ? '😐' : '☹️';
-                            }
+                        if (language === 'nasar') {
+                            scoreDisplay = e.score === 1 ? '👍' : e.score === 2 ? '✊' : '👎';
                         } else {
-                            scoreDisplay = e.score === 1 ? 'L' : e.score === 2 ? 'M' : 'H';
+                            scoreDisplay = e.score === 1 ? '😀' : e.score === 2 ? '😐' : '☹️';
                         }
                     }
                     return { ...e, score: scoreDisplay };
@@ -239,9 +235,9 @@ export default function PEACE() {
     );
 
     const GainView = (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10, gap: 10 }}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 10 }}>
             {/* Controls */}
-            <View style={{ maxWidth: 400, width: '100%', justifyContent: isLargeScreen ? 'space-between' : 'flex-end', flexDirection: 'row', alignSelf: 'center' }}>
+            <View style={{ width: '100%', justifyContent: isLargeScreen ? 'space-between' : 'flex-end', flexDirection: 'row', alignSelf: 'center', flexWrap: 'wrap' }}>
                 {isLargeScreen && (
                     <Text style={[textStyle.headlineSmall, { paddingVertical: 6 }]}>Gain Assessment</Text>
                 )}
@@ -256,37 +252,26 @@ export default function PEACE() {
             </View>
 
             {/* Matrix */}
-            <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
+            <View style={{ width: '100%', alignSelf: 'center' }}>
                 <RiskGainGrid
                     riskLevel={isDone ? result.label : null}
                     gainLevel={gain}
                     onGainHeaderPress={() => setIsGainModalVisible(true)}
-                    isLandscape={false}
+                    detailedMode={false}
                 />
             </View>
 
             {/* Result Card */}
             {isDone && gain && (
-                <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
+                <View style={{ width: '100%', alignSelf: 'center' }}>
                     <MaterialCard title="Assessment results" noMargin>
                         <Text style={[textStyle.bodyMedium]}>{getCellContent()}</Text>
                     </MaterialCard>
                 </View>
             )}
 
-            {/* Definitions */}
-            <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
-                <MaterialCard title="Gain definitions" noMargin>
-                    <View>
-                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>Low Gain:</Text> Routine training, PR, property recovery or evidence search. Use for low-risk conditions only.</Text>
-                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>Medium Gain:</Text> Stable patient or environment, noncritical injury or protecting significant property.</Text>
-                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>High Gain:</Text> Lifesaving opportunity, immediate threat to life or preventing permanent injury.</Text>
-                    </View>
-                </MaterialCard>
-            </View>
-
-            <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
-                <MaterialCard title="Mitigation models (STAAR)" noMargin>
+            <View style={{ width: '100%', alignSelf: 'center' }}>
+                <MaterialCard title="Mitigation model (STAAR)" noMargin>
                     <View>
                         <Text style={[textStyle.bodyMedium, { marginBottom: 6 }]}>If risks need to be mitigated, consider the STAAR model:</Text>
                         <View style={styles.staarContainer}>
@@ -300,7 +285,7 @@ export default function PEACE() {
                 </MaterialCard>
             </View>
 
-            <View style={{ maxWidth: 400, width: '100%', alignSelf: 'center' }}>
+            <View style={{ width: '100%', alignSelf: 'center' }}>
                 <MaterialCard title="Team consensus" noMargin>
                     <View>
                         <Text style={[textStyle.bodyMedium, { marginBottom: 6 }]}>Before going into the field, the team should have a consensus on:</Text>
@@ -310,6 +295,17 @@ export default function PEACE() {
                             <Text style={textStyle.bodyMedium}>• Risk vs Gain</Text>
                             <Text style={textStyle.bodyMedium}>• <Text style={{ fontWeight: 'bold' }}>Go / No Go Decision</Text></Text>
                         </View>
+                    </View>
+                </MaterialCard>
+            </View>
+
+            {/* Definitions */}
+            <View style={{ width: '100%', alignSelf: 'center' }}>
+                <MaterialCard title="Gain definitions" noMargin>
+                    <View>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>Low Gain:</Text> Routine training, PR, property recovery or evidence search. Use for low-risk conditions only.</Text>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>Medium Gain:</Text> Stable patient or environment, noncritical injury or protecting significant property.</Text>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>High Gain:</Text> Lifesaving opportunity, immediate threat to life or preventing permanent injury.</Text>
                     </View>
                 </MaterialCard>
             </View>
@@ -337,7 +333,7 @@ export default function PEACE() {
         <View style={styles.container}>
             <RiskHeader
                 sharedTransitionTag="sectionTitle"
-                title="PEAACE Tool"
+                title="PEAACE"
                 subtitle={isDone ? (gain ? "Review mitigations and controls to make a go/no go decision" : "Select gain to complete analysis") : "Start by assigning each element a risk score"}
                 riskText={combinedResult.label}
                 riskColor={combinedResult.color}
@@ -347,11 +343,11 @@ export default function PEACE() {
 
             {isLargeScreen ? (
                 <View style={{ flexDirection: 'row', flex: 1, justifyContent: "center", gap: 20 }}>
-                    <View style={{ backgroundColor: colorTheme.surfaceContainerLow, paddingHorizontal: 25 }}>
-                        <Text style={[textStyle.headlineSmall, { paddingVertical: 16 }]}>Risk Identification</Text>
+                    <View style={{ backgroundColor: colorTheme.surfaceContainerLow, padding: 20, flexShrink: 1 }}>
+                        <Text style={[textStyle.headlineSmall, { paddingTop: 6, paddingBottom: 10 }]}>Risk Identification</Text>
                         {RiskView}
                     </View>
-                    <View style={{ backgroundColor: colorTheme.surfaceContainerLow, paddingHorizontal: 25 }}>
+                    <View style={{ backgroundColor: colorTheme.surfaceContainerLow, maxWidth: 500, flexShrink: 1.5 }}>
                         {GainView}
                     </View>
                 </View>
@@ -367,7 +363,7 @@ export default function PEACE() {
             )}
 
             {/* Risk Assignment Modal */}
-            <RiskModal isVisible={isModalVisible} title={entries[selectedEntry]?.title} onClose={() => setIsModalVisible(false)}>
+            <RiskModal isVisible={isModalVisible} title={'Score \"' + entries[selectedEntry]?.title + '\"'} onClose={() => setIsModalVisible(false)}>
                 <RiskInput item={entries[selectedEntry]} mode={inputMode} onChangeValue={onChangeValue} language={language} isAdvancing={isAdvancing} />
             </RiskModal>
 
@@ -420,11 +416,13 @@ const getStyles = (colorTheme, isLargeScreen) => StyleSheet.create({
     },
 });
 
-function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
+function EmojiButton({ emoji, label, description, selected, onPress, activeColor, disabled }) {
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
     const { width } = useWindowDimensions();
     const textStyle = textStyles(colorTheme, width);
     const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const isLargeScreen = width > 800;
 
     const handlePressIn = () => { Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true, speed: 20 }).start(); };
     const handlePressOut = () => { Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start(); };
@@ -436,9 +434,12 @@ function EmojiButton({ emoji, label, selected, onPress, activeColor }) {
 
     return (
         <Animated.View style={[styles.emojiButton, { backgroundColor: selected ? selectedBg : baseBgColor, borderColor: selected ? selectedBorder : baseBorderColor, borderWidth: 2, transform: [{ scale: scaleAnim }] }]}>
-            <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={onPress} android_ripple={{ color: colorTheme.surfaceContainerHighest, borderless: false }} style={styles.emojiPressable}>
+            <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={onPress} disabled={disabled} android_ripple={{ color: colorTheme.surfaceContainerHighest, borderless: false }} style={styles.emojiPressable}>
                 <Text style={styles.emoji} allowFontScaling={false}>{emoji}</Text>
-                <Text style={[textStyle.labelLarge, styles.emojiLabel, { color: colorTheme.onSurface, fontWeight: selected ? '400' : '400', opacity: selected ? 1 : 0.7 }]}>{label}</Text>
+                <Text style={[textStyle.bodyMedium, styles.emojiLabel, { color: colorTheme.onSurface, fontWeight: selected ? '400' : '400', opacity: selected ? 1 : 0.7 }]}>{label}</Text>
+                {isLargeScreen && description && (
+                    <Text style={[textStyle.bodySmall, { textAlign: 'center', opacity: selected ? 1 : 0.7, color: colorTheme.onSurfaceVariant }]}>{description}</Text>
+                )}
             </Pressable>
         </Animated.View>
     );
@@ -457,15 +458,15 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
 
     const opacity = anim;
     const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [isAdvancing ? -8 : 10, 0] });
-    const options = language === 'nasar' ? [
-        { value: 1, emoji: '👍', label: 'Low Risk', desc: 'Minimal concern' },
-        { value: 2, emoji: '✊', label: 'Medium Risk', desc: 'Caution warranted' },
-        { value: 3, emoji: '👎', label: 'High Risk', desc: 'Significant danger' }
+    const options = (language === 'nasar' ? [
+        { value: 3, emoji: '👎', label: 'High Risk', desc: 'Significant danger', color: colorTheme.garRedDark },
+        { value: 2, emoji: '✊', label: 'Medium Risk', desc: 'Caution warranted', color: colorTheme.garAmberDark },
+        { value: 1, emoji: '👍', label: 'Low Risk', desc: 'Minimal concern', color: colorTheme.garGreenDark }
     ] : [
-        { value: 1, emoji: '😀', label: 'Low Risk', desc: 'Minimal concern' },
-        { value: 2, emoji: '😐', label: 'Medium Risk', desc: 'Caution warranted' },
-        { value: 3, emoji: '☹️', label: 'High Risk', desc: 'Significant danger' }
-    ];
+        { value: 3, emoji: '☹️', label: 'High Risk', desc: 'Significant danger', color: colorTheme.garRedDark },
+        { value: 2, emoji: '😐', label: 'Medium Risk', desc: 'Caution warranted', color: colorTheme.garAmberDark },
+        { value: 1, emoji: '😀', label: 'Low Risk', desc: 'Minimal concern', color: colorTheme.garGreenDark }
+    ]);
 
     return (
         <Animated.View renderToHardwareTextureAndroid={true} style={[styles.container, { opacity, transform: [{ translateY }] }]}>
@@ -474,19 +475,22 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
                 {mode === 'emoji' ? (
                     <View style={styles.emojiRow}>
                         {options.map((opt) => {
-                            let activeColor = null;
-                            if (opt.value === 1) activeColor = colorTheme.garGreenDark;
-                            else if (opt.value === 2) activeColor = colorTheme.garAmberDark;
-                            else if (opt.value === 3) activeColor = colorTheme.garRedDark;
                             return (
-                                <EmojiButton key={opt.value} emoji={opt.emoji} label={opt.label} selected={item.score === opt.value} activeColor={activeColor} onPress={() => onChangeValue(opt.value, "")} />
+                                <EmojiButton key={opt.value} emoji={opt.emoji} label={opt.label} description={opt.desc} selected={item.score === opt.value} activeColor={opt.color} disabled={isAdvancing} onPress={() => !isAdvancing && onChangeValue(opt.value, "")} />
                             )
                         })}
                     </View>
                 ) : (
                     <BannerGroup marginHorizontal={0}>
                         {options.map((opt) => (
-                            <Banner key={opt.value} backgroundColor={item.score === opt.value ? colorTheme.primaryContainer : colorTheme.surfaceContainerLow} color={colorTheme.onSurface} icon={<Text style={{ fontSize: 20 }}>{opt.emoji}</Text>} title={<><Text style={{ fontWeight: 'bold' }}>{opt.label}</Text>: {opt.desc}</>} onPress={() => onChangeValue(opt.value, opt.label)} />
+                            <Banner
+                                key={opt.value}
+                                backgroundColor={item.score === opt.value ? opt.color : colorTheme.surfaceContainerLow}
+                                color={item.score === opt.value ? '#ffffff' : colorTheme.onSurface}
+                                icon={<Text style={{ fontSize: 20 }}>{opt.emoji}</Text>}
+                                title={<><Text style={{ fontWeight: 'bold' }}>{opt.label}</Text>: {opt.desc}</>}
+                                onPress={() => !isAdvancing && onChangeValue(opt.value, opt.label)}
+                            />
                         ))}
                     </BannerGroup>
                 )}
@@ -496,11 +500,11 @@ function RiskInput({ item, mode, onChangeValue, language, isAdvancing }) {
 }
 
 const getRiskInputStyles = (colorTheme) => StyleSheet.create({
-    container: { paddingBottom: 8, paddingHorizontal: 4 },
+    container: { paddingBottom: 8, paddingHorizontal: 4, gap: 8 },
     inputContainer: { marginTop: 10 },
     emojiRow: { flexDirection: 'row', justifyContent: 'space-around', gap: 10 },
     emojiButton: { height: 125, borderRadius: 50, flexBasis: 0, flexGrow: 1, backgroundColor: colorTheme.surfaceContainerHigh, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 1 },
     emojiPressable: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 10, borderRadius: 50 },
     emoji: { fontSize: 40, marginBottom: 5, textAlign: 'center', backgroundColor: 'transparent' },
-    emojiLabel: { fontSize: 12, textAlign: 'center' },
+    emojiLabel: { textAlign: 'center', fontSize: 12 },
 });

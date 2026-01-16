@@ -62,7 +62,7 @@ export function BackHeader({
                         ) : (
                             <Text
                                 style={[textStyle.titleLarge, { color: activeColor }]}
-                                numberOfLines={2}
+                                numberOfLines={1}
                                 adjustsFontSizeToFit
                             >
                                 {title}

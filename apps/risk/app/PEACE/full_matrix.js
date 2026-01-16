@@ -40,7 +40,7 @@ export default function FullMatrixPage() {
                 <RiskGainGrid
                     riskLevel={riskLevel}
                     gainLevel={gainLevel}
-                    isLandscape={true}
+                    detailedMode={true}
                 />
             </ScrollView>
         </View>
