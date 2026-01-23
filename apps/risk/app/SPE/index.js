@@ -17,7 +17,18 @@ export default function SPE() {
 
     const minimumScore = 1;
 
-    const [isModalVisible, setIsModalVisible] = useState(true);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+
+    useEffect(() => {
+        // Workaround: Delay modal initialization by 150ms to prevent iOS UI freezing during screen transitions.
+        const modalDelayTimeout = setTimeout(() => {
+            setIsModalVisible(true);
+        }, 150);
+
+        return () => {
+            clearTimeout(modalDelayTimeout);
+        };
+    }, []);
     const [selectedEntry, setSelectedEntry] = useState(0);
     const [entries, setEntries] = useState([
         { title: "Severity", subtitle: "What is the potential loss or consequence due to this risk?", score: 0, description: "" },

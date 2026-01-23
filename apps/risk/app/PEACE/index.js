@@ -37,7 +37,7 @@ export default function PEACE() {
 
     const { calculate, getResult, getItemResult } = useRiskAssessment(PEACE_USCG_ASHORE_CONFIG);
 
-    const [isModalVisible, setIsModalVisible] = useState(true);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const [isGainModalVisible, setIsGainModalVisible] = useState(false);
 
     // Modes
@@ -62,6 +62,15 @@ export default function PEACE() {
         AsyncStorage.getItem("language-peace").then((value) => {
             if (value) updateLanguage(JSON.parse(value));
         });
+
+        // Workaround: Delay modal initialization by 150ms to prevent iOS UI freezing during screen transitions.
+        const modalDelayTimeout = setTimeout(() => {
+            setIsModalVisible(true);
+        }, 150);
+
+        return () => {
+            clearTimeout(modalDelayTimeout);
+        };
     }, []);
 
     const updateLanguage = (lang) => {

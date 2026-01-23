@@ -44,9 +44,7 @@ export default function orma() {
             // error reading value
         });
 
-        // I'm not sure why, but if there the modal is immediately by useState(true), on iOS
-        // there is an issue where the modal will only partially load, causing the UI to get stuck.
-        // As a workaround, wait 150ms before launching the modal when the UI is shown
+        // Workaround: Delay modal initialization by 150ms to prevent iOS UI freezing during screen transitions.
         modalDelayTimeout = setTimeout(() => {
             setIsModalVisible(true);
         }, 150);
