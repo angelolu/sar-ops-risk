@@ -90,25 +90,25 @@ export default function App() {
                 <MaterialCard
                     title="Operational Risk Management Analysis (ORMA)"
                     subtitle="Use before the team enters the field. Considers all factors of a team’s participation in an event.">
-                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
+                    <View style={{ width: "100%", flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap", marginTop: 4 }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(0) }} />
-                        <FilledButton rightAlign primary text="Complete an ORMA" onPress={() => { router.navigate("/ORMA") }} />
+                        <FilledButton primary text="Complete an ORMA" onPress={() => { router.navigate("/ORMA") }} />
                     </View>
                 </MaterialCard>
                 <MaterialCard
                     title="PEAACE"
                     subtitle="Quickly identify risks before and during a mission." >
-                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
+                    <View style={{ width: "100%", flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap", marginTop: 4 }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(2) }} />
-                        <FilledButton rightAlign primary text="Complete a PEAACE" onPress={() => { router.navigate("/PEACE") }} />
+                        <FilledButton primary text="Complete a PEAACE" onPress={() => { router.navigate("/PEACE") }} />
                     </View>
                 </MaterialCard>
                 <MaterialCard
                     title="Severity, Probability, Exposure (SPE)"
                     subtitle="Use to categorize a specific risk when the situation in the field changes." >
-                    <View style={{ alignSelf: "flex-end", flexDirection: "row", gap: 6, alignItems: "center" }}>
+                    <View style={{ width: "100%", flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap", marginTop: 4 }}>
                         <IconButton ionicons_name="help-circle-outline" onPress={() => { viewHelp(1) }} />
-                        <FilledButton rightAlign primary text="Complete a SPE" onPress={() => { router.navigate("/SPE") }} />
+                        <FilledButton primary text="Complete a SPE" onPress={() => { router.navigate("/SPE") }} />
                     </View>
                 </MaterialCard>
                 <View style={{ gap: 16 }}>
@@ -163,7 +163,8 @@ const getStyles = (colorTheme) => {
         container: {
             backgroundColor: colorTheme.background,
             height: '100%',
-            alignSelf: 'center'
+            alignSelf: 'center',
+            width: '100%'
         },
         mainScroll: {
             paddingTop: 20,

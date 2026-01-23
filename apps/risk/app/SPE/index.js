@@ -15,9 +15,20 @@ export default function SPE() {
     // Use the risk assessment hook
     const { calculate, getResult, getItemResult } = useRiskAssessment(SPE_CONFIG);
 
-    const minimumScore = 1;
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
-    const [isModalVisible, setIsModalVisible] = useState(true);
+    useEffect(() => {
+        let isMounted = true;
+        // Workaround: Delay modal initialization by 150ms to prevent iOS UI freezing during screen transitions.
+        const modalDelayTimeout = setTimeout(() => {
+            if (isMounted) setIsModalVisible(true);
+        }, 150);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(modalDelayTimeout);
+        };
+    }, []);
     const [selectedEntry, setSelectedEntry] = useState(0);
     const [entries, setEntries] = useState([
         { title: "Severity", subtitle: "What is the potential loss or consequence due to this risk?", score: 0, description: "" },

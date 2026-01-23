@@ -37,7 +37,7 @@ export default function PEACE() {
 
     const { calculate, getResult, getItemResult } = useRiskAssessment(PEACE_USCG_ASHORE_CONFIG);
 
-    const [isModalVisible, setIsModalVisible] = useState(true);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const [isGainModalVisible, setIsGainModalVisible] = useState(false);
 
     // Modes
@@ -55,25 +55,47 @@ export default function PEACE() {
     const styles = getStyles(colorTheme, isLargeScreen);
 
     useEffect(() => {
+        let isMounted = true;
+        let modalTimeout;
+
         AsyncStorage.getItem("peace-input-mode").then((value) => {
-            if (value) setInputMode(JSON.parse(value));
+            if (isMounted && value) setInputMode(JSON.parse(value));
         });
 
         AsyncStorage.getItem("language-peace").then((value) => {
-            if (value) updateLanguage(JSON.parse(value));
+            if (isMounted && value) {
+                updateLanguage(JSON.parse(value));
+                // Workaround: Delay modal initialization by 150ms to prevent iOS UI freezing during screen transitions.
+                modalTimeout = setTimeout(() => {
+                    if (isMounted) setIsModalVisible(true);
+                }, 150);
+            }
         });
+
+        return () => {
+            isMounted = false;
+            if (modalTimeout) clearTimeout(modalTimeout);
+        };
     }, []);
 
     const updateLanguage = (lang) => {
         setLanguage(lang);
         if (lang) {
             setExplicitLanguageSet(true);
-            AsyncStorage.setItem("language-peace", JSON.stringify(lang));
             setEntries(lang === 'nasar' ? getNasarEntries() : getAshoreEntries());
             setSelectedEntry(0);
-            setIsModalVisible(true);
         }
-    }
+    };
+
+    const saveLanguage = (lang) => {
+        updateLanguage(lang);
+        if (lang) {
+            AsyncStorage.setItem("language-peace", JSON.stringify(lang));
+            setTimeout(() => {
+                setIsModalVisible(true);
+            }, 150);
+        }
+    };
 
     const onItemSelect = (index) => {
         setSelectedEntry(index);
@@ -303,9 +325,9 @@ export default function PEACE() {
             <View style={{ width: '100%', alignSelf: 'center' }}>
                 <MaterialCard title="Gain definitions" noMargin>
                     <View>
-                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>Low Gain:</Text> Routine training, PR, property recovery or evidence search. Use for low-risk conditions only.</Text>
-                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>Medium Gain:</Text> Stable patient or environment, noncritical injury or protecting significant property.</Text>
-                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>High Gain:</Text> Lifesaving opportunity, immediate threat to life or preventing permanent injury.</Text>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>• Low Gain:</Text> Routine training, PR, property recovery or evidence search. Use for low-risk conditions only.</Text>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>• Medium Gain:</Text> Stable patient or environment, noncritical injury or protecting significant property.</Text>
+                        <Text style={[textStyle.bodyMedium, { marginBottom: 4 }]}><Text style={{ fontWeight: 'bold' }}>• High Gain:</Text> Lifesaving opportunity, immediate threat to life or preventing permanent injury.</Text>
                     </View>
                 </MaterialCard>
             </View>
@@ -320,8 +342,8 @@ export default function PEACE() {
                     <View style={{ paddingBottom: 8, paddingHorizontal: 4, gap: 10 }}>
                         <Text style={{ color: colorTheme.onSurface, marginBottom: 15 }}>Different agencies use different definitions. You can change this later in Settings.</Text>
                         <BannerGroup marginHorizontal={0}>
-                            <Banner backgroundColor={colorTheme.surfaceContainerLow} color={colorTheme.onSurfaceVariant} icon={<Ionicons name="walk" size={24} color={colorTheme.onSurfaceVariant} />} title="NASAR" onPress={() => updateLanguage('nasar')} />
-                            <Banner backgroundColor={colorTheme.surfaceContainerLow} color={colorTheme.onSurfaceVariant} icon={<Ionicons name="boat" size={24} color={colorTheme.onSurfaceVariant} />} title="USCG Ashore" onPress={() => updateLanguage('uscg')} />
+                            <Banner backgroundColor={colorTheme.surfaceContainerLow} color={colorTheme.onSurfaceVariant} icon={<Ionicons name="walk" size={24} color={colorTheme.onSurfaceVariant} />} title="NASAR" onPress={() => saveLanguage('nasar')} />
+                            <Banner backgroundColor={colorTheme.surfaceContainerLow} color={colorTheme.onSurfaceVariant} icon={<Ionicons name="boat" size={24} color={colorTheme.onSurfaceVariant} />} title="USCG Ashore" onPress={() => saveLanguage('uscg')} />
                         </BannerGroup>
                     </View>
                 </RiskModal>
@@ -355,7 +377,7 @@ export default function PEACE() {
                 <TabContainer
                     items={[
                         { id: 'risk', label: 'Risk', icon: 'list', content: RiskView },
-                        { id: 'gain', label: 'Gain Assessment', icon: 'grid', content: GainView }
+                        { id: 'gain', label: 'Gain', icon: 'grid', content: GainView }
                     ]}
                     selectedId={activeTab}
                     onSelect={handleTabSelect}

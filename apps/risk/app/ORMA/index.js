@@ -11,7 +11,6 @@ import RiskHeader from '../../components/RiskHeader';
 import { ORMA_CONFIG } from '../../config/RiskStrategies';
 import { useRiskAssessment } from '../../hooks/useRiskAssessment';
 
-var modalDelayTimeout;
 
 export default function orma() {
     const { colorTheme, colorScheme } = useContext(ThemeContext);
@@ -30,29 +29,34 @@ export default function orma() {
     const [listStyle, setListStyle] = useState(null);
     const [explicitLanguageSet, setExplicitLanguageSet] = useState(false);
     useEffect(() => {
+        let isMounted = true;
+        let modalTimeout;
+
         // Get list display setting
         AsyncStorage.getItem("list-style").then((jsonValue) => {
-            jsonValue != null ? setListStyle(JSON.parse(jsonValue)) : setListStyle(null);
+            if (isMounted) jsonValue != null ? setListStyle(JSON.parse(jsonValue)) : setListStyle(null);
         }).catch((e) => {
             // error reading value
         });
 
         // Get language setting used for ORMA
         AsyncStorage.getItem("language-orma").then((jsonValue) => {
-            jsonValue != null ? updateLanguage(JSON.parse(jsonValue)) : updateLanguage(null);
+            if (isMounted) {
+                const parsedValue = jsonValue != null ? JSON.parse(jsonValue) : null;
+                updateLanguage(parsedValue);
+                if (parsedValue) {
+                    modalTimeout = setTimeout(() => {
+                        if (isMounted) setIsModalVisible(true);
+                    }, 150);
+                }
+            }
         }).catch((e) => {
             // error reading value
         });
 
-        // I'm not sure why, but if there the modal is immediately by useState(true), on iOS
-        // there is an issue where the modal will only partially load, causing the UI to get stuck.
-        // As a workaround, wait 150ms before launching the modal when the UI is shown
-        modalDelayTimeout = setTimeout(() => {
-            setIsModalVisible(true);
-        }, 150);
-
         return () => {
-            clearTimeout(modalDelayTimeout);
+            isMounted = false;
+            if (modalTimeout) clearTimeout(modalTimeout);
         };
     }, []);
 
@@ -102,6 +106,11 @@ export default function orma() {
 
     const saveLanguage = (value) => {
         updateLanguage(value);
+        if (value) {
+            setTimeout(() => {
+                setIsModalVisible(true);
+            }, 150);
+        }
         // Save language setting used for ORMA
         try {
             const jsonValue = JSON.stringify(value);

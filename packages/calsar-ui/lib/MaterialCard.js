@@ -63,18 +63,22 @@ var MaterialCard = exports.MaterialCard = function MaterialCard(_ref) {
     }).start();
   };
   var contents = /*#__PURE__*/(0, _jsxRuntime.jsxs)(_jsxRuntime.Fragment, {
-    children: [title && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-      style: [textStyle.cardTitleText, {
-        color: colorTheme.primary,
-        fontWeight: '700'
-      }],
-      children: title
-    }), subtitle && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-      style: [textStyle.text, {
-        marginTop: title ? 2 : 0,
-        color: colorTheme.onSurfaceVariant
-      }],
-      children: subtitle
+    children: [(title || subtitle) && /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
+      style: {
+        gap: 2
+      },
+      children: [title && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
+        style: [textStyle.cardTitleText, {
+          color: colorTheme.primary,
+          fontWeight: '700'
+        }],
+        children: title
+      }), subtitle && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
+        style: [textStyle.text, {
+          color: colorTheme.onSurfaceVariant
+        }],
+        children: subtitle
+      })]
     }), children]
   });
   var cardStyle = [styles.card, _objectSpread({
@@ -109,13 +113,13 @@ var MaterialCard = exports.MaterialCard = function MaterialCard(_ref) {
       },
       style: function style(_ref2) {
         var pressed = _ref2.pressed;
-        return [styles.pressable, {
+        return [styles.innerContainer, {
           backgroundColor: pressed && _reactNative.Platform.OS !== 'android' ? colorTheme.surfaceContainerHighest : 'transparent'
         }];
       },
       children: contents
     }) : /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
-      style: styles.contentContainer,
+      style: styles.innerContainer,
       children: contents
     })
   });
@@ -145,12 +149,7 @@ var cardStyles = function cardStyles() {
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
       }
     })),
-    pressable: {
-      flexGrow: 1,
-      padding: 24,
-      gap: 12
-    },
-    contentContainer: {
+    innerContainer: {
       flexGrow: 1,
       padding: 24,
       gap: 12

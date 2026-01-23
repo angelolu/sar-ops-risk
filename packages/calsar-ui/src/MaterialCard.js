@@ -33,8 +33,12 @@ export const MaterialCard = ({ title, subtitle, children, href = "", color, noMa
 
   const contents = (
     <>
-      {title && <Text style={[textStyle.cardTitleText, { color: colorTheme.primary, fontWeight: '700' }]}>{title}</Text>}
-      {subtitle && <Text style={[textStyle.text, { marginTop: title ? 2 : 0, color: colorTheme.onSurfaceVariant }]}>{subtitle}</Text>}
+      {(title || subtitle) && (
+        <View style={{ gap: 2 }}>
+          {title && <Text style={[textStyle.cardTitleText, { color: colorTheme.primary, fontWeight: '700' }]}>{title}</Text>}
+          {subtitle && <Text style={[textStyle.text, { color: colorTheme.onSurfaceVariant }]}>{subtitle}</Text>}
+        </View>
+      )}
       {children}
     </>
   );
@@ -62,14 +66,14 @@ export const MaterialCard = ({ title, subtitle, children, href = "", color, noMa
           onPress={() => { router.navigate(href) }}
           android_ripple={{ color: colorTheme.surfaceContainerHighest }}
           style={({ pressed }) => [
-            styles.pressable,
+            styles.innerContainer,
             { backgroundColor: (pressed && Platform.OS !== 'android') ? colorTheme.surfaceContainerHighest : 'transparent' }
           ]}
         >
           {contents}
         </Pressable>
       ) : (
-        <View style={styles.contentContainer}>
+        <View style={styles.innerContainer}>
           {contents}
         </View>
       )}
@@ -102,12 +106,7 @@ const cardStyles = () => {
         }
       })
     },
-    pressable: {
-      flexGrow: 1,
-      padding: 24,
-      gap: 12,
-    },
-    contentContainer: {
+    innerContainer: {
       flexGrow: 1,
       padding: 24,
       gap: 12,
