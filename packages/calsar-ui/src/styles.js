@@ -1,36 +1,16 @@
-import { ThemeContext } from "./ThemeContext";
-import { useContext } from "react";
-import { StyleSheet, useWindowDimensions } from 'react-native';
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
-import { Outfit_400Regular, Outfit_600SemiBold, Outfit_500Medium, useFonts } from '@expo-google-fonts/outfit';
+import { StyleSheet } from 'react-native';
 
 
-export const textStyles = () => {
-    const [loaded, error] = useFonts({
-        Outfit_600SemiBold,
-        Outfit_500Medium,
-        Outfit_400Regular,
-        Inter_400Regular,
-        Inter_500Medium,
-        Inter_600SemiBold,
-        Inter_700Bold
-    });
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
+export const textStyles = (colorTheme, width) => {
 
     // Use Outfit if size is over 20
 
     return StyleSheet.create({
+        // Custom / Legacy Styles (Review for deprecation)
         text: {
             fontSize: 14,
             color: colorTheme.onSurface,
             fontFamily: 'Inter_400Regular'
-        },
-        headerText: {
-            fontSize: 18,
-            color: colorTheme.onPrimaryContainer,
-            flex: -1,
-            fontFamily: 'Inter_500Medium'
         },
         chipText: {
             fontSize: 12,
@@ -46,10 +26,6 @@ export const textStyles = () => {
             fontSize: 14,
             color: colorTheme.onSurfaceVariant,
             fontFamily: 'Inter_400Regular'
-        },
-        buttonText: {
-            color: colorTheme.secondary,
-            fontFamily: 'Inter_500Medium'
         },
         cardTitleText: {
             fontSize: 20,
@@ -102,6 +78,7 @@ export const textStyles = () => {
             color: colorTheme.onBackground,
             fontFamily: 'Outfit_600SemiBold'
         },
+
         // MD3 Typography Scale
         displayLarge: {
             fontFamily: 'Outfit_400Regular',
@@ -146,7 +123,7 @@ export const textStyles = () => {
             color: colorTheme.onSurface,
         },
         titleLarge: {
-            fontFamily: 'Inter_400Regular',
+            fontFamily: 'Outfit_500Medium',
             fontSize: 22,
             lineHeight: 28,
             letterSpacing: 0,

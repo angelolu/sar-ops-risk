@@ -14,9 +14,10 @@ import { TimerComponent } from './TimerComponent';
 import { getAsyncStorageData, resetTeamTimeout } from './helperFunctions';
 
 export const LogPanel = ({ incidentInfo, teams }) => {
-    const styles = pageStyles();
-    const textStyle = textStyles();
     const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
     const { getLogsByFileId } = useContext(RxDBContext)
     const [logs, setLogs] = useState([]);
     const [typeFilter, setTypeFilter] = useState(0);
@@ -420,9 +421,9 @@ export const LogPanel = ({ incidentInfo, teams }) => {
 
     return (
         <>
-            <ScrollView contentContainerStyle={{ gap: 12, paddingTop: 20, paddingBottom: 20, paddingRight: 20, paddingLeft: 20 }} style={{ height: "100%" }}>
-                <View style={{ flexDirection: "column", gap: 14 }}>
-                    <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
+            <ScrollView contentContainerStyle={styles.scrollContent} style={styles.fullHeight}>
+                <View style={styles.verticalGap14}>
+                    <View style={styles.searchRow}>
                         <SearchBox placeholder="Search for..." onChangeText={(value) => setTextFilter(value.replace(/[^A-Za-z0-9]+/g, ''))} limit={20} />
                         <IconButton outline backgroundColor={colorTheme.background} ionicons_name={"share-outline"} text={"Export"} onPress={() => setModalShowing(true)} />
                     </View>
@@ -437,10 +438,10 @@ export const LogPanel = ({ incidentInfo, teams }) => {
                 </View>
                     :
                     <Animated.FlatList
-                        style={{ height: "100%" }}
+                        style={styles.fullHeight}
                         contentContainerStyle={styles.cardContainer}
                         data={paginatedLogs}
-                        renderItem={({ item }) => <View style={[styles.card, { flexDirection: "column", justifyContent: "flex-start", gap: 6, flexWrap: "nowrap" }]}>
+                        renderItem={({ item }) => <View style={styles.logCard}>
                             <LogRowSmall
                                 log={item}
                             />
@@ -489,9 +490,9 @@ export const LogPanel = ({ incidentInfo, teams }) => {
 }
 
 export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMarker }) => {
-    const styles = pageStyles();
     const { width, height } = useWindowDimensions();
     const { colorTheme, getHoverColor } = useContext(ThemeContext);
+    const styles = getStyles(colorTheme, width);
     const { createTeam } = useContext(RxDBContext)
 
     const [logTrafficTeam, setLogTrafficTeam] = useState();
@@ -527,10 +528,10 @@ export const CommsPanel = ({ incidentInfo, teams, editTeam, activeTeams, addMark
     };
 
     return (
-        <ScrollView contentContainerStyle={{ gap: 12, paddingTop: 20, paddingBottom: 20, paddingRight: 20, paddingLeft: 20 }} style={{ height: "100%" }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 14, alignItems: "center" }}>
+        <ScrollView contentContainerStyle={styles.scrollContent} style={styles.fullHeight}>
+            <View style={styles.headerRow}>
                 <Text style={styles.sectionTitle}></Text>
-                <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={styles.headerButtons}>
                     <FilledButton small={width <= 600 || height < 500} backgroundColor={activeTeams.length === 0 ? getHoverColor(colorTheme.onSurface, 0.3) : colorTheme.background} disabled={activeTeams.length === 0} icon={"radio-outline"} text={"All team traffic"} onPress={() => setAllTeamTrafficModalShowing(true)} />
                     <FilledButton small={width <= 600 || height < 500} backgroundColor={activeTeams.length === 0 ? getHoverColor(colorTheme.onSurface, 0.3) : colorTheme.background} disabled={activeTeams.length === 0} icon={areTimersRunning ? "pause" : "play"} text={areTimersRunning ? "Pause all" : "Resume all"} onPress={() => setAllIsRunning(!areTimersRunning)} />
                     <FilledButton small={width <= 600 || height < 500} primary icon="add" text={width > 600 ? "Ad-hoc team" : "Ad-hoc"} onPress={addAdHocTeam} />
@@ -598,7 +599,8 @@ const AllTeamTrafficComponent = ({ isVisible, onClose, incidentInfo }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { createLog } = useContext(RxDBContext);
 
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     const [customTextBoxText, setCustomTextBoxText] = useState("");
 
@@ -653,7 +655,7 @@ const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, updateStatus,
     const { getAssignmentsByFileId, getAssignmentById, getAssignmentsByTeamId, createAssignment, createClue, createLog, createCommsQueueMessage } = useContext(RxDBContext);
 
     const { width } = useWindowDimensions();
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     const [messageType, setMessageType] = useState(0);
     const [messageSubType, setMessageSubType] = useState(0);
@@ -1173,7 +1175,7 @@ const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, updateStatus,
                     </>}
                     {currentMessageCategories[messageType - 1] === "Task" && activeSubTypeKeys[messageSubType] === "Completed" &&
                         <View style={{ flexDirection: "row" }}>
-                            <TaskQueueText team={team} />
+                            <TaskQueueText team={team} colorTheme={colorTheme} width={width} />
                         </View>
                     }
                     <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'space-between', alignItems: "flex-end", paddingTop: 8 }}>
@@ -1187,14 +1189,14 @@ const LogTrafficComponent = ({ teams, team, incidentInfo, onClose, updateStatus,
     </RiskModal>);
 }
 
-const TaskQueueText = ({ team }) => {
+const TaskQueueText = ({ team, colorTheme, width }) => {
     const { getAssignmentById, getAssignmentsByTeamId } = useContext(RxDBContext);
 
     const [assignmentName, setAssignmentName] = useState("");
     const [allAssignments, setAllAssignments] = useState([]);
     const [loaded, setLoaded] = useState(false);
 
-    const textStyle = textStyles();
+    const textStyle = textStyles(colorTheme, width);
 
     useEffect(() => {
         let subscription, subscription2;
@@ -1246,11 +1248,38 @@ const TaskQueueText = ({ team }) => {
     </Text>
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
+const getStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
+        fullHeight: {
+            height: "100%"
+        },
+        scrollContent: {
+            gap: 12,
+            paddingTop: 20,
+            paddingBottom: 20,
+            paddingRight: 20,
+            paddingLeft: 20
+        },
+        verticalGap14: {
+            flexDirection: "column",
+            gap: 14
+        },
+        searchRow: {
+            flexDirection: "row",
+            gap: 12,
+            alignItems: "flex-start"
+        },
+        headerRow: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            gap: 14,
+            alignItems: "center"
+        },
+        headerButtons: {
+            flexDirection: "row",
+            gap: 12
+        },
         sectionTitle: {
             color: colorTheme.onBackground,
             fontSize: 20,
@@ -1283,6 +1312,17 @@ const pageStyles = () => {
             justifyContent: 'space-between',
             backgroundColor: colorTheme.surfaceContainer
         },
+        logCard: {
+            borderRadius: 4,
+            overflow: 'hidden',
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            flexDirection: "column",
+            justifyContent: "flex-start",
+            gap: 6,
+            flexWrap: "nowrap",
+            backgroundColor: colorTheme.surfaceContainer
+        },
         cardContainer: {
             gap: 2,
             borderRadius: 12,
@@ -1292,13 +1332,5 @@ const pageStyles = () => {
             fontSize: width > 600 ? 14 : 12,
             color: colorTheme.onSurface
         },
-        smallText: {
-            fontSize: width > 600 ? 12 : 10,
-            color: colorTheme.onSurface
-        },
-        sectionBodyTextSmall: {
-            fontSize: width > 600 ? 20 : 16,
-            color: colorTheme.onSurface
-        }
     });
 }

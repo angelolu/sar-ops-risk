@@ -14,8 +14,9 @@ const MapPanel = ({ markers, resizeRequest, resizeDone, removeMarker }) => {
 
     const { colorTheme, colorScheme } = useContext(ThemeContext);
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const styles = getStyles(colorTheme);
+    const textStyle = textStyles(colorTheme, width);
 
     const [mapMarkers, setMapMarkers] = useState([]);
     const [mapItems, setMapItems] = useState([]);
@@ -175,9 +176,9 @@ const MapPanel = ({ markers, resizeRequest, resizeDone, removeMarker }) => {
             currentMarkerType = marker.type;
             currentMarkerColor = marker.color;
         }
-        tempList.push(<View key={marker.id} style={{ flexDirection: "row", gap: 8, justifyContent: 'space-between', alignItems: 'center' }}>
+        tempList.push(<View key={marker.id} style={styles.markerRow}>
             <Pressable
-                style={{ flexDirection: "row", gap: 12, alignItems: 'center', flex: 1 }}
+                style={styles.markerInfo}
                 onPress={() => {
                     // Find the index of the marker in mapItems
                     const index = mapItems.findIndex(item => item.id === marker.id);
@@ -198,7 +199,7 @@ const MapPanel = ({ markers, resizeRequest, resizeDone, removeMarker }) => {
         markerList.push(tempList);
     }
     return (
-        <View style={{ height: '100%', width: '100%', flexDirection: 'column' }}>
+        <View style={styles.container}>
             <View
                 style={{ flex: sortedMapItems.length > 4 ? 2 : 3, width: '100%' }}
                 ref={mapContainerRef}
@@ -351,10 +352,14 @@ function parseNATOUTM(UTMString) {
 }
 
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const getStyles = (colorTheme) => {
 
     return StyleSheet.create({
+        container: {
+            height: '100%',
+            width: '100%',
+            flexDirection: 'column'
+        },
         background: {
             flex: 1,
             width: '100%',
@@ -371,6 +376,18 @@ const pageStyles = () => {
             width: 10,
             height: 10,
             borderRadius: 5,
+        },
+        markerRow: {
+            flexDirection: "row",
+            gap: 8,
+            justifyContent: 'space-between',
+            alignItems: 'center'
+        },
+        markerInfo: {
+            flexDirection: "row",
+            gap: 12,
+            alignItems: 'center',
+            flex: 1
         }
     });
 }

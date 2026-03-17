@@ -15,6 +15,9 @@ The Ops app is used for overhead management during a search operation. Features 
 
 They both use Expo and Expo App Services to support Android, iOS and web.
 
+# Getting started
+Run `yarn prepare-all` to install dependencies and transpile the `calsar-ui` package. Then run `yarn risk:dev` or `yarn ops:dev` to start the dev server.
+
 # Update architecture
 This app uses two different types of updates:
 
@@ -31,21 +34,32 @@ The Expo `production` channel is used by native apps built using the `production
 - EAS Update creates an update for the `preview` branch, which is used by the `preview` channel.
 
 ### Opening a PR to `main`
-- Web app deployed to Firebase Hosting with link added to the PR as a comment to check for functionality before submitting the PR. This preview expires in 7 days.
+- Both web apps will be deployed to Firebase Hosting with link added to the PR as a comment to check for functionality before submitting the PR. This preview expires in 7 days.
 
 ### Merging to `main`
-- Web app deployed to production on Firebase Hosting.
+- Both web apps will be deployed to production on Firebase Hosting.
 - EAS Update creates an update for the `main` branch, which is used by the `production` channel.
   - If the `version` property in `app.json` matches the one in production on app stores, users will get the update the next time they restart the app.
 
+# Working with calsar-ui
+The `calsar-ui` package contains shared components used by both the Risk and Ops apps. 
+
+Because `calsar-ui` is a local package, you must re-transpile it and restart the dev server whenever you make changes to its source code in the `src` directory so that the changes are picked up. To do this:
+
+1. Navigate to the root directory.
+2. Run `yarn run build:ui` to update the `packages/calsar-ui/lib` folder.
+3. Restart the dev server with `yarn risk:dev` or `yarn ops:dev`.
+4. **Important:** Always commit the updated `lib` files along with your changes to the `src` folder.
+
 # Contributing
 All contributions welcome! The intent is to keep this app lightweight and generally applicable for teams to use.
-1. Decide if the `version` property in `app.json` needs to be updated (major changes, native changes, etc.)
+1. If you've modified `calsar-ui`, ensure you've transpiled the package.
+2. Decide if the `version` property in `app.json` needs to be updated (major changes, native changes, etc.)
 2. Push to `preview`
-3. Open a PR to `main`. Check that the web page works.
+3. Open a PR to `main`. Check that the web pages work.
 4. Merge to `main`
-5. If the `version` property was bumped in 1, create iOS and Android builds and submit them to their respective app stores.
-    - Ideally, stash all changes
+5. If the `version` property was bumped in 1, create iOS and Android builds and submit them to their respective app stores. You can start this from the Expo UI or using the CLI:
+    - Stash all changes
     - `eas build --profile production --platform all`
     - `eas submit -p android`, `eas submit -p ios` or  `eas submit -p ios`
     - On Google Play Console, check the app works in the "Internal testing" track before promoting to the "Production" track.

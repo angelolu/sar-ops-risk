@@ -9,8 +9,9 @@ import { RxDBContext } from './RxDBContext';
 export const PrinterTab = ({ incidentInfo, setPrintType, printType, printTypes, printLogHeader, printLogFooter }) => {
     const { colorTheme } = useContext(ThemeContext);
     const { replicationStatus } = useContext(RxDBContext);
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
     const { isPrinterSupported,
         connectPrinter,
         disconnectPrinter,
@@ -162,8 +163,10 @@ export const PrinterTab = ({ incidentInfo, setPrintType, printType, printTypes, 
 }
 
 const KeyValue = ({ title, children, color }) => {
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     if (color) {
         return (<View style={{ flexDirection: "column", gap: 8, flex: 1 }}>
@@ -183,10 +186,7 @@ const KeyValue = ({ title, children, color }) => {
     }
 }
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
-    const { width } = useWindowDimensions();
-
+const getStyles = (colorTheme, width) => {
     return StyleSheet.create({
         standaloneCard: {
             borderRadius: 26,
@@ -200,10 +200,6 @@ const pageStyles = () => {
             gap: 12,
             justifyContent: 'space-between',
             backgroundColor: colorTheme.surfaceContainer
-        },
-        tileCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
         },
         circle: {
             width: 10,

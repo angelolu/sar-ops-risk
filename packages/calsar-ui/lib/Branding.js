@@ -5,13 +5,12 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.BrandingBar = BrandingBar;
-var _react = _interopRequireWildcard(require("react"));
+var _react = require("react");
 var _reactNative = require("react-native");
 var _reactNativeReanimated = _interopRequireWildcard(require("react-native-reanimated"));
 var _ThemeContext = require("./ThemeContext");
 var _jsxRuntime = require("react/jsx-runtime");
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, "default": e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
 var calsar = require('../assets/calsar_150.png');
 var bannerAnimationTimeout;
 var bannerHoverTimeout;
@@ -25,7 +24,9 @@ function BrandingBar(_ref) {
   var titleOpacity = (0, _reactNativeReanimated.useSharedValue)(0);
   var workmarkDisplay = (0, _reactNativeReanimated.useSharedValue)('flex');
   var titleDisplay = (0, _reactNativeReanimated.useSharedValue)('none');
-  var styles = brandingStyles();
+  var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
+    colorTheme = _useContext.colorTheme;
+  var styles = brandingStyles(colorTheme);
   var titleAnimatedStyle = (0, _reactNativeReanimated.useAnimatedStyle)(function () {
     return {
       opacity: titleOpacity.value,
@@ -162,9 +163,7 @@ function BrandingBar(_ref) {
     });
   }
 }
-var brandingStyles = function brandingStyles() {
-  var _useContext = (0, _react.useContext)(_ThemeContext.ThemeContext),
-    colorTheme = _useContext.colorTheme;
+var brandingStyles = function brandingStyles(colorTheme) {
   return _reactNative.StyleSheet.create({
     brandingBanner: {
       marginTop: 14,

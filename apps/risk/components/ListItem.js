@@ -1,13 +1,25 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useContext, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { Animated, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { ThemeContext } from 'calsar-ui';
+import { textStyles, ThemeContext } from 'calsar-ui';
 
-export default function ListItem({ onPress, title, subtitle, score, backgroundColor, color, description = "" }) {
+export default function ListItem({ onPress, title, subtitle, score, backgroundColor, color, description = "", round = false, first = false, last = false }) {
     const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     const [listStyle, setListStyle] = useState(null);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        Animated.spring(scaleAnim, { toValue: 0.98, useNativeDriver: true, speed: 20, bounciness: 0 }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(scaleAnim, { toValue: 1, friction: 4, tension: 100, useNativeDriver: true }).start();
+    };
+
     useEffect(() => {
         // Get language setting used for ORMA
         AsyncStorage.getItem("list-style").then((jsonValue) => {
@@ -17,53 +29,62 @@ export default function ListItem({ onPress, title, subtitle, score, backgroundCo
         });
     }, []);
 
-    let styles;
-
     if (listStyle === "legacy") {
-        styles = itemStylesClassic();
+        const styles = getStyles(colorTheme);
         return (
-            <View style={styles.listItemContainer}>
+            <Animated.View style={[styles.listItemContainer, { transform: [{ scale: scaleAnim }] }]}>
                 <Pressable
                     android_ripple={{ color: colorTheme.surfaceContainerHighest }}
-                    onPress={onPress}>
-                    <View style={[styles.row, { backgroundColor: backgroundColor ? backgroundColor : colorTheme.surface }]}>
-                        <View style={styles.textColumn}>
-                            <Text style={[styles.Title, { color: color ? color : colorTheme.onSurface }]}>{title}</Text>
-                            {subtitle && <Text style={{ color: color ? color : colorTheme.onSurfaceVariant }}>{subtitle}</Text>}
-                            {description !== "" && <Text style={{ marginTop: 4, marginLeft: 6, color: color ? color : colorTheme.onSurfaceVariant }}>- {description}</Text>}
-                        </View>
-                        <View>
-                            <Text style={[styles.score, { color: color ? color : colorTheme.onSurface }]}>{(score === 0 || score === '') ? "-" : score}</Text>
-                        </View>
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
+                    onPress={onPress}
+                    style={({ pressed }) => [
+                        styles.row,
+                        { backgroundColor: backgroundColor ? backgroundColor : colorTheme.surface },
+                        (pressed && Platform.OS !== 'android') && { backgroundColor: colorTheme.surfaceContainerHighest }
+                    ]}>
+                    <View style={styles.textColumn}>
+                        <Text style={[styles.Title, { color: color ? color : colorTheme.onSurface }]}>{title}</Text>
+                        {subtitle && <Text style={{ color: color ? color : colorTheme.onSurfaceVariant }}>{subtitle}</Text>}
+                        {description !== "" && <Text style={{ marginTop: 4, marginLeft: 6, color: color ? color : colorTheme.onSurfaceVariant }}>- {description}</Text>}
+                    </View>
+                    <View>
+                        <Text style={[styles.score, { color: color ? color : colorTheme.onSurface }]}>{(score === 0 || score === '') ? "-" : score}</Text>
                     </View>
                 </Pressable>
-            </View>
+            </Animated.View>
         );
     } else {
-        styles = itemStyles();
+        const textStyle = textStyles(colorTheme);
+        const styles = itemStyles(colorTheme);
         return (
-            <View>
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                 <Pressable
                     android_ripple={{ color: colorTheme.surfaceContainerHighest }}
-                    onPress={onPress}>
-                    <View style={styles.row}>
-                        <View style={[styles.littleBox, { backgroundColor: backgroundColor ? backgroundColor : colorTheme.surfaceVariant }]}>
-                            <Text style={[styles.score, { color: color ? color : colorTheme.white }]}>{(score && score !== 0) ? score : "-"}</Text>
-                        </View>
-                        <View style={styles.textColumn}>
-                            <Text style={styles.headline}>{title}</Text>
-                            {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-                            {description !== "" && <Text style={{ marginTop: 4, marginLeft: 6, color: colorTheme.onSurfaceVariant }}>- {description}</Text>}
-                        </View>
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
+                    onPress={onPress}
+                    style={({ pressed }) => [
+                        styles.row,
+                        (pressed && Platform.OS !== 'android') && { backgroundColor: colorTheme.surfaceContainerHighest },
+                        first && { borderTopRightRadius: 20, borderTopLeftRadius: 20, overflow: "hidden" },
+                        last && { borderBottomLeftRadius: 20, borderBottomRightRadius: 20, overflow: "hidden" }
+                    ]}>
+                    <View style={[styles.littleBox, { backgroundColor: backgroundColor ? backgroundColor : colorTheme.surfaceVariant }]}>
+                        <Text style={[textStyle.headlineSmall, { color: color ? color : colorTheme.white, textAlign: 'center', fontWeight: 'bold' }]}>{(score && score !== 0) ? score : "-"}</Text>
+                    </View>
+                    <View style={styles.textColumn}>
+                        <Text style={textStyle.titleLarge}>{title}</Text>
+                        {subtitle && <Text style={textStyle.bodyMedium}>{subtitle}</Text>}
+                        {description !== "" && <Text style={[textStyle.bodyMedium, { marginTop: 4, marginLeft: 6, color: colorTheme.onSurfaceVariant }]}>- {description}</Text>}
                     </View>
                 </Pressable>
-            </View>
+            </Animated.View>
         );
     }
 }
 
-const itemStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const itemStyles = (colorTheme) => {
 
     return StyleSheet.create({
         row: {
@@ -78,19 +99,7 @@ const itemStyles = () => {
         },
         textColumn: {
             flex: 1,
-        },
-        score: {
-            fontSize: 26,
-            fontWeight: 'bold',
-        },
-        headline: {
-            fontSize: 20,
-            color: colorTheme.onSurface
-        },
-        subtitle: {
-            fontSize: 14,
-            lineHeight: 20,
-            color: colorTheme.onSurfaceVariant
+            flexShrink: 1,
         },
         littleBox: {
             width: 56,
@@ -103,9 +112,7 @@ const itemStyles = () => {
     });
 }
 
-const itemStylesClassic = () => {
-    const { colorTheme } = useContext(ThemeContext);
-
+const getStyles = (colorTheme) => {
     return StyleSheet.create({
         listItemContainer: {
         },

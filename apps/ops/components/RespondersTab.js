@@ -36,8 +36,8 @@ const PeoplePanel = ({ fileId, notifyFileUpdated, teams }) => {
 
     const { width, height } = useWindowDimensions();
 
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const [people, setPeople] = useState([]);
     const [agencyList, setAgencyList] = useState([]);
@@ -185,8 +185,8 @@ const EquipmentPanel = ({ fileId, notifyFileUpdated, teams }) => {
     const [deletePerson, setDeletePerson] = useState(null);
     const [assignTeamPerson, setAssignTeamPerson] = useState(null);
     const [selectedEquipment, setSelectedEquipment] = useState(null);
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     useEffect(() => {
         // Load saved settings
@@ -304,8 +304,8 @@ export const TeamsPanel = ({ fileId, notifyFileUpdated, activeTeams, editTeam, i
     const { width, height } = useWindowDimensions();
     const { createTeam, removeTeam } = useContext(RxDBContext);
     const [deleteTeam, setDeleteTeam] = useState(null);
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const handleRemoveTeam = () => {
         removeTeam(deleteTeam);
@@ -394,7 +394,8 @@ export const TeamsPanel = ({ fileId, notifyFileUpdated, activeTeams, editTeam, i
 
 const Chip = ({ title, onCancel, color }) => {
     const { colorTheme } = useContext(ThemeContext);
-    const textStyle = textStyles();
+    const { width } = useWindowDimensions();
+    const textStyle = textStyles(colorTheme, width);
 
     return <View style={{ flexDirection: "row", gap: 8, height: 28, alignItems: "center", backgroundColor: color || colorTheme.surfaceContainer, paddingHorizontal: 12, borderRadius: 8 }}>
         <Text style={textStyle.chipText}>{title}</Text>
@@ -485,9 +486,9 @@ const AddPersonModal = ({ fileId, notifyFileUpdated, person, isVisible, onClose,
     };
 
     const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles();
-    const textStyle = textStyles();
     const { width } = useWindowDimensions();
+    const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
     const [formData, setFormData] = useState(initialFormState);
     const [errorMessage, setErrorMessage] = useState("");
     const { createPerson } = useContext(RxDBContext)
@@ -640,9 +641,9 @@ const AddEquipmentModal = ({ fileId, notifyFileUpdated, equipment, isVisible, on
     };
 
     const { colorTheme } = useContext(ThemeContext);
-    const styles = pageStyles();
-    const textStyle = textStyles();
     const { width } = useWindowDimensions();
+    // const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
     const [formData, setFormData] = useState(initialFormState);
     const [errorMessage, setErrorMessage] = useState("");
     const { createEquipment } = useContext(RxDBContext)
@@ -744,8 +745,10 @@ const AddEquipmentModal = ({ fileId, notifyFileUpdated, equipment, isVisible, on
 }
 
 const AssignTeamPersonModal = ({ fileId, notifyFileUpdated, person, onClose, teams }) => {
-    const styles = pageStyles();
-    const textStyle = textStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const { width } = useWindowDimensions();
+    // const styles = getStyles(colorTheme, width);
+    const textStyle = textStyles(colorTheme, width);
 
     const handleClose = () => {
         onClose();
@@ -772,21 +775,9 @@ const AssignTeamPersonModal = ({ fileId, notifyFileUpdated, person, onClose, tea
 }
 
 
-const pageStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const getStyles = (colorTheme, width) => {
 
     return StyleSheet.create({
-        standaloneCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
-            paddingHorizontal: 18,
-            paddingVertical: 16,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-            justifyContent: 'space-between',
-            backgroundColor: colorTheme.surfaceContainer
-        },
         card: {
             borderRadius: 4,
             overflow: 'hidden',
@@ -802,7 +793,6 @@ const pageStyles = () => {
         cardContainer: {
             gap: 4,
             borderRadius: 12,
-            //borderRadius: 26,
             overflow: 'hidden'
         },
         picker: {
@@ -814,17 +804,6 @@ const pageStyles = () => {
             backgroundColor: colorTheme.surfaceContainer,
             width: "100%",
             paddingHorizontal: 8
-        },
-        wideCard: {
-            paddingHorizontal: 8,
-            paddingVertical: 8,
-            borderRadius: 6,
-            backgroundColor: colorTheme.surfaceContainer,
-            flexDirection: "column",
-        },
-        tileCard: {
-            borderRadius: 26,
-            overflow: 'hidden',
-        },
+        }
     });
 }

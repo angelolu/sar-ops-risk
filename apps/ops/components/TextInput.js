@@ -7,7 +7,7 @@ export const SearchBox = ({ keyboardType, placeholder, initialValue, onChangeTex
 
     const [text, setText] = useState(initialValue || "");
     const [focused, setFocused] = useState(false)
-    const styles = textBoxStyles();
+    const styles = getStyles(colorTheme);
 
     const handleChangeText = (newText) => {
         setText(newText);
@@ -54,7 +54,8 @@ export const TextBox = ({
     const [suggestions, setSuggestions] = React.useState([]);
     const [selectedIndex, setSelectedIndex] = React.useState(-1);
 
-    const styles = textBoxStyles();
+    const { colorTheme } = useContext(ThemeContext);
+    const styles = getStyles(colorTheme);
 
     const handleChangeText = (newText) => {
         let isValid = true;
@@ -198,8 +199,7 @@ export const EditableText = ({ keyboardType, defaultValue, onChangeText, placeho
     }
 };
 
-const textBoxStyles = () => {
-    const { colorTheme } = useContext(ThemeContext);
+const getStyles = (colorTheme) => {
     return StyleSheet.create({
         input: {
             width: "100%",

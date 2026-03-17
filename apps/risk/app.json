@@ -2,7 +2,7 @@
   "expo": {
     "name": "Risk",
     "slug": "OpsRisk",
-    "version": "1.6.0",
+    "version": "1.6.2",
     "orientation": "default",
     "scheme": "calsar-risk",
     "icon": "./assets/icon.png",
@@ -22,7 +22,10 @@
           "backgroundColor": "#101418"
         }
       },
-      "bundleIdentifier": "org.ca-sar.risk"
+      "bundleIdentifier": "org.ca-sar.risk",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -48,7 +51,8 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-updates"
     ],
     "extra": {
       "router": {
