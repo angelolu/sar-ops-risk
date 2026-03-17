@@ -42,11 +42,7 @@ export default function Settings() {
         setLanguageState(value);
         saveData("language-orma", value);
     };
-    const [listStyleState, setListStyleState] = useState("new");
-    const saveListStyle = (value) => {
-        setListStyleState(value);
-        saveData("list-style", value);
-    };
+
     const [peaceInputState, setPeaceInputState] = useState("emoji");
     const savePeaceInput = (value) => {
         setPeaceInputState(value);
@@ -62,7 +58,7 @@ export default function Settings() {
         // Load saved settings
         getData("appearance").then((value) => { value && setAppearanceState(value) });
         getData("language-orma").then((value) => { value && setLanguageState(value) });
-        getData("list-style").then((value) => { value && setListStyleState(value) });
+
         getData("peace-input-mode").then((value) => { value && setPeaceInputState(value) });
         getData("language-peace").then((value) => { value && setLanguagePeaceState(value) });
     }, []);
@@ -181,25 +177,7 @@ export default function Settings() {
                         />
                     </BannerGroup>
                 </View>
-                <View style={styles.listContainer}>
-                    <Text style={styles.headings}>List style</Text>
-                    <BannerGroup gap={2} marginHorizontal={0}>
-                        <Banner
-                            backgroundColor={listStyleState === "new" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={listStyleState === "new" ? colorTheme.primary : disabledColor}
-                            icon={<Ionicons name="heart-circle" size={24} color={listStyleState === "new" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={listStyleState === "new" && { fontWeight: 'bold' }}>New</Text></>}
-                            onPress={() => { saveListStyle("new") }}
-                        />
-                        <Banner
-                            backgroundColor={listStyleState === "legacy" ? colorTheme.surfaceContainerHigh : colorTheme.surfaceContainerLow}
-                            color={listStyleState === "legacy" ? colorTheme.primary : disabledColor}
-                            icon={<MaterialIcons name="account-balance" size={24} color={listStyleState === "legacy" ? colorTheme.primary : disabledColor} />}
-                            title={<><Text style={listStyleState === "legacy" && { fontWeight: 'bold' }}>Legacy</Text> (NPS Risk)</>}
-                            onPress={() => { saveListStyle("legacy") }}
-                        />
-                    </BannerGroup>
-                </View>
+
             </ScrollView >
         </View >
     );
