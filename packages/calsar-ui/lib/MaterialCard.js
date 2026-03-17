@@ -75,7 +75,8 @@ var MaterialCard = exports.MaterialCard = function MaterialCard(_ref) {
         children: title
       }), subtitle && /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
         style: [textStyle.text, {
-          color: colorTheme.onSurfaceVariant
+          color: colorTheme.onSurfaceVariant,
+          flexShrink: 0
         }],
         children: subtitle
       })]

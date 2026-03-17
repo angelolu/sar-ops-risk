@@ -114,7 +114,7 @@ var FilledButton = exports.FilledButton = function FilledButton(_ref) {
       transform: [{
         scale: scaleAnim
       }],
-      flexShrink: 1
+      flexShrink: 0
     }],
     children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Pressable, {
       onHoverIn: function onHoverIn() {
@@ -150,7 +150,7 @@ var FilledButton = exports.FilledButton = function FilledButton(_ref) {
               height: 0.5
             },
             textShadowRadius: 0.5,
-            flexShrink: 1
+            flexShrink: 0
           }],
           numberOfLines: 1,
           children: text

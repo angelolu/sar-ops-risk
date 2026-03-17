@@ -88,7 +88,7 @@ export const FilledButton = ({
                 borderColor: finalBorderColor,
                 borderWidth: finalBorderWidth,
                 transform: [{ scale: scaleAnim }],
-                flexShrink: 1,
+                flexShrink: 0,
             }
         ]}>
             <Pressable
@@ -116,7 +116,7 @@ export const FilledButton = ({
                             textShadowColor: 'rgba(0, 0, 0, 0.05)',
                             textShadowOffset: { width: 0, height: 0.5 },
                             textShadowRadius: 0.5,
-                            flexShrink: 1,
+                            flexShrink: 0,
                         }
                     ]}
                     numberOfLines={1}

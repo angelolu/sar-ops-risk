@@ -36,7 +36,7 @@ export const MaterialCard = ({ title, subtitle, children, href = "", color, noMa
       {(title || subtitle) && (
         <View style={{ gap: 2 }}>
           {title && <Text style={[textStyle.cardTitleText, { color: colorTheme.primary, fontWeight: '700' }]}>{title}</Text>}
-          {subtitle && <Text style={[textStyle.text, { color: colorTheme.onSurfaceVariant }]}>{subtitle}</Text>}
+          {subtitle && <Text style={[textStyle.text, { color: colorTheme.onSurfaceVariant, flexShrink: 0 }]}>{subtitle}</Text>}
         </View>
       )}
       {children}
