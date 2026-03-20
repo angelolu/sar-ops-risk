@@ -1,9 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Banner, BannerGroup, BrandingBar, FilledButton, Header, IconButton, MaterialCard, RiskModal, ThemeContext, Tile, textStyles } from 'calsar-ui';
 import { router } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+
 import { Image, Platform, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { AboutModal } from '../components/AboutModal';
 
 const ORMAOptions = require('../assets/images/orma-options.jpg');
 
@@ -48,8 +51,21 @@ export default function App() {
     const styles = getStyles(colorTheme);
     const [modalHeight, setmodalHeight] = useState(1000);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isAboutModalVisible, setIsAboutModalVisible] = useState(false);
+    const [aboutModalDismissible, setAboutModalDismissible] = useState(true);
     const [selectedEntry, setSelectedEntry] = useState(<></>);
     const { height, width } = useWindowDimensions();
+
+    // Auto-show About modal on first launch
+    useEffect(() => {
+        AsyncStorage.getItem('hasSeenQuickstart').then((value) => {
+            if (!value) {
+                setAboutModalDismissible(false);
+                setIsAboutModalVisible(true);
+            }
+        });
+    }, []);
+
     const entries = [
         {
             title: "Operational Risk Management Analysis (ORMA)",
@@ -118,25 +134,12 @@ export default function App() {
                             href="settings"
                             icon={<Ionicons name="settings" size={20} />}
                             title="App settings"
-                            subtitle="Appearance, language"
+                            subtitle="Appearance, language, input style"
                         />
                         <Tile
-                            href="privacy"
-                            icon={<Ionicons name="shield-checkmark" size={20} />}
-                            title="Privacy policy"
-                        />
-                    </BannerGroup>
-                    <BannerGroup marginHorizontal={20}>
-                        <Tile
-                            href="https://www.cal-esar.org/"
-                            icon={<Ionicons name="open-outline" size={20} />}
-                            title="About CALSAR"
-                        />
-                        <Tile
-                            href="https://sites.google.com/cal-esar.org/members-only"
-                            icon={<Ionicons name="open-outline" size={20} />}
-                            title="Member portal"
-                            subtitle="Requires ca-sar.org login"
+                            onPress={() => setIsAboutModalVisible(true)}
+                            icon={<Ionicons name="information-circle" size={20} />}
+                            title="About this app"
                         />
                     </BannerGroup>
                 </View>
@@ -147,6 +150,15 @@ export default function App() {
                     onClose={onModalClose}>
                     {selectedEntry.content}
                 </RiskModal>
+                <AboutModal
+                    isVisible={isAboutModalVisible}
+                    dismissible={aboutModalDismissible}
+                    onClose={() => {
+                        setIsAboutModalVisible(false);
+                        // Reset to dismissible for any future voluntary opens
+                        setAboutModalDismissible(true);
+                    }}
+                />
                 <Text style={styles.footerText}>This isn't a substitute for proper leadership, supervision, or comprehensive search and rescue training.</Text>
             </ScrollView>
         </View>
