@@ -120,6 +120,11 @@ export default function App() {
                             title="App settings"
                             subtitle="Appearance, language"
                         />
+                        <Tile
+                            href="privacy"
+                            icon={<Ionicons name="shield-checkmark" size={20} />}
+                            title="Privacy policy"
+                        />
                     </BannerGroup>
                     <BannerGroup marginHorizontal={20}>
                         <Tile
