@@ -26,18 +26,11 @@ export default function orma() {
     const [entries, setEntries] = useState([]);
     const [isAdvancing, setIsAdvancing] = useState(false);
 
-    const [listStyle, setListStyle] = useState(null);
+
     const [explicitLanguageSet, setExplicitLanguageSet] = useState(false);
     useEffect(() => {
         let isMounted = true;
         let modalTimeout;
-
-        // Get list display setting
-        AsyncStorage.getItem("list-style").then((jsonValue) => {
-            if (isMounted) jsonValue != null ? setListStyle(JSON.parse(jsonValue)) : setListStyle(null);
-        }).catch((e) => {
-            // error reading value
-        });
 
         // Get language setting used for ORMA
         AsyncStorage.getItem("language-orma").then((jsonValue) => {
